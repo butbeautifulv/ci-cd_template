@@ -15,10 +15,13 @@ dast-zap:
       when: manual
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: manual
+  needs:
+    - job: deploy-preprod
+      optional: true
   script:
     - mkdir -p reports
     - zap-baseline.py -t "${PREPROD_URL}" -J reports/zap-baseline.json || true
-    - python scripts/gate-check.py --control dast --report reports/zap-baseline.json \
+    - python3 scripts/gate-check.py --control dast --report reports/zap-baseline.json \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   after_script:
     - command -v python3 >/dev/null || (apt-get update -qq && apt-get install -y -qq python3)

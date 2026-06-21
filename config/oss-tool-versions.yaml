@@ -26,6 +26,8 @@ images:
   python: "python:3.11.11-slim-bookworm"
   docker_cli: "docker:24.0.9-cli"
   docker_dind: "docker:24.0.9-dind"
+  cosign: "gcr.io/projectsigstore/cosign:v2.4.0"
+  alpine: "alpine:3.20.3"
 
 pip:
   checkov: "3.2.449"

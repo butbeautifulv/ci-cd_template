@@ -18,6 +18,9 @@ api-fuzz-schemathesis:
       when: manual
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: manual
+  needs:
+    - job: deploy-preprod
+      optional: true
   script:
     - mkdir -p reports
     - |

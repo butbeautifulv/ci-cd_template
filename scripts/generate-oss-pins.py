@@ -62,6 +62,8 @@ def render_gitlab_versions(m: dict[str, dict[str, str]]) -> str:
         f'  OSS_PYTHON_IMAGE: "{img["python"]}"',
         f'  OSS_DOCKER_CLI_IMAGE: "{img["docker_cli"]}"',
         f'  OSS_DOCKER_DIND_IMAGE: "{img["docker_dind"]}"',
+        f'  OSS_COSIGN_IMAGE: "{img["cosign"]}"',
+        f'  OSS_ALPINE_IMAGE: "{img["alpine"]}"',
         f'  OSS_CHECKOV_VERSION: "{pip["checkov"]}"',
         f'  OSS_RUFF_VERSION: "{pip["ruff"]}"',
         "",

@@ -43,6 +43,9 @@ controls:
   dast:
     scan_type: "ZAP Scan"
     test_title: "dast-zap"
+  iast:
+    scan_type: "ZAP Scan"
+    test_title: "iast-zap-full"
   fuzzing:
     scan_type: "JUnit Test"
     test_title: "api-fuzz-schemathesis"

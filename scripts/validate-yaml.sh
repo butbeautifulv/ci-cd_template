@@ -57,4 +57,5 @@ bash scripts/validate-oss-pins.sh || fail=1
 bash scripts/validate-pin-sync.sh || fail=1
 bash scripts/validate-registry-config.sh || fail=1
 bash scripts/validate-github-oss.sh || fail=1
+bash scripts/validate-gitlab-oss.sh || fail=1
 exit $fail

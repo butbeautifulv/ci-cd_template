@@ -19,5 +19,7 @@ variables:
   OSS_PYTHON_IMAGE: "python:3.11.11-slim-bookworm"
   OSS_DOCKER_CLI_IMAGE: "docker:24.0.9-cli"
   OSS_DOCKER_DIND_IMAGE: "docker:24.0.9-dind"
+  OSS_COSIGN_IMAGE: "gcr.io/projectsigstore/cosign:v2.4.0"
+  OSS_ALPINE_IMAGE: "alpine:3.20.3"
   OSS_CHECKOV_VERSION: "3.2.449"
   OSS_RUFF_VERSION: "0.11.8"

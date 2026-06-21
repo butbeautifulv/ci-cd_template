@@ -2,7 +2,7 @@
 
 sign-image:
   stage: post-deploy
-  image: gcr.io/projectsigstore/cosign:v2.4.0
+  image: ${OSS_COSIGN_IMAGE:-gcr.io/projectsigstore/cosign:v2.4.0}
   extends: .registry_login
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

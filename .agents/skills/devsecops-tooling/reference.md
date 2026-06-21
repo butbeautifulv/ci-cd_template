@@ -15,7 +15,7 @@ See oss-full-shared table; producers under `templates/gitlab/jobs/` and `templat
 | RASP | OpenRASP, Falco (container) | [F2-rasp-waf.md](../../docs/phases/F2-rasp-waf.md), [k8s/runtime/](../../templates/k8s/runtime/) |
 | WAF | ModSecurity, CRS | F2 runbook |
 | API Sec | 42Crunch, Gravitee, QAPISec, StackHawk | F2 runbook; supplement |
-| IAST | — (commercial: Contrast, Seeker) | [F1-iast.md](../../docs/phases/F1-iast.md), `iast-preprod.*` stub |
+| IAST | ZAP Full Scan (+ commercial optional) | [F1-iast.md](../../docs/phases/F1-iast.md), `iast-preprod.*` |
 | CWPP | Falco, kube-bench | [E3-falco.md](../../docs/phases/E3-falco.md) |
 | Admission | Kyverno, OPA, Conftest | [k8s/admission/](../../templates/k8s/admission/) |
 | Network | Cilium, NetworkPolicy | [k8s/network/](../../templates/k8s/network/) |

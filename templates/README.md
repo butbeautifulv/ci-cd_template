@@ -16,7 +16,7 @@
 | `supply-chain` | + C1–C4 | + sbom/scan/sign | + C* | + SBOM required on main |
 | `full` | all jobs | + DAST/preprod/nightly | + D*, F* | + DAST/sec-func warn |
 | **`ai-ml`** | shift-left + AI/ML jobs | + skill/MCP/ML scans | AI1–AI2, ML1–ML2 | PII **block**; AI **warn** |
-| **`oss-full`** | 100% OSS (full B–F scope) + Helm | OSS gates + GHCR + conftest/DAST/nightly | B–F (no IAST) | GitLab CE / GitHub; docker-only scanners |
+| **`oss-full`** | 100% OSS (full B–F scope) + Helm | OSS gates + GHCR + conftest/DAST/IAST/fuzz/nightly | B–F incl. F1 ZAP full | GitLab CE / GitHub; docker-only scanners |
 
 `ENABLE_REAL_LINTERS=false` by default — except **`oss-full`** (`true`).
 
@@ -75,6 +75,7 @@ pre-commit install
 ```bash
 bash scripts/validate-yaml.sh
 bash scripts/validate-github-oss.sh
+bash scripts/validate-gitlab-oss.sh
 python scripts/gate-check.py --control sast --report /tmp/test.sarif
 ```
 

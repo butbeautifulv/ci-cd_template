@@ -19,7 +19,7 @@
 | **Fuzzing (API)** | Test | QA / Preprod | OpenAPI/API | финтех | — | `jobs/api-fuzz-schemathesis.*` | D1 API |
 | **Fuzzing (binary)** | Test | QA | C/Go/JVM | финтех | — | `jobs/binary-fuzz.*` | QA |
 | **Sec func tests** | Test | Preprod | Auth, headers | `T-PREPROD-SECTEST` | — | `jobs/sec-func-tests.*` | D2 |
-| **IAST** | Test | Preprod | Runtime app | финтех | — | `jobs/iast-preprod.*` | F1 optional |
+| **IAST** | Test | Preprod | Runtime app | финтех | — | `jobs/iast-preprod.*` | F1 implemented (OSS ZAP full) |
 | **ASTO** | All | Все этапы | SARIF агрегация | `P-DEFECT-CNS` | — | `jobs/aspm/*`, `aspm-export.py` | oss-full |
 | **WAF/API** | Deploy, Operate | Prod edge | L7, API | `T-PROD-NETWORK` | Gen L4/L7 | runbook F2 | out-of-CI |
 | **RASP** | Deploy, Operate | Prod runtime | Атаки в app | `T-PROD-EVENTS` | `cont` | runbook F2 | out-of-CI |
