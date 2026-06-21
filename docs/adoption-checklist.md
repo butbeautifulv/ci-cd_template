@@ -35,13 +35,15 @@ GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`.
 - [ ] `REGISTRY` / `ghcr.io` credentials
 - [ ] `ENABLE_REAL_LINTERS=true` при готовности
 - [ ] Pre-commit: `templates/pre-commit/.pre-commit-config.yaml`
-- [ ] Self-validation: `bash scripts/validate-yaml.sh`, `python3 scripts/validate-policy.py`
+- [ ] Self-validation: `bash scripts/validate-yaml.sh`, `python3 scripts/validate-policy.py`, `bash scripts/validate-oss-pins.sh`, `bash scripts/validate-registry-config.sh`
+- [ ] Registry backend: GitLab (default) или Nexus/Harbor — [runbooks/nexus-docker-registry.md](runbooks/nexus-docker-registry.md)
 
 ## 5. Gates (shift-left)
 
 | Control | Mode | Blocks MR? |
 |---------|------|------------|
-| SAST / SCA / IaC | block C/H | yes |
+| SAST / OSA / IaC | block C/H | yes |
+| SCA (image) | block C/H on main | yes |
 | Secrets / Dockerfile / Linters | warn | no (`allow_failure`) |
 | Forbidden files | warn | no |
 
@@ -53,7 +55,8 @@ Policy: [config/security-gate-policy.yaml](../config/security-gate-policy.yaml)
 |------|----------|
 | B1 | Secret scan + gate-check |
 | B2 | SAST SARIF, block C/H |
-| B3 | SCA block critical |
+| B3 | OSA block critical (manifests) |
+| C2 | SCA block critical/high (image) |
 | B4 | IaC block C/H |
 | B5 | Dockerfile hadolint (warn) |
 | B6 | [B6-linter-security.md](phases/B6-linter-security.md) |
@@ -75,9 +78,11 @@ python3 ../../scripts/gate-check.py --control sast --report /path/to/report.sari
 # локальные сканы — см. examples/sample-app/README.md
 ```
 
-## 8. ASTO
+## 8. ASTO / ASPM
 
-- [ ] SARIF → DefectDojo / трекер
+- [ ] `DEFECTDOJO_URL` + `DEFECTDOJO_API_TOKEN` in CI/CD variables
+- [ ] Review mapping in `config/aspm-export.yaml`
+- [ ] Runbook: [runbooks/aspm-export.md](runbooks/aspm-export.md)
 - [ ] SLA на findings
 
 ## 9. Compliance / audits
@@ -97,7 +102,13 @@ Performance, Chaos ([F4-resilience.md](phases/F4-resilience.md)), PKI ([runbooks
 - [ ] AI1 skills — [phases/AI1-skill-scan.md](phases/AI1-skill-scan.md)
 - [ ] Runtime — [runbooks/ai-runtime-guardrails.md](runbooks/ai-runtime-guardrails.md)
 
-## 12. Документы организации
+## 12. OSS tool pins (profile `oss-full`)
+
+- [ ] `config/oss-tool-versions.yaml` copied on adopt
+- [ ] `bash scripts/validate-oss-pins.sh` passes (no `:latest` / Trivy `main`)
+- [ ] Runbook: [runbooks/oss-tool-pinning.md](runbooks/oss-tool-pinning.md)
+
+## 13. Документы организации
 
 - [ ] [07-governance-and-docs.md](07-governance-and-docs.md) — регламенты DSO
 

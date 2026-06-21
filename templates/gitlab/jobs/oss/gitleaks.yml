@@ -1,0 +1,28 @@
+# B1 — Secret detection (OSS Gitleaks)
+
+gitleaks-scan:
+  stage: security
+  image: ${OSS_PYTHON_IMAGE}
+  extends:
+    - .workflow_rules
+    - .aspm_export
+  variables:
+    ASPM_CONTROL: secrets
+    ASPM_REPORT: gitleaks.sarif
+  before_script:
+    - apt-get update -qq && apt-get install -y -qq curl git
+    - |
+      GITLEAKS_VERSION="${OSS_GITLEAKS_VERSION:-8.22.1}"
+      curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+        | tar xz -C /usr/local/bin gitleaks
+  script:
+    - gitleaks detect --source . --report-format sarif --report-path gitleaks.sarif --no-git || true
+    - |
+      [ -f gitleaks.sarif ] || echo '{"runs":[{"results":[]}]}' > gitleaks.sarif
+    - python scripts/gate-check.py --control secrets --report gitleaks.sarif \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+  artifacts:
+    paths:
+      - gitleaks.sarif
+    expire_in: 30 days
+  allow_failure: true

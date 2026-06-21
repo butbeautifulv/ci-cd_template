@@ -10,6 +10,7 @@ REQUIRED = {
     "defaults": ["severity_block"],
     "secrets": ["mode"],
     "sast": ["mode", "severity_block"],
+    "osa": ["mode"],
     "sca": ["mode"],
     "iac": ["mode", "paths"],
     "dockerfile": ["mode"],
@@ -18,6 +19,9 @@ REQUIRED = {
     "container": ["mode"],
     "dast": ["mode"],
     "sec_func_tests": ["min_automated_percent"],
+    "aspm_export": ["mode", "backend"],
+    "tooling_pins": ["forbid_image_tags", "manifest"],
+    "artifact_registry": ["default_backend", "allowed_backends", "manifest"],
 }
 
 

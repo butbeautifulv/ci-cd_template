@@ -3,20 +3,26 @@
 dast-zap:
   stage: post-deploy
   image:
-    name: ghcr.io/zaproxy/zaproxy:stable
+    name: ghcr.io/zaproxy/zaproxy:2.16.0
     entrypoint: [""]
+  extends: .aspm_export
+  variables:
+    PREPROD_URL: "https://preprod.example.com"
+    ASPM_CONTROL: dast
+    ASPM_REPORT: reports/zap-baseline.json
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       when: manual
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       when: manual
-  variables:
-    PREPROD_URL: "https://preprod.example.com"
   script:
     - mkdir -p reports
     - zap-baseline.py -t "${PREPROD_URL}" -J reports/zap-baseline.json || true
     - python scripts/gate-check.py --control dast --report reports/zap-baseline.json \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+  after_script:
+    - command -v python3 >/dev/null || (apt-get update -qq && apt-get install -y -qq python3)
+    - !reference [.aspm_export, after_script]
   artifacts:
     paths:
       - reports/zap-baseline.json

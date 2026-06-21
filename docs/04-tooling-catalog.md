@@ -12,6 +12,8 @@
 
 **Рекомендация шаблона:** GitLab SAST / CodeQL + Semgrep OSS для кастомных правил.
 
+**Profile `oss-full`:** job `semgrep-sast` (`.gitlab/jobs/oss/semgrep-sast.yml`).
+
 ## Linters (security gate)
 
 | Tier | Примеры |
@@ -28,6 +30,15 @@
 | builtin | GitLab Secret Detection |
 | oss | Gitleaks, detect-secrets, git-secrets, TruffleHog |
 | commercial | GitGuardian |
+
+**Profile `oss-full`:** job `gitleaks-scan` (`.gitlab/jobs/oss/gitleaks.yml`).
+
+## OSA / SCA split (DAF)
+
+| Control | Stage | Target | Policy key | oss-full job |
+|---------|-------|--------|------------|--------------|
+| **OSA** | MR / Code | Manifests | `osa:` | `trivy-osa` |
+| **SCA** | Build post-SBOM | Container image | `sca:` | `trivy-sca` |
 
 ## OSA / SCA / SBOM
 
@@ -125,6 +136,8 @@ Hadolint, Checkov dockerfile, Dockle — см. `T-CODE-DOCKERFS`, JCSF **Dock**.
 
 **ASTO** — агрегатор уязвимостей из SAST/DAST/SCA (финтех-PDF); SARIF — точка интеграции.
 
+Template: [`scripts/aspm-export.py`](../scripts/aspm-export.py) + [`config/aspm-export.yaml`](../config/aspm-export.yaml) → DefectDojo `import-scan` / `reimport-scan`.
+
 ## Codec / обфускация (PDF)
 
 ProGuard, DexGuard — для mobile; вне scope базового шаблона.
@@ -140,7 +153,8 @@ ProGuard, DexGuard — для mobile; вне scope базового шаблон
 | SAST | SAST template | CodeQL |
 | Linters | Code-Quality / custom | super-linter / language linters |
 | Secrets | Secret-Detection | Gitleaks action |
-| SCA | Dependency-Scanning | dependency-review + Trivy fs |
+| SCA | Dependency-Scanning | dependency-review + Trivy fs (→ **OSA**) |
+| SCA image | Container Scanning | Trivy image (→ **SCA** post-SBOM) |
 | IaC | IaC-Scanning | Checkov action |
 | Container | Container-Scanning | Trivy action |
 | DAST | DAST template (license) | ZAP action |

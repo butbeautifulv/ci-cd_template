@@ -1,0 +1,40 @@
+# B4 — IaC scanning (OSS Checkov)
+
+checkov-iac:
+  stage: security
+  image: ${OSS_PYTHON_IMAGE}
+  extends: .aspm_export
+  variables:
+    ASPM_CONTROL: iac
+    ASPM_REPORT: reports/checkov.sarif
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.tf"
+        - "**/k8s/**"
+        - "**/helm/**"
+        - "**/chart/**"
+        - "docker-compose*.yml"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - "**/*.tf"
+        - "**/k8s/**"
+        - "**/helm/**"
+        - "**/chart/**"
+        - "docker-compose*.yml"
+  script:
+    - pip install -q "checkov==${OSS_CHECKOV_VERSION:-3.2.449}"
+    - mkdir -p reports
+    - checkov -d . --framework terraform,kubernetes,helm,dockerfile --soft-fail \
+        --output sarif --output-file-path reports || true
+    - |
+      REPORT=reports/results_sarif.sarif
+      [ -f "$REPORT" ] || REPORT=reports/checkov.sarif
+      [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > reports/checkov.sarif
+      [ -f reports/checkov.sarif ] || cp "$REPORT" reports/checkov.sarif
+    - python scripts/gate-check.py --control iac --report reports/checkov.sarif \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+  artifacts:
+    paths:
+      - reports/
+    expire_in: 30 days

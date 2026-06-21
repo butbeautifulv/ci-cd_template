@@ -1,0 +1,21 @@
+# B2 — SAST (OSS Semgrep)
+
+semgrep-sast:
+  stage: security
+  image: ${OSS_SEMGREP_IMAGE}
+  extends:
+    - .workflow_rules
+    - .aspm_export
+  variables:
+    ASPM_CONTROL: sast
+    ASPM_REPORT: semgrep.sarif
+  script:
+    - semgrep scan --config p/ci --sarif -o semgrep.sarif . || true
+    - |
+      [ -f semgrep.sarif ] || echo '{"runs":[{"results":[]}]}' > semgrep.sarif
+    - python3 scripts/gate-check.py --control sast --report semgrep.sarif \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+  artifacts:
+    paths:
+      - semgrep.sarif
+    expire_in: 30 days

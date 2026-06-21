@@ -1,34 +1,9 @@
+# Backward-compatible include — B3 OSA (manifest scan)
 name: SCA
 
 on:
   workflow_call:
 
 jobs:
-  dependency-review:
-    if: github.event_name == 'pull_request'
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/dependency-review-action@v4
-        with:
-          fail-on-severity: high
-
-  trivy-fs:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: aquasecurity/trivy-action@0.28.0
-        with:
-          scan-type: fs
-          scan-ref: .
-          severity: CRITICAL,HIGH
-          format: sarif
-          output: trivy-fs.sarif
-          exit-code: "0"
-      - name: Gate check
-        run: python scripts/gate-check.py --control sca --report trivy-fs.sarif
-      - uses: github/codeql-action/upload-sarif@v3
-        if: always()
-        with:
-          sarif_file: trivy-fs.sarif
-          category: sca
+  osa:
+    uses: ./.github/workflows/jobs/osa.yml

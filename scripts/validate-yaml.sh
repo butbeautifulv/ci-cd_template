@@ -36,4 +36,6 @@ PY
 fi
 
 python3 scripts/validate-policy.py || fail=1
+bash scripts/validate-oss-pins.sh || fail=1
+bash scripts/validate-registry-config.sh || fail=1
 exit $fail

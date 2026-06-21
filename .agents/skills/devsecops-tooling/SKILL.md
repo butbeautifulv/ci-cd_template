@@ -10,7 +10,18 @@ description: >-
 
 Source: `docs/references/extracts/tools-map-pdf.txt`
 
-Repo: `docs/04-tooling-catalog.md`, `config/security-gate-policy.yaml`.
+Repo: `docs/04-tooling-catalog.md`, `config/security-gate-policy.yaml`, `config/aspm-export.yaml`.
+
+## ASPM export (oss-full)
+
+```bash
+python3 scripts/aspm-export.py --control sast --report semgrep.sarif
+```
+
+- Config: `config/aspm-export.yaml` — control → DefectDojo `scan_type`
+- GitLab: `.gitlab/jobs/aspm/export-after-script.yml` (per-scan `after_script`)
+- Requires: `DEFECTDOJO_URL`, `DEFECTDOJO_API_TOKEN`
+- Runbook: `docs/runbooks/aspm-export.md`
 
 Tier: **builtin** (platform), **oss**, **commercial**.
 
@@ -25,7 +36,7 @@ Tier: **builtin** (platform), **oss**, **commercial**.
 | IaC | IaC Scanning | Checkov |
 | Container | Container Scanning | Trivy |
 | DAST | DAST (license) | ZAP action |
-| ASPM | DefectDojo | SARIF → DefectDojo |
+| ASPM | DefectDojo (`aspm-export.py`) | SARIF → DefectDojo |
 
 ## Classes (summary)
 

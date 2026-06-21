@@ -9,17 +9,17 @@
 | **Linters** | Code | IDE, MR | Style + security rules | `T-DEV-SRC` | — | custom / Code-Quality | baseline |
 | **SAST** | Code, Test | IDE, MR, nightly | Исходный код | `T-CODE-SST` | — | `jobs/sast.*` | baseline |
 | **Secret scan** | Code | SCM, MR | Код, IaC | `T-CODE-SECDN` | — | `jobs/secret-scan.*` | baseline |
-| **OSA/SCA** | Code, Build, Monitor | MR, build, runtime | Зависимости, SBOM | `T-CODE-SC`, `T-ADI-DEP` | — | `jobs/sca.*` | baseline |
+| **OSA** | Code | MR | Манифесты зависимостей | `T-CODE-SC` | — | `jobs/osa.*` | B3 |
+| **SCA** | Build | main post-SBOM | Образ контейнера | `T-CODE-SC`, `T-CODE-IMG` | `img` | `jobs/container-scan.*`, `oss/trivy-sca` | C2 |
 | **IaC scan** | Code, Test | MR, pre-deploy | tf, k8s, helm | `T-PREPROD-MANSEC` | `man` | `jobs/iac-scan.*` | baseline |
 | **Dockerfile** | Build | MR (paths) | Dockerfile | `T-CODE-DOCKERFS` | `Dock` | `jobs/dockerfile-lint.*` | baseline |
-| **Container scan** | Build | Build, registry | Образы CVE | `T-CODE-IMG` | `img` | `jobs/container-scan.*` | C2 |
 | **SBOM** | Build | Build | CycloneDX | `T-ADI-ART-3-1` | — | `jobs/sbom.*` | C1 |
 | **Signing** | Release | Build | cosign | `T-ADI-ART-4-*` | — | `jobs/sign.*` | C4 |
 | **DAST** | Test | Preprod | Web/API | `T-PREPROD-DAST` | — | `jobs/dast.*` | D1 |
 | **Fuzzing** | Test | QA | Бинарники, API | финтех | — | doc / optional job | out-of-base |
 | **Sec func tests** | Test | Preprod | Auth, headers | `T-PREPROD-SECTEST` | — | `jobs/sec-func-tests.*` | D2 |
 | **IAST** | Test | Preprod | Runtime app | финтех | — | `jobs/iast-preprod.*` | F1 optional |
-| **ASTO** | All | Все этапы | SARIF агрегация | `P-DEFECT-CNS` | — | DefectDojo / ASPM | process |
+| **ASTO** | All | Все этапы | SARIF агрегация | `P-DEFECT-CNS` | — | `jobs/aspm/*`, `aspm-export.py` | oss-full |
 | **WAF/API** | Deploy, Operate | Prod edge | L7, API | `T-PROD-NETWORK` | Gen L4/L7 | runbook F2 | out-of-CI |
 | **RASP** | Deploy, Operate | Prod runtime | Атаки в app | `T-PROD-EVENTS` | `cont` | runbook F2 | out-of-CI |
 | **K8s admission** | Deploy | Prod deploy | Pods, policies | `T-PROD-RUN` | `orchr` | `k8s/admission/` | E1 |
@@ -64,7 +64,7 @@
 | Практика | Реализация |
 |----------|------------|
 | `P-DEFECT-MNG` | SLA в трекере, SecChamp triage |
-| `P-DEFECT-CNS` | SARIF → DefectDojo / Jit / AppSec.Track |
+| `P-DEFECT-CNS` | SARIF → DefectDojo via `scripts/aspm-export.py` per scan job |
 | Размеченный SAST | SecChamp помечает false positive до merge |
 
 ## Ignore-файлы

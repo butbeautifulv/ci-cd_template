@@ -19,8 +19,8 @@
 
 | Стадия | Контроли | Gate policy |
 |--------|----------|-------------|
-| MR/PR | secrets, SAST, SCA, IaC, Dockerfile | `config/security-gate-policy.yaml` |
-| main build | + full SAST, SBOM, container scan, sign | block on missing SBOM |
+| MR/PR | secrets, SAST, **OSA**, IaC, Dockerfile | `config/security-gate-policy.yaml` |
+| main build | + full SAST, SBOM, **SCA** (image), sign | block on missing SBOM |
 | preprod | DAST, sec func tests | warn → block по накопленному debt |
 | release | pentest checklist, SecChamp | manual approve |
 | prod | admission, WAF (вне repo CI) | runtime |
@@ -38,12 +38,12 @@ flowchart LR
     Lint[linters]
     SAST[SAST]
     Secrets[secret_scan]
-    SCA[OSA_SCA_SBOM]
+    SCA[OSA_manifests]
     IaC[iac_scan]
     Docker[dockerfile_scan]
     Unit[unit_tests]
     BuildJob[build_sign]
-    ImgScan[container_scan]
+    ImgScan[SCA_image]
   end
   subgraph preprod [Preprod_QA]
     DeployPre[deploy_preprod]

@@ -2,7 +2,7 @@
 
 nightly-sast-scheduled:
   stage: security
-  image: returntocorp/semgrep:latest
+  image: ${OSS_SEMGREP_IMAGE}
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   script:

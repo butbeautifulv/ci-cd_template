@@ -12,4 +12,6 @@ variables:
   ENABLE_REAL_LINTERS: "false"
 
 include:
+  - local: '/templates/gitlab/jobs/registry/variables.yml'
+  - local: '/templates/gitlab/jobs/registry/login.yml'
   - local: '/templates/gitlab/jobs/_base.yml'

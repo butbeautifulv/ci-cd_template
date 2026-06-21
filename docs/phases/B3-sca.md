@@ -1,25 +1,5 @@
-# B3 — OSA/SCA
+# B3 — (deprecated name)
 
-## Цель
+Переименовано в **[B3-osa.md](B3-osa.md)** — OSA (манifest scan на MR).
 
-Анализ зависимостей + SBOM draft.
-
-## DAF
-
-- `T-CODE-SC-2-4`, `T-ADI-DEP-3-2`, `T-ADI-DEP-1-5`
-
-## Файлы PR
-
-- `templates/gitlab/jobs/sca.yml`
-- `templates/github/workflows/jobs/sca.yml`
-- `templates/github/dependabot.yml`
-- `config/security-gate-policy.yaml` → `sca:`
-- `docs/phases/B3-sca.md`
-
-## Gate
-
-Block Critical в прямых зависимостях; транзитивные — warn.
-
-## Rollback
-
-Remove sca job + dependabot.
+SCA (образ контейнера) — см. **[C2-image-scan.md](C2-image-scan.md)**.

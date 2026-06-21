@@ -1,5 +1,84 @@
 # Changelog
 
+## [1.4.3] — External Docker registry (Nexus / Harbor)
+
+### Added
+
+- **`config/artifact-registry.yaml`** — registry backend manifest (gitlab, nexus, harbor, artifactory, generic)
+- **`templates/gitlab/jobs/registry/`** — `variables.yml` + `.registry_login` / `.registry_auth_env` snippets
+- **`scripts/registry-login.sh`**, **`registry-auth-env.sh`**, **`registry-resolve-env.sh`**
+- **`scripts/validate-registry-config.sh`**
+- [docs/runbooks/nexus-docker-registry.md](docs/runbooks/nexus-docker-registry.md)
+- Policy section `artifact_registry` in `config/security-gate-policy.yaml`
+
+### Changed
+
+- Profile **`oss-full`**: build/push/scan/sign use vendor-neutral registry login
+- Jobs: `oss/build-push.yml`, `oss/trivy-sca.yml`, `sign.yml`, `_base.yml` `build-image`
+- All GitLab profiles include `registry/` snippets for `_base` compatibility
+- `adopt.sh` — copies registry config + scripts
+- `validate-yaml.sh` — invokes `validate-registry-config.sh`
+- [docs/platforms/gitlab-oss-full.md](docs/platforms/gitlab-oss-full.md), [docs/phases/C3-registry.md](docs/phases/C3-registry.md)
+
+## [1.4.2] — OSS tool version pinning (post TeamPCP)
+
+### Added
+
+- **`config/oss-tool-versions.yaml`** — single manifest for OSS scanner/tool versions
+- **`templates/gitlab/jobs/oss/versions.yml`** — GitLab `OSS_*` variables mirroring manifest
+- **`scripts/validate-oss-pins.sh`** — fails on `:latest`, `:stable`, Trivy `main`, unpinned pip
+- [docs/runbooks/oss-tool-pinning.md](docs/runbooks/oss-tool-pinning.md)
+- [docs/references/supply-chain-teampcp-2026.md](docs/references/supply-chain-teampcp-2026.md)
+- Policy section `tooling_pins` in `config/security-gate-policy.yaml`
+
+### Changed
+
+- Profile **`oss-full`**: all scanner jobs use pinned images/versions (Semgrep, Trivy tarball, Checkov, Syft, Hadolint, Conftest, ZAP, Helm, Docker, Python, Ruff, Gitleaks)
+- Trivy install: GitHub release tarball instead of `install.sh@main`
+- Shared jobs: `sbom.yml`, `dockerfile-lint.yml`, `conftest-admission.yml`, `dast.yml`, `_base.yml`
+- `adopt.sh` — copies `oss-tool-versions.yaml`; validation includes `validate-oss-pins.sh`
+- `validate-yaml.sh` — invokes OSS pin validator
+- [docs/platforms/gitlab-oss-full.md](docs/platforms/gitlab-oss-full.md) — version pinning section
+- [docs/adoption-checklist.md](docs/adoption-checklist.md) — OSS pins checklist
+
+## [1.4.1] — DefectDojo ASPM export
+
+### Added
+
+- **`scripts/aspm-export.py`** — platform-agnostic findings export (noop / defectdojo)
+- **`config/aspm-export.yaml`** — control → DefectDojo `scan_type` mapping
+- **`.gitlab/jobs/aspm/export-after-script.yml`** — per-scan upload snippet
+- Profile **`oss-full`**: all scanner jobs export to DefectDojo in `after_script`
+- [docs/runbooks/aspm-export.md](docs/runbooks/aspm-export.md)
+- [docs/references/defectdojo-api.md](docs/references/defectdojo-api.md)
+- Policy section `aspm_export`
+
+### Changed
+
+- `adopt.sh` — copies `aspm-export.yaml` + `aspm-export.py`
+- `devsecops-tooling` skill — ASPM export paths
+
+## [1.4.0] — GitLab OSS Full Pipeline
+
+### Added
+
+- **OSA / SCA split** (DAF 4.3.2 / 4.3.3): `osa:` manifest scan on MR, `sca:` container image post-SBOM
+- Jobs: `osa.yml`, `oss/trivy-osa.yml`, `oss/trivy-sca.yml` (image); `sca.yml` legacy alias
+- Phase docs: [B3-osa.md](docs/phases/B3-osa.md), updated [C2-image-scan.md](docs/phases/C2-image-scan.md)
+- Profile **`oss-full`** — 100% open-source scanners (no GitLab Security templates)
+- OSS jobs: `templates/gitlab/jobs/oss/` — Gitleaks, Semgrep, Trivy (fs+image), Checkov
+- `oss/build-push.yml` — docker login, build, push to GitLab Registry
+- `oss/helm-deploy.yml` — Helm deploy preprod + prod (manual)
+- `oss/sbom-upload.yml` — Dependency-Track upload (manual)
+- Helm chart: `templates/k8s/helm/sample-app/` + `examples/sample-app/chart/`
+- [docs/platforms/gitlab-oss-full.md](docs/platforms/gitlab-oss-full.md)
+
+### Changed
+
+- `sign.yml` — real cosign sign (keyless or `COSIGN_PRIVATE_KEY`); optional needs for `trivy-container` / `container_scanning`
+- `adopt.sh` — profile `oss-full`, copies `chart/` on adopt
+- `templates/README.md`, `docs/quickstart.md` — oss-full ladder step
+
 ## [1.3.0] — AI + MLSecOps (opt-in profile)
 
 ### Added

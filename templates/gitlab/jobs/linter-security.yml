@@ -2,10 +2,14 @@
 
 linter-security:
   stage: security
-  image: python:3.11-slim
-  extends: .workflow_rules
+  image: python:3.11.11-slim-bookworm
+  extends:
+    - .workflow_rules
+    - .aspm_export
   variables:
     ENABLE_REAL_LINTERS: "${ENABLE_REAL_LINTERS:-false}"
+    ASPM_CONTROL: linters
+    ASPM_REPORT: linter.sarif
   script:
     - |
       if [ "$ENABLE_REAL_LINTERS" != "true" ]; then
@@ -13,7 +17,7 @@ linter-security:
         echo '{"runs":[{"results":[]}]}' > linter.sarif
         exit 0
       fi
-      pip install -q ruff
+      pip install -q "ruff==${OSS_RUFF_VERSION:-0.11.8}"
       ruff check . --output-format sarif -o linter.sarif || true
     - python scripts/gate-check.py --control linters --report linter.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:

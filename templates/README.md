@@ -16,8 +16,9 @@
 | `supply-chain` | + C1–C4 | + sbom/scan/sign | + C* | + SBOM required on main |
 | `full` | all jobs | + DAST/preprod/nightly | + D*, F* | + DAST/sec-func warn |
 | **`ai-ml`** | shift-left + AI/ML jobs | + skill/MCP/ML scans | AI1–AI2, ML1–ML2 | PII **block**; AI **warn** |
+| **`oss-full`** | 100% OSS scanners + Helm | Gitleaks/Semgrep/Trivy/Checkov | B–F (no IAST) | GitLab CE; real deploy |
 
-`ENABLE_REAL_LINTERS=false` by default — B6 stub until toolchain ready.
+`ENABLE_REAL_LINTERS=false` by default — except **`oss-full`** (`true`).
 
 Copy profile to entrypoint:
 

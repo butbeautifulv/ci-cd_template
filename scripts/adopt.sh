@@ -6,7 +6,7 @@ usage() {
   cat <<'EOF'
 Usage: adopt.sh --profile PROFILE --platform PLATFORM --target DIR [--dry-run]
 
-Profiles: minimal | shift-left | supply-chain | full | ai-ml
+Profiles: minimal | shift-left | supply-chain | full | ai-ml | oss-full
 Platforms: gitlab | github
 
 Examples:
@@ -51,14 +51,32 @@ echo "=== DevSecOps adopt: profile=$PROFILE platform=$PLATFORM ==="
 
 # Policy always
 copy "$ROOT/config/security-gate-policy.yaml" "$TARGET/config/security-gate-policy.yaml"
+copy "$ROOT/config/aspm-export.yaml" "$TARGET/config/aspm-export.yaml"
+copy "$ROOT/config/oss-tool-versions.yaml" "$TARGET/config/oss-tool-versions.yaml"
+copy "$ROOT/config/artifact-registry.yaml" "$TARGET/config/artifact-registry.yaml"
 copy "$ROOT/scripts/gate-check.py" "$TARGET/scripts/gate-check.py"
+copy "$ROOT/scripts/aspm-export.py" "$TARGET/scripts/aspm-export.py"
 copy "$ROOT/scripts/ai-ml-scan.py" "$TARGET/scripts/ai-ml-scan.py"
+copy "$ROOT/scripts/registry-login.sh" "$TARGET/scripts/registry-login.sh"
+copy "$ROOT/scripts/registry-auth-env.sh" "$TARGET/scripts/registry-auth-env.sh"
+copy "$ROOT/scripts/registry-resolve-env.sh" "$TARGET/scripts/registry-resolve-env.sh"
 chmod +x "$TARGET/scripts/gate-check.py" 2>/dev/null || true
+chmod +x "$TARGET/scripts/aspm-export.py" 2>/dev/null || true
+chmod +x "$TARGET/scripts/registry-login.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/registry-auth-env.sh" 2>/dev/null || true
+chmod +x "$TARGET/scripts/registry-resolve-env.sh" 2>/dev/null || true
 
 if [[ "$PLATFORM" == "gitlab" ]]; then
   copy "$ROOT/templates/profiles/${PROFILE}.gitlab-ci.yml" "$TARGET/.gitlab-ci.yml"
   copy "$ROOT/templates/gitlab/jobs" "$TARGET/.gitlab/jobs"
   copy "$ROOT/templates/CODEOWNERS" "$TARGET/CODEOWNERS"
+  if [[ "$PROFILE" == "oss-full" ]]; then
+    if [[ -d "$TARGET/chart" ]]; then
+      echo "Skip chart copy — $TARGET/chart already exists"
+    else
+      copy "$ROOT/templates/k8s/helm/sample-app" "$TARGET/chart"
+    fi
+  fi
   if [[ $DRY_RUN -eq 0 ]]; then
     sed -i "s|local: '/templates/gitlab/jobs/|local: '.gitlab/jobs/|g" "$TARGET/.gitlab-ci.yml"
     sed -i 's|local: "/templates/gitlab/jobs/|local: ".gitlab/jobs/|g' "$TARGET/.gitlab-ci.yml"
@@ -82,6 +100,7 @@ case "$PROFILE" in
   supply-chain) PHASES="A2 B1-B6 C1-C4" ;;
   full)       PHASES="A2 B1-B6 C1-C4 D1-D3 F1-F3" ;;
   ai-ml)      PHASES="A2 B1-B6 AI1 AI2 ML1 ML2 ML3(optional)" ;;
+  oss-full)   PHASES="A2 B1-B6 C1-C4 D1 Helm deploy F3 (100% OSS scanners)" ;;
   *) echo "Unknown profile: $PROFILE"; exit 1 ;;
 esac
 
@@ -94,8 +113,10 @@ cat <<EOF
 [ ] Phases included: $PHASES
 [ ] Gates: SAST/SCA/IaC block C/H; secrets/dockerfile/linters warn (shift-left)
 [ ] ai-ml profile: PII block (ml_data); AI scans warn
+[ ] oss-full: set KUBECONFIG (file), enable Container Registry; chart/ copied if missing
+[ ] ASPM: set DEFECTDOJO_URL + DEFECTDOJO_API_TOKEN for findings export
 [ ] Run: python3 scripts/gate-check.py --help
-[ ] Validate: bash scripts/validate-yaml.sh && python3 scripts/validate-policy.py
+[ ] Validate: bash scripts/validate-yaml.sh && bash scripts/validate-oss-pins.sh && bash scripts/validate-registry-config.sh && python3 scripts/validate-policy.py
 [ ] See docs/adoption-checklist.md
 
 EOF

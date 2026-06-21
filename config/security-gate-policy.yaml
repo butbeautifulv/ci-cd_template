@@ -2,6 +2,8 @@ version: "1.0"
 changelog:
   - phase: execution
     note: gate-check.py, linters B6, profiles, hardening
+  - phase: v1.4
+    note: split OSA (manifests MR) vs SCA (container image post-SBOM)
   - phase: A2
     note: Initial defaults
   - phase: B1
@@ -27,11 +29,24 @@ sast:
   main_scope: full
   ignore_files_require_review: true
 
-sca:
+# B3 — OSA: dependency manifests in repo (MR / Code stage)
+osa:
   mode: block
   block_direct_critical: true
   block_transitive_critical: false
   reject_latest_tags: true
+
+# C2 — SCA: container image after build + SBOM
+sca:
+  mode: block
+  severity_block: [critical, high]
+  registry_periodic_scan: documented
+
+# Backward-compatible alias for sca (container image)
+container:
+  mode: block
+  severity_block: [critical, high]
+  registry_periodic_scan: documented
 
 iac:
   mode: block
@@ -56,11 +71,6 @@ sbom:
   required_on_main: true
   format: cyclonedx-json
   artifact_name: sbom.cdx.json
-
-container:
-  mode: block
-  severity_block: [critical, high]
-  registry_periodic_scan: documented
 
 signing:
   mode: optional
@@ -124,3 +134,20 @@ pickle_scan:
 ml_model:
   mode: warn
   default_trigger: manual
+
+aspm_export:
+  mode: optional
+  backend: defectdojo
+  in_pipeline: true
+  block_ci: false
+
+tooling_pins:
+  forbid_image_tags: [latest, stable]
+  forbid_unpinned_pip: true
+  manifest: config/oss-tool-versions.yaml
+
+artifact_registry:
+  default_backend: gitlab
+  allowed_backends: [gitlab, nexus, harbor, artifactory, generic]
+  manifest: config/artifact-registry.yaml
+  require_internal_on_prod: true

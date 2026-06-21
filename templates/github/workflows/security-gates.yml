@@ -13,8 +13,8 @@ jobs:
     uses: ./.github/workflows/jobs/secret-scan.yml
   sast:
     uses: ./.github/workflows/jobs/sast.yml
-  sca:
-    uses: ./.github/workflows/jobs/sca.yml
+  osa:
+    uses: ./.github/workflows/jobs/osa.yml
   iac:
     uses: ./.github/workflows/jobs/iac-scan.yml
   dockerfile:

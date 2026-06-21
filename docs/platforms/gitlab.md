@@ -8,16 +8,19 @@ validate → test → security → build → deploy → post-deploy
 
 Entrypoint: `templates/gitlab/.gitlab-ci.yml` (копировать в корень проекта).
 
+**GitLab CE / без Ultimate:** профиль **`oss-full`** — [gitlab-oss-full.md](gitlab-oss-full.md) (Gitleaks, Semgrep, Trivy, Checkov напрямую).
+
 ## Includes (security)
 
 | Job file | GitLab template (альтернатива) |
 |----------|--------------------------------|
 | `jobs/secret-scan.yml` | `Security/Secret-Detection.gitlab-ci.yml` |
 | `jobs/sast.yml` | `Security/SAST.gitlab-ci.yml` |
-| `jobs/sca.yml` | `Security/Dependency-Scanning.gitlab-ci.yml` |
+| `jobs/osa.yml` | `Security/Dependency-Scanning.gitlab-ci.yml` |
+| `jobs/sca.yml` | alias → `osa.yml` (legacy include) |
 | `jobs/iac-scan.yml` | `Security/IaC-Scanning.gitlab-ci.yml` |
 | `jobs/dockerfile-lint.yml` | custom hadolint |
-| `jobs/container-scan.yml` | `Security/Container-Scanning.gitlab-ci.yml` |
+| `jobs/container-scan.yml` | `Security/Container-Scanning.gitlab-ci.yml` — gate `sca:` |
 
 ## MR-only rules
 

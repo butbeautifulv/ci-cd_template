@@ -1,0 +1,30 @@
+# OSS scanner/tool version manifest — profile oss-full
+# Update only via PR + SecChamp review after vendor advisory.
+# Do NOT use :latest, :stable, or install scripts from main branch.
+
+policy:
+  forbid_tags: [latest, stable, main]
+  forbid_rolling_install: true
+  update_process: "PR + SecChamp + advisory review"
+  incident_ref: docs/references/supply-chain-teampcp-2026.md
+
+images:
+  semgrep: "returntocorp/semgrep:1.117.0"
+  syft: "anchore/syft:v1.20.0"
+  hadolint: "hadolint/hadolint:v2.12.0-alpine"
+  conftest: "ghcr.io/openpolicyagent/conftest:v0.56.0"
+  zaproxy: "ghcr.io/zaproxy/zaproxy:2.16.0"
+  curl: "curlimages/curl:8.12.1"
+  helm: "alpine/helm:3.17.2"
+  kubectl: "1.32.2"
+  python: "python:3.11.11-slim-bookworm"
+  docker_cli: "docker:24.0.9-cli"
+  docker_dind: "docker:24.0.9-dind"
+
+binaries:
+  trivy: "0.63.0"
+  gitleaks: "8.22.1"
+
+pip:
+  checkov: "3.2.449"
+  ruff: "0.11.8"

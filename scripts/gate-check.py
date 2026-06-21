@@ -179,7 +179,11 @@ def main() -> None:
         print(f"Policy not found: {args.policy}", file=sys.stderr)
         sys.exit(2)
 
-    policy = load_policy_section(args.policy, args.control)
+    control = args.control
+    if control == "container":
+        control = "sca"
+
+    policy = load_policy_section(args.policy, control)
 
     if args.control == "sbom":
         ok, msg = check_sbom_artifact(args.report, policy)

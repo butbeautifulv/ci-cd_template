@@ -7,14 +7,14 @@
 
 lint:
   stage: validate
-  image: python:3.11-slim
+  image: python:3.11.11-slim-bookworm
   extends: .workflow_rules
   variables:
     ENABLE_REAL_LINTERS: "${ENABLE_REAL_LINTERS:-false}"
   script:
     - |
       if [ "$ENABLE_REAL_LINTERS" = "true" ]; then
-        pip install -q ruff
+        pip install -q "ruff==${OSS_RUFF_VERSION:-0.11.8}"
         ruff check . || true
       else
         echo "Placeholder lint — set ENABLE_REAL_LINTERS=true for real linters"
@@ -23,7 +23,7 @@ lint:
 
 unit-test:
   stage: test
-  image: python:3.11-slim
+  image: python:3.11.11-slim-bookworm
   extends: .workflow_rules
   script:
     - |
@@ -37,9 +37,11 @@ unit-test:
 
 build-image:
   stage: build
-  image: docker:24
+  image: docker:24.0.9-cli
+  extends: .registry_login
   services:
-    - docker:24-dind
+    - name: docker:24.0.9-dind
+      alias: docker
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:

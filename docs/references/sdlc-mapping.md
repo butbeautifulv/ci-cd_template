@@ -28,7 +28,9 @@
 | Secure SDLC practice | Template job / doc | Coverage |
 |---------------------|-------------------|----------|
 | SAST | `jobs/sast.*` (B2) | implemented |
-| SCA | `jobs/sca.*` (B3), `sbom.*` (C1) | implemented |
+| OSA | `jobs/osa.*` (B3) | implemented |
+| SCA | `jobs/container-scan.*` (C2), `oss/trivy-sca` | implemented |
+| SBOM | `jobs/sbom.*` (C1) | implemented |
 | Configuration Drift | `jobs/iac-scan.*` (B4), Kyverno (E1) | partial |
 | DAST | `jobs/dast.*` (D1) | implemented |
 | IAST | `jobs/iast-preprod.*` (F1) | implemented (manual) |

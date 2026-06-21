@@ -1,6 +1,6 @@
 # DevSecOps CI/CD Template
 
-> **Start here:** `./scripts/adopt.sh --profile shift-left|ai-ml --platform gitlab|github --target /path/to/repo` — see [docs/quickstart.md](docs/quickstart.md)
+> **Start here:** `./scripts/adopt.sh --profile shift-left|oss-full|ai-ml --platform gitlab|github --target /path/to/repo` — see [docs/quickstart.md](docs/quickstart.md)
 
 Шаблон мастер-плана и поэтапного внедрения DevSecOps CI/CD для **GitLab** и **GitHub** с целевым runtime **Kubernetes**.
 
