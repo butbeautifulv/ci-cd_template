@@ -6,6 +6,7 @@ import argparse
 import json
 import re
 import sys
+import xml.etree.ElementTree as ET
 from pathlib import Path
 
 SEVERITY_ORDER = {"note": 0, "none": 0, "info": 1, "low": 2, "medium": 3, "high": 4, "critical": 5, "error": 5}
@@ -87,6 +88,25 @@ def parse_zap_baseline(path: Path) -> list[str]:
         for alert in site.get("alerts", []):
             code = str(alert.get("riskcode", alert.get("risk", "1")))
             levels.append(risk_map.get(code, normalize_level(alert.get("riskdesc", "medium"))))
+    return levels
+
+
+def parse_junit(path: Path) -> list[str]:
+    if not path.exists() or path.stat().st_size == 0:
+        return []
+    root = ET.parse(path).getroot()
+    levels: list[str] = []
+    suites = [root] if root.tag == "testsuite" else root.findall(".//testsuite")
+    for suite in suites:
+        for _ in range(int(suite.attrib.get("errors", "0") or "0")):
+            levels.append("critical")
+        for _ in range(int(suite.attrib.get("failures", "0") or "0")):
+            levels.append("high")
+        for case in suite.findall("testcase"):
+            if case.find("error") is not None:
+                levels.append("critical")
+            elif case.find("failure") is not None:
+                levels.append("high")
     return levels
 
 
@@ -194,15 +214,29 @@ def main() -> None:
     elif args.control == "dast":
         levels = parse_zap_baseline(args.report) if args.report.exists() else []
         ok, msg = evaluate(levels, policy)
+    elif args.control == "fuzzing":
+        levels = parse_junit(args.report) if args.report.exists() else []
+        ok, msg = evaluate(levels, policy)
+    elif args.control == "binary_fuzz":
+        levels = parse_junit(args.report) if args.report.exists() else []
+        ok, msg = evaluate(levels, policy)
     elif args.control == "sec_func_tests":
         ok, msg = check_sec_func_tests(args.report, policy)
     else:
         levels = parse_report(args.report) if args.report.exists() else []
         ok, msg = evaluate(levels, policy)
 
-    findings = len(parse_report(args.report)) if args.control not in ("sbom",) else (1 if args.report.exists() else 0)
-    if args.control == "dast" and args.report.exists():
+    findings = 0
+    if args.control == "sbom":
+        findings = 1 if args.report.exists() else 0
+    elif args.control == "dast" and args.report.exists():
         findings = len(parse_zap_baseline(args.report))
+    elif args.control == "fuzzing" and args.report.exists():
+        findings = len(parse_junit(args.report))
+    elif args.control == "binary_fuzz" and args.report.exists():
+        findings = len(parse_junit(args.report))
+    elif args.control not in ("sbom", "dast", "fuzzing", "binary_fuzz"):
+        findings = len(parse_report(args.report)) if args.report.exists() else 0
     print(f"[{args.control}] {msg} (findings={findings}, mode={policy.get('mode')})")
     sys.exit(0 if ok else 1)
 

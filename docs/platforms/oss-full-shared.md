@@ -29,6 +29,8 @@ All scanner **runtimes** come from **pinned container images** in [`config/oss-t
 | C4 | Sign | cosign | GHA installer pin | `sign-image` | `jobs/sign-oss.yml` |
 | C4+ | SBOM monitor | Dependency-Track | REST API | `sbom-upload` (manual) | `jobs/oss/sbom-upload.yml` |
 | D1 | DAST | OWASP ZAP | `ghcr.io/zaproxy/zaproxy` | `dast-zap` (manual) | `dast-oss.yml` |
+| D1 | API fuzz | Schemathesis | `ghcr.io/schemathesis/schemathesis` | `api-fuzz-schemathesis` (manual) | `api-fuzz-oss.yml` |
+| QA | Binary fuzz | AFL++, Go, Jazzer | pinned docker images | `binary-fuzz` (manual) | `binary-fuzz-oss.yml` |
 | D2 | Sec func tests | pytest | python | `sec-func-tests` | `jobs/sec-func-tests.yml` |
 | E1 | Admission | Conftest/OPA | `openpolicyagent/conftest` | `conftest-admission` | `jobs/oss/conftest-admission.yml` |
 | E2 | Deploy | Helm + kubectl | `alpine/helm` | `helm-deploy` | — (GitLab only) |
@@ -39,7 +41,7 @@ All scanner **runtimes** come from **pinned container images** in [`config/oss-t
 
 | Class | OSS examples (catalog) | Notes |
 |-------|------------------------|-------|
-| Fuzzing | AFL++, Jazzer, go-fuzz | QA zone — doc/runbook |
+| Fuzzing | AFL++, Jazzer, go-fuzz | **Schemathesis** (API) + **AFL++/Go/Jazzer** (binary) in CI |
 | DAST alt | Nuclei | supplement catalog |
 | Runtime | Falco, Kyverno, OPA | K8s templates `templates/k8s/` |
 | MAST | MobSF | mobile appendix |

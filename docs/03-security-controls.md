@@ -16,7 +16,8 @@
 | **SBOM** | Build | Build | CycloneDX | `T-ADI-ART-3-1` | — | `jobs/sbom.*` | C1 |
 | **Signing** | Release | Build | cosign | `T-ADI-ART-4-*` | — | `jobs/sign.*` | C4 |
 | **DAST** | Test | Preprod | Web/API | `T-PREPROD-DAST` | — | `jobs/dast.*` | D1 |
-| **Fuzzing** | Test | QA | Бинарники, API | финтех | — | doc / optional job | out-of-base |
+| **Fuzzing (API)** | Test | QA / Preprod | OpenAPI/API | финтех | — | `jobs/api-fuzz-schemathesis.*` | D1 API |
+| **Fuzzing (binary)** | Test | QA | C/Go/JVM | финтех | — | `jobs/binary-fuzz.*` | QA |
 | **Sec func tests** | Test | Preprod | Auth, headers | `T-PREPROD-SECTEST` | — | `jobs/sec-func-tests.*` | D2 |
 | **IAST** | Test | Preprod | Runtime app | финтех | — | `jobs/iast-preprod.*` | F1 optional |
 | **ASTO** | All | Все этапы | SARIF агрегация | `P-DEFECT-CNS` | — | `jobs/aspm/*`, `aspm-export.py` | oss-full |

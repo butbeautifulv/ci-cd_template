@@ -67,6 +67,16 @@ jobs:
     needs: [deploy-preprod]
     uses: ./.github/workflows/dast.yml
 
+  api-fuzz:
+    if: github.ref == 'refs/heads/main'
+    needs: [deploy-preprod]
+    uses: ./.github/workflows/api-fuzz.yml
+
+  binary-fuzz:
+    if: github.ref == 'refs/heads/main'
+    needs: [validate]
+    uses: ./.github/workflows/binary-fuzz.yml
+
   sec-func-tests:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-preprod]

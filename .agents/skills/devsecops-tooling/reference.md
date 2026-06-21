@@ -23,10 +23,12 @@ See oss-full-shared table; producers under `templates/gitlab/jobs/` and `templat
 
 ## QA / design (optional CI)
 
-| Class | OSS examples |
-|-------|--------------|
-| Fuzzing | AFL++, Jazzer, go-fuzz, Sydr |
-| DAST alt | Nuclei, Nikto, Wapiti |
+| Class | OSS examples | Template |
+|-------|--------------|----------|
+| **API fuzz** | **Schemathesis** | `api-fuzz-schemathesis.yml`, `api-fuzz-oss.yml` |
+| **Binary fuzz** | AFL++, Go `-fuzz`, Jazzer | `binary-fuzz.yml`, `binary-fuzz-oss.yml`, `examples/fuzzing/` |
+| Binary fuzz (alt) | libFuzzer, Honggfuzz, Sydr | extend `scripts/run-binary-fuzz.sh` |
+| DAST alt | Nuclei, Nikto, Wapiti | supplement |
 | BCA | Ghidra, JADX, radare2 |
 | Taint | design-phase (SecChamp) |
 | MAST | MobSF, QARK |
