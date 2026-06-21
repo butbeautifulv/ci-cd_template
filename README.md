@@ -21,6 +21,9 @@
 | [02-pipeline-architecture](docs/02-pipeline-architecture.md) | Стадии CI/CD, gates, артефакты |
 | [03-security-controls](docs/03-security-controls.md) | SAST, SCA, IaC, DAST, IAST, RASP, WAF |
 | [04-tooling-catalog](docs/04-tooling-catalog.md) | Каталог инструментов по классам |
+| [03-security-controls](docs/03-security-controls.md) | **Полная матрица CI/CD** (SAST…RASP, CI vs runtime) |
+| [02-pipeline-architecture](docs/02-pipeline-architecture.md) | Стадии, gates, диаграмма prod (WAF/RASP) |
+| [platforms/oss-full-shared](docs/platforms/oss-full-shared.md) | oss-full: все job B–F |
 | [05-maturity-roadmap](docs/05-maturity-roadmap.md) | Кирилламида, miniRoadmap, фазы P0–F3 |
 | [06-kubernetes-runtime](docs/06-kubernetes-runtime.md) | JCSF, admission, runtime, registry |
 | [07-governance-and-docs](docs/07-governance-and-docs.md) | Регламенты и процессные документы |

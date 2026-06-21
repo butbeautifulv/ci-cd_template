@@ -12,7 +12,7 @@
 
 **Рекомендация шаблона:** GitLab SAST / CodeQL + Semgrep OSS для кастомных правил.
 
-**Profile `oss-full`:** job `semgrep-sast` (`.gitlab/jobs/oss/semgrep-sast.yml`).
+**Profile `oss-full`:** jobs under `.gitlab/jobs/oss/` — Gitleaks, Semgrep, Trivy (fs+image), Checkov, Hadolint, Ruff; all scanner runtimes via **pinned Docker images** (see [platforms/oss-full-shared.md](platforms/oss-full-shared.md)).
 
 ## Linters (security gate)
 
@@ -103,15 +103,19 @@ Hadolint, Checkov dockerfile, Dockle — см. `T-CODE-DOCKERFS`, JCSF **Dock**.
 
 | Tier | Примеры |
 |------|---------|
-| commercial | Contrast (runtime), Sqreen, встроенные APM security rules |
+| oss | OpenRASP, **Falco** (K8s runtime — см. [phases/E3-falco.md](phases/E3-falco.md)) |
+| commercial | Contrast (runtime), Sqreen, Imperva, Appdome |
+
+**В шаблоне:** не CI job — [phases/F2-rasp-waf.md](phases/F2-rasp-waf.md), SIEM correlation E4. Supplement: OpenRASP, Liapp, …
 
 ## WAF / API Sec
 
 | Tier | Примеры |
 |------|---------|
-| commercial | ModSecurity, Cloud WAF, Kong/Apigee API policies, Salt Security |
+| oss | ModSecurity, OWASP CRS |
+| commercial | Cloud WAF, Kong/Apigee, Salt Security, **42Crunch**, Gravitee |
 
-Класс PDF: «API Sec / WAF», «Анализатор при runtime».
+**В шаблоне:** не CI job — F2 runbook; API policies in Git. Supplement: WSO2, QAPISec, Probely, …
 
 ## BCA / binary
 

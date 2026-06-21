@@ -53,21 +53,25 @@ GitLab jobs also use `${OSS_*:-default}` in `_base.yml`, `sbom.yml`, `dockerfile
 4. `bash scripts/validate-pin-sync.sh && bash scripts/validate-oss-pins.sh`
 5. PR with SecChamp approval
 
-## Trivy install (pinned tarball)
+## Trivy (pinned container image)
 
-Do **not** use:
+Do **not** use tarball install or `install.sh@main`:
 
 ```bash
+# Forbidden
 curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh | sh
+curl -sfL .../trivy_0.63.0_Linux-64bit.tar.gz | tar xz
 ```
 
-Use GitHub release tarball:
+Use pinned images from manifest (`images.*` → `OSS_*_IMAGE`):
 
 ```bash
-TRIVY_VERSION="${OSS_TRIVY_VERSION:-0.63.0}"
-curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
-  | tar xz -C /usr/local/bin trivy
+# Gitleaks / Trivy / Semgrep / Hadolint / Syft / ZAP / Conftest
+docker run --rm -v "$PWD:/work" -w /work aquasec/trivy:0.63.0 fs .
+docker run --rm -v "$PWD:/repo" -w /repo ghcr.io/gitleaks/gitleaks:v8.22.1 detect --source .
 ```
+
+GitLab CI: job images or `docker run` via `.oss_docker_job` — see `templates/gitlab/jobs/oss/`.
 
 ## Incident context
 

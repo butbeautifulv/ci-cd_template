@@ -19,6 +19,9 @@ required=(
   templates/github/workflows/oss/sca-image.yml
   templates/github/actions/gate-and-export/action.yml
   templates/github/workflows/jobs/oss/gitleaks.yml
+  templates/github/workflows/jobs/oss/forbidden-files.yml
+  templates/github/workflows/jobs/oss/conftest-admission.yml
+  templates/github/workflows/jobs/oss/sbom-upload.yml
   templates/github/workflows/jobs/oss/semgrep-sast.yml
   templates/github/workflows/jobs/oss/trivy-osa.yml
   templates/github/workflows/jobs/oss/checkov-iac.yml
@@ -38,9 +41,16 @@ if ! grep -q 'base-validate.yml' templates/profiles/oss-full.github.yml; then
   report "oss-full.github.yml must use base-validate.yml"
 fi
 
-for job in "$oss_scan_dir"/*.yml; do
+if ! grep -q 'forbidden-files' templates/github/workflows/security-gates-oss.yml; then
+  report "security-gates-oss.yml must include forbidden-files job"
+fi
+
+for job in "$oss_scan_dir"/gitleaks.yml "$oss_scan_dir"/semgrep-sast.yml \
+  "$oss_scan_dir"/trivy-osa.yml "$oss_scan_dir"/checkov-iac.yml \
+  "$oss_scan_dir"/dockerfile-lint.yml "$oss_scan_dir"/linter-security.yml \
+  "$oss_scan_dir"/forbidden-files.yml; do
   if ! grep -q 'gate-and-export' "$job"; then
-    report "OSS job must use gate-and-export composite: $job"
+    report "OSS scan job must use gate-and-export composite: $job"
   fi
 done
 

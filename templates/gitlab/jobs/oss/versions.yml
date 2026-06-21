@@ -4,6 +4,8 @@
 variables:
   OSS_SEMGREP_IMAGE: "returntocorp/semgrep:1.117.0"
   OSS_SYFT_IMAGE: "anchore/syft:v1.20.0"
+  OSS_TRIVY_IMAGE: "aquasec/trivy:0.63.0"
+  OSS_GITLEAKS_IMAGE: "ghcr.io/gitleaks/gitleaks:v8.22.1"
   OSS_HADOLINT_IMAGE: "hadolint/hadolint:v2.12.0-alpine"
   OSS_CONFTEST_IMAGE: "ghcr.io/openpolicyagent/conftest:v0.56.0"
   OSS_ZAPROXY_IMAGE: "ghcr.io/zaproxy/zaproxy:2.16.0"
@@ -13,7 +15,5 @@ variables:
   OSS_PYTHON_IMAGE: "python:3.11.11-slim-bookworm"
   OSS_DOCKER_CLI_IMAGE: "docker:24.0.9-cli"
   OSS_DOCKER_DIND_IMAGE: "docker:24.0.9-dind"
-  OSS_TRIVY_VERSION: "0.63.0"
-  OSS_GITLEAKS_VERSION: "8.22.1"
   OSS_CHECKOV_VERSION: "3.2.449"
   OSS_RUFF_VERSION: "0.11.8"

@@ -7,7 +7,6 @@ permissions:
   contents: read
 
 env:
-  OSS_ZAPROXY_IMAGE: ghcr.io/zaproxy/zaproxy:2.16.0
   PREPROD_URL: https://preprod.example.com
 
 jobs:

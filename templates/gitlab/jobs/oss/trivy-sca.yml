@@ -2,11 +2,10 @@
 
 trivy-sca:
   stage: build
-  image: ${OSS_PYTHON_IMAGE}
   extends:
     - .aspm_export
     - .registry_auth_env
-    - .trivy_install
+    - .trivy_job
   variables:
     ASPM_CONTROL: sca
     ASPM_REPORT: sca.sarif
@@ -28,7 +27,7 @@ trivy-sca:
         --output sca.sarif "${REGISTRY}:${CI_COMMIT_SHA}" || true
     - |
       [ -f sca.sarif ] || echo '{"runs":[{"results":[]}]}' > sca.sarif
-    - python scripts/gate-check.py --control sca --report sca.sarif \
+    - python3 scripts/gate-check.py --control sca --report sca.sarif \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:
     paths:
