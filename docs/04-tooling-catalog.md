@@ -2,6 +2,8 @@
 
 По классам из «Карты инструментов DevSecOps» (PDF). Tier: **builtin** (платформа), **oss**, **commercial**.
 
+Матрица CI vs runtime: [03-security-controls.md](03-security-controls.md). Job-лист `oss-full`: [platforms/oss-full-shared.md](platforms/oss-full-shared.md). Пины образов: [config/oss-tool-versions.yaml](../config/oss-tool-versions.yaml).
+
 ## SAST
 
 | Tier | Примеры |
@@ -75,16 +77,28 @@ Hadolint, Checkov dockerfile, Dockle — см. `T-CODE-DOCKERFS`, JCSF **Dock**.
 | oss | OWASP ZAP, Codename SCNR (Arachni) |
 | commercial | Burp Suite EE, Acunetix, PT Black Box, HCL AppScan, Netsparker |
 
+**В шаблоне:** ZAP baseline — `dast.yml` / `dast-oss.yml` (manual preprod). Gate: `dast:` в [security-gate-policy.yaml](../config/security-gate-policy.yaml).
+
 ## Fuzzing / concolic / sanitizers
 
 | Класс | Примеры |
 |-------|---------|
-| Fuzzing | AFL++, libFuzzer, Jazzer, go-fuzz, Honggfuzz |
-| Concolic | спец. движки под язык |
+| **API fuzz (OpenAPI)** | **Schemathesis** |
+| **Binary fuzz** | AFL++, Go `-fuzz`, Jazzer, libFuzzer, go-fuzz, Honggfuzz |
+| Concolic | Sydr, спец. движки под язык |
 | Sanitizers | ASan, MSan, UBSan, Valgrind |
 | Coverage | llvm-cov, gcov + интеграция с DAST |
 
-Документируются в QA-зоне; отдельные CI jobs — по запросу (не в базовом B-фазе).
+**В шаблоне (CI, manual QA/preprod):**
+
+| Контроль | Job / workflow | OSS pin (manifest) | Gate key |
+|----------|----------------|--------------------|----------|
+| API fuzz | `api-fuzz-schemathesis.yml`, `api-fuzz-oss.yml` | `ghcr.io/schemathesis/schemathesis:4.21.7` | `fuzzing` |
+| Binary fuzz | `binary-fuzz.yml`, `binary-fuzz-oss.yml` | AFL++ `v4.40c`, Go `1.23.8`, Maven+Jazzer `0.24.0` | `binary_fuzz` |
+
+Orchestrator: [`scripts/run-binary-fuzz.sh`](../scripts/run-binary-fuzz.sh). Примеры: `examples/fuzzing/{c,go,java}/`, OpenAPI: `examples/openapi/minimal.yaml`.
+
+Sanitizers/concolic — QA-зона, без CI job по умолчанию (ASan через AFL++ harness опционально).
 
 ## MAST (mobile)
 
@@ -128,8 +142,10 @@ Hadolint, Checkov dockerfile, Dockle — см. `T-CODE-DOCKERFS`, JCSF **Dock**.
 
 | Tier | Примеры |
 |------|---------|
-| oss | Falco, OPA Gatekeeper, Kyverno, kube-bench, kube-hunter |
+| oss | Falco, OPA Gatekeeper, Kyverno, kube-bench, kube-hunter, **Conftest** (policy) |
 | commercial | Aqua, Sysdig, Prisma Cloud, NeuVector |
+
+**В шаблоне:** admission YAML — `templates/k8s/admission/`; Conftest job — `conftest-admission.yml` (oss-full); Falco — `templates/k8s/runtime/`, [phases/E3-falco.md](phases/E3-falco.md).
 
 ## ASPM / ASTO / оркестрация findings
 
@@ -152,17 +168,25 @@ ProGuard, DexGuard — для mobile; вне scope базового шаблон
 
 ## Выбор для шаблона
 
-| Контроль | GitLab default | GitHub default |
-|----------|----------------|----------------|
-| SAST | SAST template | CodeQL |
-| Linters | Code-Quality / custom | super-linter / language linters |
-| Secrets | Secret-Detection | Gitleaks action |
-| SCA | Dependency-Scanning | dependency-review + Trivy fs (→ **OSA**) |
-| SCA image | Container Scanning | Trivy image (→ **SCA** post-SBOM) |
-| IaC | IaC-Scanning | Checkov action |
-| Container | Container-Scanning | Trivy action |
-| DAST | DAST template (license) | ZAP action |
-| ASPM | DefectDojo (self-hosted) | DefectDojo / SARIF upload |
+| Контроль | GitLab default | GitHub default | Profile `oss-full` |
+|----------|----------------|----------------|---------------------|
+| SAST | SAST template | CodeQL | Semgrep (docker pin) |
+| Linters | Code-Quality / custom | super-linter / language linters | Ruff (pip pin) |
+| Secrets | Secret-Detection | Gitleaks action | Gitleaks (docker pin) |
+| Forbidden files | — | — | shell + gate |
+| OSA | Dependency-Scanning | dependency-review + Trivy fs | Trivy fs |
+| SCA image | Container Scanning | Trivy image | Trivy image |
+| IaC | IaC-Scanning | Checkov action | Checkov (pip pin) |
+| Dockerfile | — | hadolint-action | Hadolint (docker pin) |
+| SBOM / sign | — | Syft / cosign | Syft / cosign |
+| DAST | DAST template (license) | ZAP action | ZAP (docker pin, manual) |
+| API fuzz | — | — | Schemathesis (manual) |
+| Binary fuzz | — | — | AFL++ / Go / Jazzer (manual) |
+| Sec func tests | custom | pytest stub | pytest stub |
+| Admission | — | — | Conftest (docker pin) |
+| ASPM | DefectDojo (self-hosted) | DefectDojo / SARIF upload | DefectDojo via `aspm-export.py` |
+| IAST | — | stub | **excluded** |
+| RASP / WAF | — | — | runbook F2 only |
 
 См. [platforms/](platforms/).
 

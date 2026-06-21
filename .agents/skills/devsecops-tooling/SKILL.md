@@ -41,6 +41,8 @@ Config: `config/security-gate-policy.yaml`, `config/oss-tool-versions.yaml`, `co
 | Sign | C4 | ✅ | `sign*.yml` | cosign | cosign |
 | SBOM upload | F3 | ✅ manual | `oss/sbom-upload.yml` | Dependency-Track | — |
 | DAST | D1 | ✅ manual | `dast*.yml` | OWASP ZAP docker | ZAP action |
+| **API fuzz** | D1 | ✅ manual | `api-fuzz-schemathesis.*` | Schemathesis docker | Schemathesis |
+| **Binary fuzz** | QA | ✅ manual | `binary-fuzz.*` | AFL++ / Go / Jazzer | same |
 | Sec func tests | D2 | ✅ | `sec-func-tests.*` | pytest stub | pytest stub |
 | IAST | F1 | 🔧 stub | `iast-preprod.*` | **excluded** | commercial stub |
 | Pentest gate | D3 | 📋 | [release-gate-checklist.md](../../docs/release-gate-checklist.md) | checklist | checklist |
@@ -53,7 +55,8 @@ Config: `config/security-gate-policy.yaml`, `config/oss-tool-versions.yaml`, `co
 | **WAF / API Sec** | F2 | 📋 **no CI** | [F2-rasp-waf.md](../../docs/phases/F2-rasp-waf.md) | runbook | runbook |
 | **RASP** | F2 | 📋 **no CI** | [F2-rasp-waf.md](../../docs/phases/F2-rasp-waf.md) | runbook + SIEM | runbook |
 | SBOM monitor | F3 | 📋 | [F3-advanced.md](../../docs/phases/F3-advanced.md) | DTrack + policy | doc |
-| Fuzzing | QA | 🔧 | phases / fintech swimlane | AFL++/Jazzer doc | optional job |
+| Fuzzing (API) | QA | ✅ manual | `api-fuzz-schemathesis.*` | Schemathesis | Schemathesis |
+| Fuzzing (binary) | QA | ✅ manual | `binary-fuzz.*` | AFL++, Go, Jazzer | same |
 | ASTO | all | ✅ | `aspm-export.py`, `.aspm_export` | DefectDojo | DefectDojo |
 | AI/ML scans | opt | ✅ | `skill-scanner`, `ml-*` | profile `ai-ml` | profile `ai-ml` |
 
@@ -82,7 +85,7 @@ More names: supplement §RASP, §API Security, §DAST (Nuclei, StackHawk, …).
 | `shift-left` | vendor or mixed | — |
 | `supply-chain` | + SBOM/sign | — |
 | `full` | GitLab Security / CodeQL | DAST, IAST stub, **no RASP CI** |
-| **`oss-full`** | 100% OSS docker/pip pins | DAST ZAP, conftest, Falco-ready K8s, **no IAST** |
+| **`oss-full`** | 100% OSS docker/pip pins | DAST ZAP, Schemathesis, **binary fuzz**, conftest, Falco-ready K8s, **no IAST** |
 | `ai-ml` | + skill/MCP/ML jobs | optional |
 
 Adopt: `scripts/adopt.sh --profile oss-full|full --platform gitlab|github`

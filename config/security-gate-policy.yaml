@@ -83,6 +83,18 @@ dast:
   block_release_debt: false
   trigger: manual_or_label
 
+fuzzing:
+  mode: warn
+  block_release_debt: false
+  trigger: manual_or_label
+  tool: schemathesis
+
+binary_fuzz:
+  mode: warn
+  block_release_debt: false
+  trigger: manual_or_label
+  tools: [aflpp, go, jazzer]
+
 sec_func_tests:
   mode: warn
   min_automated_percent: 5

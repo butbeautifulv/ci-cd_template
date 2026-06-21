@@ -17,6 +17,8 @@ variables:
 include:
   - local: '/templates/gitlab/jobs/registry/variables.yml'
   - local: '/templates/gitlab/jobs/registry/login.yml'
+  - local: '/templates/gitlab/jobs/oss/_docker.yml'
+  - local: '/templates/gitlab/jobs/aspm/export-after-script.yml'
   - local: '/templates/gitlab/jobs/_base.yml'
   - local: '/templates/gitlab/jobs/secret-scan.yml'
   - local: '/templates/gitlab/jobs/sast.yml'
@@ -29,6 +31,8 @@ include:
   - local: '/templates/gitlab/jobs/sign.yml'
   - local: '/templates/gitlab/jobs/deploy-preprod.yml'
   - local: '/templates/gitlab/jobs/dast.yml'
+  - local: '/templates/gitlab/jobs/api-fuzz-schemathesis.yml'
+  - local: '/templates/gitlab/jobs/binary-fuzz.yml'
   - local: '/templates/gitlab/jobs/sec-func-tests.yml'
   - local: '/templates/gitlab/jobs/iast-preprod.yml'
   - local: '/templates/gitlab/jobs/nightly-full-sast.yml'
