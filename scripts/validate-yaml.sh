@@ -6,11 +6,10 @@ cd "$ROOT"
 
 fail=0
 if command -v yamllint >/dev/null 2>&1; then
+  # GitLab CI uses !reference — yamllint cannot parse it; lint GitHub + config only
   mapfile -t yml_files < <(
-    find templates .github/workflows \( -name '*.yml' -o -name '*.yaml' \) \
-      ! -path 'templates/k8s/helm/*' \
-      ! -path 'templates/siem/*' \
-      2>/dev/null | sort
+    find .github/workflows templates/github templates/profiles config \
+      \( -name '*.yml' -o -name '*.yaml' \) 2>/dev/null | sort
   )
   if ! yamllint -d relaxed "${yml_files[@]}"; then
     fail=1
@@ -27,12 +26,22 @@ except ImportError:
     sys.exit(0)
 errors = 0
 for p in Path("templates").rglob("*.yml"):
+    if "templates/gitlab" in str(p):
+        continue
     try:
         list(yaml.safe_load_all(p.read_text()))
     except Exception as e:
         print(f"FAIL {p}: {e}")
         errors += 1
 for p in Path("templates").rglob("*.yaml"):
+    if "templates/k8s/helm" in str(p) or "templates/gitlab" in str(p):
+        continue
+    try:
+        list(yaml.safe_load_all(p.read_text()))
+    except Exception as e:
+        print(f"FAIL {p}: {e}")
+        errors += 1
+for p in Path(".github/workflows").rglob("*.yml"):
     try:
         list(yaml.safe_load_all(p.read_text()))
     except Exception as e:
