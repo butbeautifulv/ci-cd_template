@@ -1,38 +1,42 @@
-# Tool catalog (synthesized from PDF + template)
+# Tool catalog — extended reference
 
-Canonical: [04-tooling-catalog.md](../../docs/04-tooling-catalog.md). Exhaustive OCR list: [supplements/devsecops_tools.md](../../docs/references/supplements/devsecops_tools.md).
+Canonical tiers: [04-tooling-catalog.md](../../docs/04-tooling-catalog.md).  
+Exhaustive OCR: [supplements/devsecops_tools.md](../../docs/references/supplements/devsecops_tools.md).  
+Full CI/CD map: [SKILL.md](SKILL.md) § Full CI/CD.
 
-## Linters (MR gate — fintech)
+## CI-integrated (SARIF → gate-check → DefectDojo)
 
-ESLint security, golangci-lint, Ruff/Bandit, shellcheck
+See oss-full-shared table; producers under `templates/gitlab/jobs/` and `templates/github/workflows/jobs/oss/`.
 
-## Fuzzing / sanitizers (QA — optional CI)
+## Runtime / edge (NOT default CI jobs)
 
-AFL++, libFuzzer, Jazzer, Honggfuzz, ASan, MSan, Valgrind
+| Class | OSS examples | Template path |
+|-------|--------------|---------------|
+| RASP | OpenRASP, Falco (container) | [F2-rasp-waf.md](../../docs/phases/F2-rasp-waf.md), [k8s/runtime/](../../templates/k8s/runtime/) |
+| WAF | ModSecurity, CRS | F2 runbook |
+| API Sec | 42Crunch, Gravitee, QAPISec, StackHawk | F2 runbook; supplement |
+| IAST | — (commercial: Contrast, Seeker) | [F1-iast.md](../../docs/phases/F1-iast.md), `iast-preprod.*` stub |
+| CWPP | Falco, kube-bench | [E3-falco.md](../../docs/phases/E3-falco.md) |
+| Admission | Kyverno, OPA, Conftest | [k8s/admission/](../../templates/k8s/admission/) |
+| Network | Cilium, NetworkPolicy | [k8s/network/](../../templates/k8s/network/) |
+| SIEM | Falco/WAF/RASP events | [E4-siem.md](../../docs/phases/E4-siem.md) |
 
-## BCA / binary
+## QA / design (optional CI)
 
-Ghidra, JADX, radare2 | Binary Ninja, IDA Pro
+| Class | OSS examples |
+|-------|--------------|
+| Fuzzing | AFL++, Jazzer, go-fuzz, Sydr |
+| DAST alt | Nuclei, Nikto, Wapiti |
+| BCA | Ghidra, JADX, radare2 |
+| Taint | design-phase (SecChamp) |
+| MAST | MobSF, QARK |
 
-## Codec / mobile obfuscation
+## Mobile / codec
 
-ProGuard, DexGuard — mobile only, out of base template
+ProGuard, DexGuard — out of base template.
 
-## Taint analysis
+## Integration contract
 
-Design-phase tools for SecChamp — not default CI job
+All **CI** scanners → SARIF (or SBOM JSON) → `security-gate-policy.yaml` → optional `aspm-export.py` → DefectDojo.
 
-## Dockerfile (JCSF Dock)
-
-Hadolint, Checkov, Dockle
-
-## Integration point
-
-All scanners → SARIF → `security-gate-policy.yaml` severities → DefectDojo
-
-## SARIF producers in this repo
-
-- `templates/gitlab/jobs/sast.yml`
-- `templates/gitlab/jobs/sca.yml`
-- `templates/gitlab/jobs/secret-scan.yml`
-- GitHub mirrors in `templates/github/workflows/jobs/`
+RASP/WAF → alerting/SIEM only; **never** block MR by default.

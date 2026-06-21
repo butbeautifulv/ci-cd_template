@@ -16,7 +16,7 @@
 | `supply-chain` | + C1–C4 | + sbom/scan/sign | + C* | + SBOM required on main |
 | `full` | all jobs | + DAST/preprod/nightly | + D*, F* | + DAST/sec-func warn |
 | **`ai-ml`** | shift-left + AI/ML jobs | + skill/MCP/ML scans | AI1–AI2, ML1–ML2 | PII **block**; AI **warn** |
-| **`oss-full`** | 100% OSS scanners + Helm | 100% OSS + GHCR push | B–F (no IAST) | GitLab CE / GitHub OSS |
+| **`oss-full`** | 100% OSS (full B–F scope) + Helm | OSS gates + GHCR + conftest/DAST/nightly | B–F (no IAST) | GitLab CE / GitHub; docker-only scanners |
 
 `ENABLE_REAL_LINTERS=false` by default — except **`oss-full`** (`true`).
 

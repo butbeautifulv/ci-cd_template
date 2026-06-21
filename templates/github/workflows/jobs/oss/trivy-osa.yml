@@ -12,14 +12,11 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Install Trivy
-        run: |
-          TRIVY_VERSION="${OSS_TRIVY_VERSION:-0.63.0}"
-          curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
-            | tar xz -C /usr/local/bin trivy
       - name: Scan filesystem
         run: |
-          trivy fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
+          IMAGE="${OSS_TRIVY_IMAGE:-aquasec/trivy:0.63.0}"
+          docker run --rm -v "$PWD:/work" -w /work "$IMAGE" \
+            fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
       - uses: ./.github/actions/gate-and-export
         if: always()
         with:

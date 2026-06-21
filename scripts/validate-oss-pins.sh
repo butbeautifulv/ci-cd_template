@@ -37,6 +37,18 @@ check_path() {
     done
   fi
 
+  if grep -qE 'gitleaks/releases/download|gitleaks_.*_linux_x64\.tar\.gz' "$target" 2>/dev/null; then
+    grep -nE 'gitleaks/releases/download|gitleaks_.*_linux_x64\.tar\.gz' "$target" | while read -r line; do
+      report "$target — Gitleaks tarball curl forbidden (use OSS_GITLEAKS_IMAGE docker): $line"
+    done
+  fi
+
+  if grep -qE 'trivy/releases/download|trivy_.*_Linux-64bit\.tar\.gz' "$target" 2>/dev/null; then
+    grep -nE 'trivy/releases/download|trivy_.*_Linux-64bit\.tar\.gz' "$target" | while read -r line; do
+      report "$target — Trivy tarball curl forbidden (use OSS_TRIVY_IMAGE docker): $line"
+    done
+  fi
+
   if grep -qE 'install\.sh.*main|raw\.githubusercontent\.com/aquasecurity/trivy/main' "$target" 2>/dev/null; then
     grep -nE 'install\.sh.*main|raw\.githubusercontent\.com/aquasecurity/trivy/main' "$target" | while read -r line; do
       report "$target — Trivy install from main: $line"

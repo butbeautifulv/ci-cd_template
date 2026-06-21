@@ -23,20 +23,22 @@ Manual: `dast-oss.yml` (workflow_dispatch), `nightly-sast-oss.yml` (schedule).
 
 | Job | Tool | Workflow |
 |-----|------|----------|
-| `secrets` | Gitleaks tarball | `jobs/oss/gitleaks.yml` |
+| `secrets` | Gitleaks docker | `jobs/oss/gitleaks.yml` |
 | `sast` | Semgrep docker | `jobs/oss/semgrep-sast.yml` |
-| `osa` | Trivy fs tarball | `jobs/oss/trivy-osa.yml` |
+| `osa` | Trivy docker (`aquasec/trivy`) | `jobs/oss/trivy-osa.yml` |
 | `iac` | Checkov pip pin | `jobs/oss/checkov-iac.yml` |
 | `dockerfile` | Hadolint docker | `jobs/oss/dockerfile-lint.yml` |
 | `linters` | Ruff pip pin | `jobs/oss/linter-security.yml` |
+| `forbidden` | find + gate | `jobs/oss/forbidden-files.yml` |
 | `build` | docker build-push | `oss/build-push.yml` |
 | `sbom` | Syft docker | `jobs/sbom-oss.yml` |
 | `sca-image` | Trivy image | `oss/sca-image.yml` |
 | `sign` | cosign | `jobs/sign-oss.yml` |
+| `conftest` | OPA Conftest docker | `jobs/oss/conftest-admission.yml` |
+| `sbom-upload` | Dependency-Track | `jobs/oss/sbom-upload.yml` (optional) |
 
 Orchestrator: `security-gates-oss.yml`  
-Entry: `templates/profiles/oss-full.github.yml` → `.github/workflows/ci.yml` on adopt  
-Post-scan boilerplate: `.github/actions/gate-and-export`
+Optional: `dast-oss.yml` (workflow_dispatch), `nightly-sast-oss.yml` (schedule)
 
 ## Required permissions
 

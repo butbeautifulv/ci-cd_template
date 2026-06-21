@@ -20,7 +20,8 @@ validate → test → security → build → deploy → post-deploy
 
 | Job | Tool | Stage |
 |-----|------|-------|
-| `gitleaks-scan` | Gitleaks | security |
+| `gitleaks-scan` | Gitleaks (docker) | security |
+| `forbidden-files` | suspicious files | security |
 | `semgrep-sast` | Semgrep | security |
 | `trivy-osa` | Trivy fs | security |
 | `checkov-iac` | Checkov | security (path-filtered) |

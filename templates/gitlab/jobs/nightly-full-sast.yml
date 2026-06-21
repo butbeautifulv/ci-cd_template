@@ -2,7 +2,9 @@
 
 nightly-sast-scheduled:
   stage: security
-  image: ${OSS_SEMGREP_IMAGE}
+  image:
+    name: ${OSS_SEMGREP_IMAGE}
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "schedule"
   script:

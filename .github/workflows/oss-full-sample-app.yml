@@ -40,10 +40,8 @@ jobs:
         working-directory: ${{ env.APP }}
         continue-on-error: true
         run: |
-          TRIVY_VERSION="0.63.0"
-          curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
-            | tar xz -C /usr/local/bin trivy
-          trivy fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
+          docker run --rm -v "$PWD:/work" -w /work aquasec/trivy:0.63.0 \
+            fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
           python scripts/gate-check.py --control osa --report osa.sarif || true
           docker run --rm -v "$PWD:/src" returntocorp/semgrep:1.117.0 \
             semgrep scan --config p/ci --sarif -o /src/semgrep.sarif /src || true

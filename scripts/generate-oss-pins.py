@@ -27,7 +27,7 @@ def parse_manifest(text: str) -> dict[str, dict[str, str]]:
         m = re.match(r'^\s{2}([a-z_]+):\s*"?([^"#\n]+)"?\s*$', line)
         if m and current:
             sections[current][m.group(1)] = m.group(2).strip().strip('"')
-    required = ("images", "binaries", "pip", "github_actions")
+    required = ("images", "pip", "github_actions")
     for sec in required:
         if sec not in sections or not sections[sec]:
             raise SystemExit(f"Missing section '{sec}' in {MANIFEST}")
@@ -39,7 +39,7 @@ def syft_version_tag(syft_image: str) -> str:
 
 
 def render_gitlab_versions(m: dict[str, dict[str, str]]) -> str:
-    img, bin_, pip = m["images"], m["binaries"], m["pip"]
+    img, pip = m["images"], m["pip"]
     lines = [
         HEADER.rstrip(),
         "# OSS tool pins — source: config/oss-tool-versions.yaml",
@@ -47,6 +47,8 @@ def render_gitlab_versions(m: dict[str, dict[str, str]]) -> str:
         "variables:",
         f'  OSS_SEMGREP_IMAGE: "{img["semgrep"]}"',
         f'  OSS_SYFT_IMAGE: "{img["syft"]}"',
+        f'  OSS_TRIVY_IMAGE: "{img["trivy"]}"',
+        f'  OSS_GITLEAKS_IMAGE: "{img["gitleaks"]}"',
         f'  OSS_HADOLINT_IMAGE: "{img["hadolint"]}"',
         f'  OSS_CONFTEST_IMAGE: "{img["conftest"]}"',
         f'  OSS_ZAPROXY_IMAGE: "{img["zaproxy"]}"',
@@ -56,8 +58,6 @@ def render_gitlab_versions(m: dict[str, dict[str, str]]) -> str:
         f'  OSS_PYTHON_IMAGE: "{img["python"]}"',
         f'  OSS_DOCKER_CLI_IMAGE: "{img["docker_cli"]}"',
         f'  OSS_DOCKER_DIND_IMAGE: "{img["docker_dind"]}"',
-        f'  OSS_TRIVY_VERSION: "{bin_["trivy"]}"',
-        f'  OSS_GITLEAKS_VERSION: "{bin_["gitleaks"]}"',
         f'  OSS_CHECKOV_VERSION: "{pip["checkov"]}"',
         f'  OSS_RUFF_VERSION: "{pip["ruff"]}"',
         "",
@@ -66,7 +66,7 @@ def render_gitlab_versions(m: dict[str, dict[str, str]]) -> str:
 
 
 def render_github_env(m: dict[str, dict[str, str]]) -> str:
-    img, bin_, pip, ga = m["images"], m["binaries"], m["pip"], m["github_actions"]
+    img, pip, ga = m["images"], m["pip"], m["github_actions"]
     lines = [
         HEADER.rstrip(),
         "# GitHub OSS env — source: config/oss-tool-versions.yaml",
@@ -78,12 +78,13 @@ def render_github_env(m: dict[str, dict[str, str]]) -> str:
         "",
         f'OSS_SEMGREP_IMAGE: {img["semgrep"]}',
         f'OSS_SYFT_VERSION: {syft_version_tag(img["syft"])}',
+        f'OSS_TRIVY_IMAGE: {img["trivy"]}',
+        f'OSS_GITLEAKS_IMAGE: {img["gitleaks"]}',
         f'OSS_HADOLINT_IMAGE: {img["hadolint"]}',
-        f'OSS_TRIVY_VERSION: "{bin_["trivy"]}"',
-        f'OSS_GITLEAKS_VERSION: "{bin_["gitleaks"]}"',
+        f'OSS_CONFTEST_IMAGE: {img["conftest"]}',
+        f'OSS_ZAPROXY_IMAGE: {img["zaproxy"]}',
         f'OSS_CHECKOV_VERSION: "{pip["checkov"]}"',
         f'OSS_RUFF_VERSION: "{pip["ruff"]}"',
-        f'OSS_ZAPROXY_IMAGE: {img["zaproxy"]}',
         "",
         f"ACTIONS_CHECKOUT: {ga['checkout']}",
         f"ACTIONS_UPLOAD_SARIF: {ga['upload_sarif']}",
@@ -97,7 +98,7 @@ def render_github_env(m: dict[str, dict[str, str]]) -> str:
 
 
 def render_github_profile_env(m: dict[str, dict[str, str]]) -> str:
-    img, bin_, pip = m["images"], m["binaries"], m["pip"]
+    img, pip = m["images"], m["pip"]
     lines = [
         "env:",
         "  REGISTRY: ghcr.io/${{ github.repository }}",
@@ -107,9 +108,11 @@ def render_github_profile_env(m: dict[str, dict[str, str]]) -> str:
         "  SECURITY_POLICY: config/security-gate-policy.yaml",
         f'  OSS_SEMGREP_IMAGE: {img["semgrep"]}',
         f'  OSS_SYFT_VERSION: {syft_version_tag(img["syft"])}',
+        f'  OSS_TRIVY_IMAGE: {img["trivy"]}',
+        f'  OSS_GITLEAKS_IMAGE: {img["gitleaks"]}',
         f'  OSS_HADOLINT_IMAGE: {img["hadolint"]}',
-        f'  OSS_TRIVY_VERSION: "{bin_["trivy"]}"',
-        f'  OSS_GITLEAKS_VERSION: "{bin_["gitleaks"]}"',
+        f'  OSS_CONFTEST_IMAGE: {img["conftest"]}',
+        f'  OSS_ZAPROXY_IMAGE: {img["zaproxy"]}',
         f'  OSS_CHECKOV_VERSION: "{pip["checkov"]}"',
         f'  OSS_RUFF_VERSION: "{pip["ruff"]}"',
         "",

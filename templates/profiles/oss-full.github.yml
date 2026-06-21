@@ -25,9 +25,11 @@ env:
   SECURITY_POLICY: config/security-gate-policy.yaml
   OSS_SEMGREP_IMAGE: returntocorp/semgrep:1.117.0
   OSS_SYFT_VERSION: v1.20.0
+  OSS_TRIVY_IMAGE: aquasec/trivy:0.63.0
+  OSS_GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.22.1
   OSS_HADOLINT_IMAGE: hadolint/hadolint:v2.12.0-alpine
-  OSS_TRIVY_VERSION: "0.63.0"
-  OSS_GITLEAKS_VERSION: "8.22.1"
+  OSS_CONFTEST_IMAGE: ghcr.io/openpolicyagent/conftest:v0.56.0
+  OSS_ZAPROXY_IMAGE: ghcr.io/zaproxy/zaproxy:2.16.0
   OSS_CHECKOV_VERSION: "3.2.449"
   OSS_RUFF_VERSION: "0.11.8"
 
@@ -72,6 +74,16 @@ jobs:
     uses: ./.github/workflows/jobs/sign-oss.yml
     with:
       image: ${{ needs.build.outputs.image }}
+    secrets: inherit
+
+  conftest:
+    needs: [validate]
+    uses: ./.github/workflows/jobs/oss/conftest-admission.yml
+
+  sbom-upload:
+    if: github.ref == 'refs/heads/main'
+    needs: sbom
+    uses: ./.github/workflows/jobs/oss/sbom-upload.yml
     secrets: inherit
 
   sec-func-tests:

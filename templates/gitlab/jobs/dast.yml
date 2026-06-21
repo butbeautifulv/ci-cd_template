@@ -3,7 +3,7 @@
 dast-zap:
   stage: post-deploy
   image:
-    name: ghcr.io/zaproxy/zaproxy:2.16.0
+    name: ${OSS_ZAPROXY_IMAGE:-ghcr.io/zaproxy/zaproxy:2.16.0}
     entrypoint: [""]
   extends: .aspm_export
   variables:

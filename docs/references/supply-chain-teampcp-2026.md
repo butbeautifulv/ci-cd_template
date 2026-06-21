@@ -24,7 +24,7 @@ Reported malicious domains (verify against current vendor advisories):
 
 - Pin scanner images by **semver tag** or **digest** — never `:latest` / `:stable`
 - Do not auto-update security scanners in production (e.g. Watchtower on `trivy:latest`)
-- Install Trivy from **pinned GitHub release tarballs**, not `main` branch scripts
+- Install/run Trivy from **pinned container image** (`aquasec/trivy:VERSION`), not tarball curl or `main` branch scripts
 - Pin pip packages: `checkov==x.y.z`, `ruff==x.y.z`
 - Rotate CI/CD secrets after any suspected compromise
 

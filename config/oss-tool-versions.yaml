@@ -11,6 +11,8 @@ policy:
 images:
   semgrep: "returntocorp/semgrep:1.117.0"
   syft: "anchore/syft:v1.20.0"
+  trivy: "aquasec/trivy:0.63.0"
+  gitleaks: "ghcr.io/gitleaks/gitleaks:v8.22.1"
   hadolint: "hadolint/hadolint:v2.12.0-alpine"
   conftest: "ghcr.io/openpolicyagent/conftest:v0.56.0"
   zaproxy: "ghcr.io/zaproxy/zaproxy:2.16.0"
@@ -20,10 +22,6 @@ images:
   python: "python:3.11.11-slim-bookworm"
   docker_cli: "docker:24.0.9-cli"
   docker_dind: "docker:24.0.9-dind"
-
-binaries:
-  trivy: "0.63.0"
-  gitleaks: "8.22.1"
 
 pip:
   checkov: "3.2.449"
@@ -36,4 +34,4 @@ github_actions:
   login_ghcr: "v3"
   build_push: "v6"
   cosign_installer: "v3.6.0"
-  # Trivy: use CLI tarball in oss-full (avoid trivy-action compromised range)
+  # Trivy: pinned docker image (aquasec/trivy) — not tarball / trivy-action

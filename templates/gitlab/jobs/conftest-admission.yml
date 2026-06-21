@@ -2,7 +2,9 @@
 
 conftest-admission:
   stage: validate
-  image: ghcr.io/openpolicyagent/conftest:v0.56.0
+  image:
+    name: ${OSS_CONFTEST_IMAGE:-ghcr.io/openpolicyagent/conftest:v0.56.0}
+    entrypoint: [""]
   rules:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:

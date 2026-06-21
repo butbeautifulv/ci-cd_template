@@ -21,12 +21,14 @@ variables:
 
 include:
   - local: '/templates/gitlab/jobs/oss/versions.yml'
+  - local: '/templates/gitlab/jobs/oss/_docker.yml'
   - local: '/templates/gitlab/jobs/registry/variables.yml'
   - local: '/templates/gitlab/jobs/registry/login.yml'
   - local: '/templates/gitlab/jobs/aspm/export-after-script.yml'
   - local: '/templates/gitlab/jobs/_base.yml'
   - local: '/templates/gitlab/jobs/oss/build-push.yml'
   - local: '/templates/gitlab/jobs/oss/gitleaks.yml'
+  - local: '/templates/gitlab/jobs/forbidden-files.yml'
   - local: '/templates/gitlab/jobs/oss/semgrep-sast.yml'
   - local: '/templates/gitlab/jobs/oss/trivy-osa.yml'
   - local: '/templates/gitlab/jobs/oss/checkov-iac.yml'

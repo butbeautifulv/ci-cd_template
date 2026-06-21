@@ -18,11 +18,6 @@ jobs:
     if: inputs.image != 'none' && inputs.image != ''
     steps:
       - uses: actions/checkout@v4
-      - name: Install Trivy
-        run: |
-          TRIVY_VERSION="${OSS_TRIVY_VERSION:-0.63.0}"
-          curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
-            | tar xz -C /usr/local/bin trivy
       - name: Registry auth for private image
         env:
           REGISTRY_BACKEND: ${{ vars.REGISTRY_BACKEND || 'gitlab' }}
@@ -38,23 +33,17 @@ jobs:
           echo "TRIVY_PASSWORD=$TRIVY_PASSWORD" >> "$GITHUB_ENV"
       - name: Scan image
         run: |
-          trivy image --scanners vuln --severity CRITICAL,HIGH --format sarif \
+          TRIVY_IMAGE="${OSS_TRIVY_IMAGE:-aquasec/trivy:0.63.0}"
+          docker run --rm \
+            -e TRIVY_USERNAME -e TRIVY_PASSWORD \
+            -v "$PWD:/work" -w /work \
+            "$TRIVY_IMAGE" image --scanners vuln --severity CRITICAL,HIGH --format sarif \
             --output sca.sarif "${{ inputs.image }}" || true
-      - name: Gate check
-        if: always()
-        run: |
-          [ -f sca.sarif ] || echo '{"runs":[{"results":[]}]}' > sca.sarif
-          python scripts/gate-check.py --control sca --report sca.sarif
-      - name: ASPM export
-        if: always() && vars.DEFECTDOJO_URL != ''
-        env:
-          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
-          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
-        run: python scripts/aspm-export.py --control sca --report sca.sarif || true
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: ./.github/actions/gate-and-export
         if: always()
         with:
-          sarif_file: sca.sarif
+          control: sca
+          report: sca.sarif
           category: sca
 
   skip:
