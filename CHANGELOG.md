@@ -1,5 +1,26 @@
 # Changelog
 
+## [1.5.0] — GitHub OSS Full Pipeline
+
+### Added
+
+- Profile **`oss-full`** for GitHub Actions — [`templates/profiles/oss-full.github.yml`](templates/profiles/oss-full.github.yml)
+- **`templates/github/workflows/security-gates-oss.yml`** — 100% OSS scanners (no CodeQL)
+- OSS job workflows: `templates/github/workflows/jobs/oss/` (Gitleaks, Semgrep, Trivy OSA, Checkov, Hadolint, Ruff)
+- **`templates/github/workflows/oss/`** — build-push (GHCR), sca-image (Trivy tarball)
+- **`jobs/sbom-oss.yml`**, **`jobs/sign-oss.yml`**, **`dast-oss.yml`**, **`nightly-sast-oss.yml`**
+- **`config/github-oss-env.yml`** — pinned env reference
+- **`scripts/validate-github-oss.sh`**
+- [docs/platforms/github-oss-full.md](docs/platforms/github-oss-full.md)
+- CI: [`.github/workflows/oss-full-sample-app.yml`](.github/workflows/oss-full-sample-app.yml)
+
+### Changed
+
+- `adopt.sh` — `oss-full` + `github` activates `ci.yml`, copies OSS workflows
+- `jobs/sbom.yml` — Syft `v1.20.0` pin for non-oss profiles
+- `oss-tool-versions.yaml` — `github_actions` section
+- Docs: quickstart, README, templates/README, devsecops-tooling skill
+
 ## [1.4.3] — External Docker registry (Nexus / Harbor)
 
 ### Added

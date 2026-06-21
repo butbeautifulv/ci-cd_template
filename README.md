@@ -36,7 +36,9 @@
 | [quickstart](docs/quickstart.md) | Быстрый старт / миграция |
 | [adoption-checklist](docs/adoption-checklist.md) | Чеклист внедрения |
 | [platforms/gitlab](docs/platforms/gitlab.md) | Профиль GitLab CI |
+| [platforms/gitlab-oss-full](docs/platforms/gitlab-oss-full.md) | GitLab OSS full |
 | [platforms/github](docs/platforms/github.md) | Профиль GitHub Actions |
+| [platforms/github-oss-full](docs/platforms/github-oss-full.md) | GitHub OSS full |
 | [references/secure-sdlc-phases](docs/references/secure-sdlc-phases.md) | Secure SDLC 8 этапов |
 | [references/sdlc-mapping](docs/references/sdlc-mapping.md) | Три модели SDLC |
 | [references/sources](docs/references/sources.md) | Источники и атрибуция |

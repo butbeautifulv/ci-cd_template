@@ -1,0 +1,105 @@
+# GitHub profile: oss-full — 100% OSS scanners + GHCR build/push
+# No CodeQL / dependency-review — see security-gates-oss.yml
+
+name: CI OSS Full
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+  CI_REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
+  REGISTRY_BACKEND: gitlab
+  ENABLE_REAL_LINTERS: "true"
+  SECURITY_POLICY: config/security-gate-policy.yaml
+  OSS_SEMGREP_IMAGE: returntocorp/semgrep:1.117.0
+  OSS_SYFT_VERSION: v1.20.0
+  OSS_HADOLINT_IMAGE: hadolint/hadolint:v2.12.0-alpine
+  OSS_TRIVY_VERSION: "0.63.0"
+  OSS_GITLEAKS_VERSION: "8.22.1"
+  OSS_CHECKOV_VERSION: "3.2.449"
+  OSS_RUFF_VERSION: "0.11.8"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Lint
+        run: |
+          pip install -q "ruff==${OSS_RUFF_VERSION}"
+          ruff check . || true
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Unit tests
+        run: |
+          if [ -f requirements.txt ] && [ -d tests ]; then
+            pip install -q pytest -r requirements.txt
+            pytest tests/ -q || true
+          else
+            echo "Placeholder unit tests — add tests/ and requirements.txt"
+          fi
+
+  security-gates:
+    needs: [lint, unit-test]
+    uses: ./.github/workflows/security-gates-oss.yml
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    needs: [security-gates]
+    uses: ./.github/workflows/oss/build-push.yml
+    permissions:
+      contents: read
+      packages: write
+
+  sbom:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/jobs/sbom-oss.yml
+
+  sca-image:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/oss/sca-image.yml
+    with:
+      image: ${{ needs.build.outputs.image }}
+
+  sign:
+    if: github.ref == 'refs/heads/main'
+    needs: [build, sca-image]
+    uses: ./.github/workflows/jobs/sign-oss.yml
+    with:
+      image: ${{ needs.build.outputs.image }}
+    secrets: inherit
+
+  sec-func-tests:
+    if: github.ref == 'refs/heads/main'
+    needs: [build]
+    uses: ./.github/workflows/jobs/sec-func-tests.yml
+
+# DAST: templates/github/workflows/dast-oss.yml (workflow_dispatch)
+# Nightly SAST: templates/github/workflows/nightly-sast-oss.yml (schedule)

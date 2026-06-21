@@ -1,0 +1,23 @@
+name: OSS Security Gates
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+jobs:
+  secrets:
+    uses: ./.github/workflows/jobs/oss/gitleaks.yml
+  sast:
+    uses: ./.github/workflows/jobs/oss/semgrep-sast.yml
+  osa:
+    uses: ./.github/workflows/jobs/oss/trivy-osa.yml
+  iac:
+    uses: ./.github/workflows/jobs/oss/checkov-iac.yml
+  dockerfile:
+    uses: ./.github/workflows/jobs/oss/dockerfile-lint.yml
+  linters:
+    uses: ./.github/workflows/jobs/oss/linter-security.yml

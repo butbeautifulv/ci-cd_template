@@ -54,6 +54,9 @@ copy "$ROOT/config/security-gate-policy.yaml" "$TARGET/config/security-gate-poli
 copy "$ROOT/config/aspm-export.yaml" "$TARGET/config/aspm-export.yaml"
 copy "$ROOT/config/oss-tool-versions.yaml" "$TARGET/config/oss-tool-versions.yaml"
 copy "$ROOT/config/artifact-registry.yaml" "$TARGET/config/artifact-registry.yaml"
+if [[ -f "$ROOT/config/github-oss-env.yml" ]]; then
+  copy "$ROOT/config/github-oss-env.yml" "$TARGET/config/github-oss-env.yml"
+fi
 copy "$ROOT/scripts/gate-check.py" "$TARGET/scripts/gate-check.py"
 copy "$ROOT/scripts/aspm-export.py" "$TARGET/scripts/aspm-export.py"
 copy "$ROOT/scripts/ai-ml-scan.py" "$TARGET/scripts/ai-ml-scan.py"
@@ -90,6 +93,14 @@ elif [[ "$PLATFORM" == "github" ]]; then
   if [[ "$PROFILE" == "full" ]]; then
     copy "$ROOT/templates/github/workflows/nightly-sast.yml" "$TARGET/.github/workflows/nightly-sast.yml"
   fi
+  if [[ "$PROFILE" == "oss-full" ]]; then
+    copy "$ROOT/templates/github/workflows/nightly-sast-oss.yml" "$TARGET/.github/workflows/nightly-sast-oss.yml"
+    copy "$ROOT/templates/github/workflows/dast-oss.yml" "$TARGET/.github/workflows/dast-oss.yml"
+    if [[ $DRY_RUN -eq 0 ]]; then
+      cp "$TARGET/.github/workflows/ci-profile.yml" "$TARGET/.github/workflows/ci.yml"
+      echo "Activated oss-full as .github/workflows/ci.yml"
+    fi
+  fi
 else
   echo "Unknown platform: $PLATFORM"; exit 1
 fi
@@ -113,10 +124,11 @@ cat <<EOF
 [ ] Phases included: $PHASES
 [ ] Gates: SAST/SCA/IaC block C/H; secrets/dockerfile/linters warn (shift-left)
 [ ] ai-ml profile: PII block (ml_data); AI scans warn
-[ ] oss-full: set KUBECONFIG (file), enable Container Registry; chart/ copied if missing
+[ ] oss-full GitLab: set KUBECONFIG (file), enable Container Registry; chart/ copied if missing
+[ ] oss-full GitHub: enable GHCR (packages: write), copy ci-profile.yml → ci.yml on adopt
 [ ] ASPM: set DEFECTDOJO_URL + DEFECTDOJO_API_TOKEN for findings export
 [ ] Run: python3 scripts/gate-check.py --help
-[ ] Validate: bash scripts/validate-yaml.sh && bash scripts/validate-oss-pins.sh && bash scripts/validate-registry-config.sh && python3 scripts/validate-policy.py
+[ ] Validate: bash scripts/validate-yaml.sh && bash scripts/validate-oss-pins.sh && bash scripts/validate-registry-config.sh && bash scripts/validate-github-oss.sh && python3 scripts/validate-policy.py
 [ ] See docs/adoption-checklist.md
 
 EOF

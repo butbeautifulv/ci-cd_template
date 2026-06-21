@@ -21,14 +21,16 @@ Enable branch protection: [platforms/gitlab.md](platforms/gitlab.md) or [platfor
 | 3 | `supply-chain` | SBOM + image scan on main |
 | 4 | `full` | DAST, preprod, nightly SAST |
 | 5 | **`ai-ml`** | AI agents + ML datasets/models (opt-in) |
-| 6 | **`oss-full`** | GitLab CE — 100% OSS scanners + Helm deploy |
+| 6 | **`oss-full`** | GitLab CE / GitHub — 100% OSS scanners (+ Helm on GitLab) |
 
 ```bash
 ./scripts/adopt.sh --profile shift-left --platform gitlab --target ~/myapp
 ./scripts/adopt.sh --profile oss-full --platform gitlab --target ~/myapp --dry-run
+./scripts/adopt.sh --profile oss-full --platform github --target ~/myapp --dry-run
 ```
 
-GitLab CE / no Ultimate: use **`oss-full`** — [platforms/gitlab-oss-full.md](platforms/gitlab-oss-full.md).
+GitLab CE / no Ultimate: **`oss-full`** — [platforms/gitlab-oss-full.md](platforms/gitlab-oss-full.md)  
+GitHub 100% OSS: **`oss-full`** — [platforms/github-oss-full.md](platforms/github-oss-full.md)
 
 Demo ML/AI scanners: [examples/sample-ml-app/](examples/sample-ml-app/).
 
