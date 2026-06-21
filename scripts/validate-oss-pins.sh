@@ -15,6 +15,10 @@ SCAN_DIRS=(
   templates/gitlab/jobs/nightly-full-sast.yml
   templates/gitlab/jobs/_base.yml
   templates/profiles/oss-full.gitlab-ci.yml
+  templates/github/workflows/jobs/oss
+  templates/github/workflows/oss
+  templates/profiles/oss-full.github.yml
+  config/github-oss-env.yml
 )
 
 fail=0

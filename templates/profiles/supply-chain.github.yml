@@ -18,26 +18,13 @@ env:
   ENABLE_REAL_LINTERS: "false"
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: |
-          if [ "${{ env.ENABLE_REAL_LINTERS }}" = "true" ]; then
-            pip install ruff
-            ruff check .
-          else
-            echo "Placeholder lint"
-          fi
-
-  unit-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "Placeholder unit tests"
+  validate:
+    uses: ./.github/workflows/base-validate.yml
+    with:
+      enable_real_linters: ${{ env.ENABLE_REAL_LINTERS }}
 
   security-gates:
-    needs: [lint, unit-test]
+    needs: [validate]
     uses: ./.github/workflows/security-gates.yml
     permissions:
       contents: read

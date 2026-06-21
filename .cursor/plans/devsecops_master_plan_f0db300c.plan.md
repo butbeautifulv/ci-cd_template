@@ -1,5 +1,6 @@
 ---
 name: DevSecOps Master Plan
+status: archived
 overview: Создать набор markdown-документов в репозитории `ci-cd_template`, синтезирующих DAF, JCSF, типовой финтех-процесс (ГОСТ 56939) и карту инструментов DevSecOps в единый мастер-план CI/CD с поддержкой GitLab и GitHub и целевым runtime Kubernetes.
 todos:
   - id: P0-scaffold

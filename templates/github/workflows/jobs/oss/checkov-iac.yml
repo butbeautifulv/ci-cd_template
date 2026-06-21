@@ -26,17 +26,9 @@ jobs:
           [ -f "$REPORT" ] || REPORT=reports/checkov.sarif
           [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > reports/checkov.sarif
           [ -f reports/checkov.sarif ] || cp "$REPORT" reports/checkov.sarif
-      - name: Gate check
-        if: always()
-        run: python scripts/gate-check.py --control iac --report reports/checkov.sarif
-      - name: ASPM export
-        if: always() && vars.DEFECTDOJO_URL != ''
-        env:
-          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
-          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
-        run: python scripts/aspm-export.py --control iac --report reports/checkov.sarif || true
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: ./.github/actions/gate-and-export
         if: always()
         with:
-          sarif_file: reports/checkov.sarif
+          control: iac
+          report: reports/checkov.sarif
           category: iac

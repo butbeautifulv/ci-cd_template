@@ -1,5 +1,6 @@
 ---
 name: DefectDojo ASPM Export
+status: archived
 overview: Добавить platform-agnostic слой экспорта findings (ASPM/ASTO) с backend DefectDojo по OpenAPI v2, и подключить per-scan upload в каждый GitLab OSS job через общий snippet + `scripts/aspm-export.py`.
 todos:
   - id: aspm-cli-config

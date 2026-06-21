@@ -13,9 +13,11 @@ report() {
 
 required=(
   templates/profiles/oss-full.github.yml
+  templates/github/workflows/base-validate.yml
   templates/github/workflows/security-gates-oss.yml
   templates/github/workflows/oss/build-push.yml
   templates/github/workflows/oss/sca-image.yml
+  templates/github/actions/gate-and-export/action.yml
   templates/github/workflows/jobs/oss/gitleaks.yml
   templates/github/workflows/jobs/oss/semgrep-sast.yml
   templates/github/workflows/jobs/oss/trivy-osa.yml
@@ -32,6 +34,16 @@ for f in "${required[@]}"; do
 done
 
 oss_scan_dir="templates/github/workflows/jobs/oss"
+if ! grep -q 'base-validate.yml' templates/profiles/oss-full.github.yml; then
+  report "oss-full.github.yml must use base-validate.yml"
+fi
+
+for job in "$oss_scan_dir"/*.yml; do
+  if ! grep -q 'gate-and-export' "$job"; then
+    report "OSS job must use gate-and-export composite: $job"
+  fi
+done
+
 if grep -qE 'trivy-action@0\.28|semgrep-action@v1|:latest|:stable' "$oss_scan_dir"/*.yml 2>/dev/null; then
   grep -nE 'trivy-action@0\.28|semgrep-action@v1|:latest|:stable' "$oss_scan_dir"/*.yml | while read -r line; do
     report "rolling pin in oss jobs: $line"

@@ -34,21 +34,7 @@
 
 ## Process (P-*)
 
-| ID | Subdomain |
-|----|-----------|
-| P-EDU-AWR | Training & awareness |
-| P-EDU-KB | DSO knowledge base |
-| P-REQ-TM | Threat modeling |
-| P-REQ-RD | Security requirements |
-| P-REQ-CR | Requirements compliance check |
-| P-REQ-STDR-App | App configuration standards |
-| P-REQ-STDR-Infr | Infra configuration standards |
-| P-DEFECT-MNG | Vulnerability/defect management |
-| P-DEFECT-CNS | Consolidation (ASTO) |
-| P-MET-SET | Security metrics |
-| P-MET-EX | Metrics governance |
-| P-ROLE-SC | Security Champions |
-| P-ROLE-RESP | Roles & responsibility |
+Full P-* subdomains: `devsecops-governance` skill, [07-governance-and-docs.md](../../docs/07-governance-and-docs.md), [daf-kirillamida.md](../../docs/references/daf-kirillamida.md).
 
 ## miniRoadmap hints (from xlsx)
 

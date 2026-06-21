@@ -8,6 +8,6 @@ Structured markdown views derived from primary sources (PDF/xlsx). **Not canonic
 | [Типовой_процесс_безопасной_разработки_для_финтеха.md](Типовой_процесс_безопасной_разработки_для_финтеха.md) | Финтех PDF swimlane | [fintech-swimlane.md](../fintech-swimlane.md), [01-sdlc-process.md](../../01-sdlc-process.md) |
 | [JCSF_v7_public.md](JCSF_v7_public.md) | JCSF v7 xlsx | [extracts/jcsf/](../extracts/jcsf/), [06-kubernetes-runtime.md](../../06-kubernetes-runtime.md) |
 
-Local copy may also exist at `.external/chatgpt_mds/` (optional, not required at runtime).
+Optional local mirror: `.external/chatgpt_mds/` (gitignored). **Canonical in-repo copy is this directory only.**
 
 When updating supplements, diff against [extracts/tools-map-pdf.txt](../extracts/tools-map-pdf.txt) and [extracts/fintech-pdf.txt](../extracts/fintech-pdf.txt) to avoid drift.

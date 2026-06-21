@@ -2,7 +2,7 @@
 
 dockerfile-lint:
   stage: security
-  image: hadolint/hadolint:v2.12.0-alpine
+  image: ${OSS_HADOLINT_IMAGE:-hadolint/hadolint:v2.12.0-alpine}
   extends: .aspm_export
   variables:
     ASPM_CONTROL: dockerfile

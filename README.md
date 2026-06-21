@@ -10,13 +10,7 @@
 
 ## Быстрый старт
 
-1. Прочитайте [docs/00-master-plan.md](docs/00-master-plan.md).
-2. Оцените зрелость по [docs/05-maturity-roadmap.md](docs/05-maturity-roadmap.md).
-3. Внедряйте подфазы из [docs/phases/](docs/phases/) — **один PR на подфазу**.
-4. Скопируйте CI в свой репозиторий:
-   - GitLab: `templates/gitlab/.gitlab-ci.yml` → корень + `templates/gitlab/jobs/`
-   - GitHub: `templates/github/workflows/` → `.github/workflows/`
-5. Настройте [config/security-gate-policy.yaml](config/security-gate-policy.yaml) под свою политику ИБ.
+См. [docs/quickstart.md](docs/quickstart.md) — `adopt.sh`, profiles, validation, migration.
 
 ## Документация
 
@@ -49,36 +43,11 @@
 
 ## Agent skills
 
-Канон: `.agents/skills/`; Cursor stubs: `.cursor/skills/`.
-
-| Skill | Назначение |
-|-------|------------|
-| `devsecops-template` | Точка входа, карта repo |
-| `devsecops-reference-lookup` | Extracts, DAF paths, re-extract scripts |
-| `devsecops-secure-sdlc` | Secure SDLC 8 этапов Plan→Monitor |
-| `devsecops-daf` | Кирилламида, практики DAF |
-| `devsecops-gost` | ГОСТ 56939 ↔ pipeline |
-| `devsecops-jcsf` | K8s/container security |
-| `devsecops-fintech-sdlc` | Финтех swimlane, MR gates |
-| `devsecops-tooling` | Каталог инструментов |
-| `devsecops-governance` | Регламенты DSO, ASTO |
-| `devsecops-phase-impl` | Внедрение подфаз (≤5 files/PR) |
-| `devsecops-mlsecops` | MLSecOps (опционально) |
-| `devsecops-ai-security` | Cisco AI / skill scan (опционально) |
+Канон: [AGENTS.md](AGENTS.md) (индекс skills). Cursor stubs: `.cursor/skills/`.
 
 ## Roadmap подфаз
 
-| Фаза | Подфазы | Фокус |
-|------|---------|-------|
-| P0 | Scaffold | Документация |
-| A | A1–A2 | SCM + CI base |
-| B | B1–B6 | Shift-left: secrets, SAST, SCA, IaC, Dockerfile, linters |
-| C | C1–C4 | Supply chain: SBOM, image scan, registry, signing |
-| D | D1–D3 | Preprod: DAST, sec tests, pentest gate |
-| E | E1–E4 | K8s runtime: admission, network, Falco, SIEM |
-| F | F1–F3 | IAST, WAF/RASP, advanced assurance |
-
-Детали: [docs/phases/](docs/phases/).
+Сводка P0–F3: [docs/00-master-plan.md](docs/00-master-plan.md), [docs/05-maturity-roadmap.md](docs/05-maturity-roadmap.md). Детали: [docs/phases/](docs/phases/).
 
 ## Источники
 

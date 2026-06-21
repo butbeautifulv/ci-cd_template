@@ -34,7 +34,7 @@
 ## Supplements (ChatGPT reinterpretations)
 
 - **В repo:** [supplements/](supplements/) — structured MD views of tools map, fintech 12-stage process, JCSF practices overview
-- **Optional local:** `.external/chatgpt_mds/` (same content; not required at runtime)
+- **Optional local (gitignored):** `.external/chatgpt_mds/` — mirror only; do not commit
 - **Canonical first:** [04-tooling-catalog.md](../04-tooling-catalog.md), [fintech-swimlane.md](fintech-swimlane.md), [extracts/jcsf/](extracts/jcsf/)
 
 ## Cisco AI Defense (optional)
@@ -50,22 +50,7 @@
 
 ## Agent skills
 
-Канон: `.agents/skills/`; Cursor discovery: `.cursor/skills/` stubs. Старт: `devsecops-template`.
-
-| Skill | Содержание |
-|-------|------------|
-| `devsecops-template` | Карта repo, правила, маршрутизация |
-| `devsecops-reference-lookup` | extracts, daf paths, re-extract scripts |
-| `devsecops-secure-sdlc` | 8-stage Plan→Monitor |
-| `devsecops-daf` | Кирилламида, T-/P-поддомены |
-| `devsecops-gost` | ГОСТ 56939 ↔ CI/CD |
-| `devsecops-jcsf` | Домены JCSF, CIS, K8s |
-| `devsecops-fintech-sdlc` | Swimlane финтех |
-| `devsecops-tooling` | Инструменты по классам |
-| `devsecops-governance` | Документы DSO, роли |
-| `devsecops-phase-impl` | Подфазы P0–F3 |
-| `devsecops-mlsecops` | ML/ИИ (опционально) |
-| `devsecops-ai-security` | Cisco AI (опционально) |
+Канон: `.agents/skills/`; Cursor discovery: `.cursor/skills/` stubs. Старт: `devsecops-template`. Полный индекс: [AGENTS.md](../../AGENTS.md).
 
 ## Дисклеймер
 

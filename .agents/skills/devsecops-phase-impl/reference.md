@@ -1,6 +1,6 @@
 # Phase implementation reference
 
-Execution plan: `.cursor/plans/devsecops-execution.plan.md` (do not edit `devsecops_execution_plan_04e83d47.plan.md`).
+Execution plan: `.cursor/plans/devsecops-execution.plan.md`.
 
 ## Progressive profiles (`templates/profiles/`)
 

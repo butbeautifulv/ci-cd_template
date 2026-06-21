@@ -7,7 +7,7 @@
 
 lint:
   stage: validate
-  image: python:3.11.11-slim-bookworm
+  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
   extends: .workflow_rules
   variables:
     ENABLE_REAL_LINTERS: "${ENABLE_REAL_LINTERS:-false}"
@@ -23,7 +23,7 @@ lint:
 
 unit-test:
   stage: test
-  image: python:3.11.11-slim-bookworm
+  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
   extends: .workflow_rules
   script:
     - |
@@ -37,10 +37,10 @@ unit-test:
 
 build-image:
   stage: build
-  image: docker:24.0.9-cli
+  image: ${OSS_DOCKER_CLI_IMAGE:-docker:24.0.9-cli}
   extends: .registry_login
   services:
-    - name: docker:24.0.9-dind
+    - name: ${OSS_DOCKER_DIND_IMAGE:-docker:24.0.9-dind}
       alias: docker
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

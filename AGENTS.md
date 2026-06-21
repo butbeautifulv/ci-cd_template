@@ -13,7 +13,6 @@ Scaffold (P0–F3 docs + templates) is done. v1.1: references migrated to `docs/
 3. **warn → block** in a separate micro-PR
 4. WAF/RASP (F2) — runbooks only, not CI jobs
 5. Reference material lives in `docs/references/` — vendor xlsx/pdf not in git
-6. Do not edit `.cursor/plans/devsecops_execution_plan_04e83d47.plan.md`
 
 ## Phase order
 

@@ -3,7 +3,7 @@
 sbom-generate:
   stage: build
   image:
-    name: anchore/syft:v1.20.0
+    name: ${OSS_SYFT_IMAGE:-anchore/syft:v1.20.0}
     entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
