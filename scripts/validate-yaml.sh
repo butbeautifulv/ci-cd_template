@@ -6,7 +6,13 @@ cd "$ROOT"
 
 fail=0
 if command -v yamllint >/dev/null 2>&1; then
-  yamllint -d relaxed templates/ .github/workflows/ 2>/dev/null || yamllint templates/
+  mapfile -t yml_files < <(
+    find templates .github/workflows \( -name '*.yml' -o -name '*.yaml' \) \
+      ! -path 'templates/k8s/helm/*' 2>/dev/null | sort
+  )
+  if ! yamllint -d relaxed "${yml_files[@]}"; then
+    fail=1
+  fi
 else
   echo "yamllint not found — using python yaml parse"
   python3 <<'PY'
