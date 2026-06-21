@@ -1,0 +1,41 @@
+name: OSS Security Linters
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  linter-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Ruff
+        run: |
+          if [ "${ENABLE_REAL_LINTERS:-false}" = "true" ]; then
+            pip install -q "ruff==${OSS_RUFF_VERSION:-0.11.8}"
+            ruff check . --output-format sarif -o linter.sarif || true
+          else
+            echo '{"runs":[{"results":[]}]}' > linter.sarif
+          fi
+      - name: Gate check
+        if: always()
+        run: |
+          [ -f linter.sarif ] || echo '{"runs":[{"results":[]}]}' > linter.sarif
+          python scripts/gate-check.py --control linters --report linter.sarif
+      - name: ASPM export
+        if: always() && vars.DEFECTDOJO_URL != ''
+        env:
+          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
+          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
+        run: python scripts/aspm-export.py --control linters --report linter.sarif || true
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: linter.sarif
+          category: linters

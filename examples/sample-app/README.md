@@ -41,5 +41,7 @@ python3 ../../scripts/gate-check.py --control sbom --report /dev/null  # fails â
 
 ```bash
 ./scripts/adopt.sh --profile oss-full --platform gitlab --target examples/sample-app --dry-run
-# Includes chart/ for Helm deploy-preprod
+./scripts/adopt.sh --profile oss-full --platform github --target examples/sample-app --dry-run
+# GitLab: includes chart/ for Helm deploy-preprod
+# GitHub: activates ci.yml with GHCR build/push
 ```

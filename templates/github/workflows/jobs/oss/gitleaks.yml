@@ -1,0 +1,39 @@
+name: OSS Gitleaks
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  gitleaks:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Install Gitleaks
+        run: |
+          GITLEAKS_VERSION="${OSS_GITLEAKS_VERSION:-8.22.1}"
+          curl -sSL "https://github.com/gitleaks/gitleaks/releases/download/v${GITLEAKS_VERSION}/gitleaks_${GITLEAKS_VERSION}_linux_x64.tar.gz" \
+            | tar xz -C /usr/local/bin gitleaks
+      - name: Scan
+        run: gitleaks detect --source . --report-format sarif --report-path gitleaks.sarif --no-git || true
+      - name: Gate check
+        if: always()
+        run: |
+          [ -f gitleaks.sarif ] || echo '{"runs":[{"results":[]}]}' > gitleaks.sarif
+          python scripts/gate-check.py --control secrets --report gitleaks.sarif
+      - name: ASPM export
+        if: always() && vars.DEFECTDOJO_URL != ''
+        env:
+          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
+          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
+        run: python scripts/aspm-export.py --control secrets --report gitleaks.sarif || true
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: gitleaks.sarif
+          category: secrets

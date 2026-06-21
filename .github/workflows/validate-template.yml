@@ -20,7 +20,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - name: Validate YAML and policy
-        run: bash scripts/validate-yaml.sh
+        run: |
+          bash scripts/validate-yaml.sh
+          bash scripts/validate-github-oss.sh
       - name: Gate-check self-test
         run: |
           echo '{"runs":[{"results":[{"level":"error","message":{"text":"test"}}]}]}' > /tmp/test.sarif
