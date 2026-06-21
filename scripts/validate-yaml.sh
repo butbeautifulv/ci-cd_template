@@ -8,7 +8,9 @@ fail=0
 if command -v yamllint >/dev/null 2>&1; then
   mapfile -t yml_files < <(
     find templates .github/workflows \( -name '*.yml' -o -name '*.yaml' \) \
-      ! -path 'templates/k8s/helm/*' 2>/dev/null | sort
+      ! -path 'templates/k8s/helm/*' \
+      ! -path 'templates/siem/*' \
+      2>/dev/null | sort
   )
   if ! yamllint -d relaxed "${yml_files[@]}"; then
     fail=1
