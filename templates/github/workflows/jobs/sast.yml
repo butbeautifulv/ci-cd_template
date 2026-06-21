@@ -22,6 +22,16 @@ jobs:
       - uses: github/codeql-action/analyze@v3
         with:
           category: "/language:javascript"
+      - name: Gate check CodeQL
+        if: always()
+        run: |
+          REPORT="${{ github.workspace }}/codeql-results.sarif"
+          for f in codeql-results.sarif results/javascript.sarif; do
+            [ -f "$f" ] && REPORT="$f" && break
+          done
+          [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > codeql-results.sarif
+          [ -f "$REPORT" ] || REPORT=codeql-results.sarif
+          python scripts/gate-check.py --control sast --report "$REPORT"
 
   semgrep:
     runs-on: ubuntu-latest

@@ -72,4 +72,4 @@
 - **Cont-1-*** — runtime detection (Falco)
 - **Dock-1-*** — безопасная сборка образов
 
-Полный список: `JCSF v7_public.xlsx` в `.external/`.
+Полный список: [references/extracts/jcsf/Практики.md](references/extracts/jcsf/Практики.md).

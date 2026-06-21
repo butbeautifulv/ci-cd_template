@@ -58,11 +58,19 @@ if [[ "$PLATFORM" == "gitlab" ]]; then
   copy "$ROOT/templates/profiles/${PROFILE}.gitlab-ci.yml" "$TARGET/.gitlab-ci.yml"
   copy "$ROOT/templates/gitlab/jobs" "$TARGET/.gitlab/jobs"
   copy "$ROOT/templates/CODEOWNERS" "$TARGET/CODEOWNERS"
+  if [[ $DRY_RUN -eq 0 ]]; then
+    sed -i "s|local: '/templates/gitlab/jobs/|local: '.gitlab/jobs/|g" "$TARGET/.gitlab-ci.yml"
+    sed -i 's|local: "/templates/gitlab/jobs/|local: ".gitlab/jobs/|g' "$TARGET/.gitlab-ci.yml"
+    echo "Rewrote .gitlab-ci.yml include paths -> .gitlab/jobs/"
+  fi
 elif [[ "$PLATFORM" == "github" ]]; then
   copy "$ROOT/templates/github/workflows" "$TARGET/.github/workflows"
   copy "$ROOT/templates/profiles/${PROFILE}.github.yml" "$TARGET/.github/workflows/ci-profile.yml"
   copy "$ROOT/templates/github/dependabot.yml" "$TARGET/.github/dependabot.yml"
   copy "$ROOT/templates/CODEOWNERS" "$TARGET/CODEOWNERS"
+  if [[ "$PROFILE" == "full" ]]; then
+    copy "$ROOT/templates/github/workflows/nightly-sast.yml" "$TARGET/.github/workflows/nightly-sast.yml"
+  fi
 else
   echo "Unknown platform: $PLATFORM"; exit 1
 fi
@@ -78,11 +86,13 @@ esac
 cat <<EOF
 
 === Checklist ===
-[ ] Fix include paths in .gitlab-ci.yml (local: '.gitlab/jobs/...')
+[ ] GitLab: include paths rewritten to .gitlab/jobs/ (if adopt ran without --dry-run)
 [ ] Enable branch protection — docs/platforms/${PLATFORM}.md
 [ ] Set REGISTRY / ghcr.io secrets
 [ ] Phases included: $PHASES
+[ ] Gates: SAST/SCA/IaC block C/H; secrets/dockerfile/linters warn (shift-left)
 [ ] Run: python3 scripts/gate-check.py --help
+[ ] Validate: bash scripts/validate-yaml.sh && python3 scripts/validate-policy.py
 [ ] See docs/adoption-checklist.md
 
 EOF

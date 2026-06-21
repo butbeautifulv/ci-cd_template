@@ -85,3 +85,5 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-preprod]
     uses: ./.github/workflows/jobs/iast-preprod.yml
+
+# Nightly SAST: copy templates/github/workflows/nightly-sast.yml → .github/workflows/ (schedule)

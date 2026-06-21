@@ -25,8 +25,16 @@ iac-sast:
   after_script:
     - |
       REPORT=gl-sast-report.json
-      [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > iac.sarif
+      [ -f "$REPORT" ] || echo '{"vulnerabilities":[]}' > "$REPORT"
+      python3 -c "
+import json
+p='$REPORT'
+d=json.load(open(p))
+if 'runs' in d:
+  json.dump(d, open('iac.sarif','w'))
+else:
+  out={'runs':[{'results':[{'level':(v.get('severity','high')).lower(),'message':{'text':v.get('name','')}} for v in d.get('vulnerabilities',[])]}]}
+  json.dump(out, open('iac.sarif','w'))
+"
       python scripts/gate-check.py --control iac --report iac.sarif \
-        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}" || \
-      python scripts/gate-check.py --control iac --report "$REPORT" \
-        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}" || true
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"

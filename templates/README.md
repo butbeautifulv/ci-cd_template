@@ -9,12 +9,14 @@
 
 ## Progressive profiles (`profiles/`)
 
-| Profile | GitLab | GitHub | Phases |
-|---------|--------|--------|--------|
-| `minimal` | A2 only | lint/test/build | A2 |
-| `shift-left` | + B1–B6 | + security-gates | A2, B* |
-| `supply-chain` | + C1–C4 | + sbom/scan/sign | + C* |
-| `full` | all jobs | + DAST/preprod | + D*, F* |
+| Profile | GitLab | GitHub | Phases | Gate enforcement |
+|---------|--------|--------|--------|------------------|
+| `minimal` | A2 only | lint/test/build | A2 | none |
+| `shift-left` | + B1–B6 + forbidden-files | + security-gates | A2, B* | **block** SAST/SCA/IaC C/H; **warn** secrets/dockerfile/linters |
+| `supply-chain` | + C1–C4 | + sbom/scan/sign | + C* | + SBOM required on main |
+| `full` | all jobs | + DAST/preprod/nightly | + D*, F* | + DAST/sec-func warn |
+
+`ENABLE_REAL_LINTERS=false` by default — B6 stub until toolchain ready.
 
 Copy profile to entrypoint:
 

@@ -5,33 +5,6 @@ description: >-
   MCP security, AI BOM, model provenance. Use for AI1/ML1 phases, not standard CI/CD.
 ---
 
-# AI security (optional)
+Canonical instructions: [.agents/skills/devsecops-ai-security/SKILL.md](../../.agents/skills/devsecops-ai-security/SKILL.md)
 
-Sources: `.external/CISCO_AI_DEFENCE.md`, `docs/11-ai-security-appendix.md`, `docs/10-mlsecops-appendix.md`
-
-## When to use
-
-- Repo contains `.cursor/skills/`, MCP configs, or ML models
-- Not needed for standard web/app pipelines (P0–F3)
-
-## Tools
-
-| Tool | Scan target |
-|------|-------------|
-| skill-scanner | Agent SKILL.md files |
-| mcp-scanner | MCP server definitions |
-| aibom | AI dependencies |
-| pickle-fuzzer | Python pickle in ML artifacts |
-
-## CI jobs (optional)
-
-- `templates/gitlab/jobs/skill-scanner.yml` — manual/warn
-- Phase doc: `docs/phases/AI1-skill-scan.md`
-
-## MLSecOps overlap
-
-ML data gates: `T-MLDATA-DT-4-*` — see `devsecops-mlsecops` skill.
-
-## PR scope
-
-Same rules: ≤5 files, warn-only default for AI1.
+Load and follow the canonical file when this skill applies.

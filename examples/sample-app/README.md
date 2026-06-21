@@ -21,6 +21,17 @@ checkov -d examples/sample-app/infra/
 hadolint examples/sample-app/Dockerfile
 ```
 
-## Pipeline
+## Pipeline validation (v1.2)
 
-Point your adopted CI at this directory or copy into your monorepo.
+After adopting `shift-left` profile, run scanners locally — expect findings:
+
+| Scanner | Expected on sample-app |
+|---------|------------------------|
+| SAST (semgrep) | weak auth in `app/main.py` |
+| SCA (trivy) | CVE in `requirements.txt` |
+| IaC (checkov) | open SG in `infra/main.tf` |
+| Admission | `privileged`, `:latest` in `k8s/deployment.yaml` |
+
+```bash
+python3 ../../scripts/gate-check.py --control sbom --report /dev/null  # fails — missing SBOM
+```

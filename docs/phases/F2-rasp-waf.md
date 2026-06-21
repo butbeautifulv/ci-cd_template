@@ -35,6 +35,13 @@
 | WAF rules | Ops | Change ticket |
 | API policies | DevOps | Git repo |
 | RASP alerts | SecChamp | SIEM dashboard |
+| PKI / certs | Ops | [runbooks/pki-k8s.md](../runbooks/pki-k8s.md) |
+| Network IDS | Ops | Edge appliance (out of CI) |
+
+### PKI vs IDS
+
+- **PKI** — certificate lifecycle, rotation; see [runbooks/pki-k8s.md](../runbooks/pki-k8s.md)
+- **IDS** — network intrusion detection at edge; **Falco** covers runtime/host (E3), not L3 IDS appliance
 
 ## Rollback
 

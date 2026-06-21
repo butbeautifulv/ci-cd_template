@@ -37,6 +37,8 @@
 | [adoption-checklist](docs/adoption-checklist.md) | Чеклист внедрения |
 | [platforms/gitlab](docs/platforms/gitlab.md) | Профиль GitLab CI |
 | [platforms/github](docs/platforms/github.md) | Профиль GitHub Actions |
+| [references/secure-sdlc-phases](docs/references/secure-sdlc-phases.md) | Secure SDLC 8 этапов |
+| [references/sdlc-mapping](docs/references/sdlc-mapping.md) | Три модели SDLC |
 | [references/sources](docs/references/sources.md) | Источники и атрибуция |
 | [references/daf-kirillamida](docs/references/daf-kirillamida.md) | Уровни и поддомены DAF |
 | [references/fintech-swimlane](docs/references/fintech-swimlane.md) | Swimlane финтех-PDF |
@@ -44,12 +46,13 @@
 
 ## Agent skills
 
-Проектные skills в `.cursor/skills/`:
+Канон: `.agents/skills/`; Cursor stubs: `.cursor/skills/`.
 
 | Skill | Назначение |
 |-------|------------|
 | `devsecops-template` | Точка входа, карта repo |
-| `devsecops-external-sources` | Чтение `.external`, скрипт xlsx |
+| `devsecops-reference-lookup` | Extracts, DAF paths, re-extract scripts |
+| `devsecops-secure-sdlc` | Secure SDLC 8 этапов Plan→Monitor |
 | `devsecops-daf` | Кирилламида, практики DAF |
 | `devsecops-gost` | ГОСТ 56939 ↔ pipeline |
 | `devsecops-jcsf` | K8s/container security |
@@ -66,7 +69,7 @@
 |------|---------|-------|
 | P0 | Scaffold | Документация |
 | A | A1–A2 | SCM + CI base |
-| B | B1–B5 | Shift-left: secrets, SAST, SCA, IaC, Dockerfile |
+| B | B1–B6 | Shift-left: secrets, SAST, SCA, IaC, Dockerfile, linters |
 | C | C1–C4 | Supply chain: SBOM, image scan, registry, signing |
 | D | D1–D3 | Preprod: DAST, sec tests, pentest gate |
 | E | E1–E4 | K8s runtime: admission, network, Falco, SIEM |
@@ -76,7 +79,7 @@
 
 ## Источники
 
-Материалы в `.external/` (не коммитятся): DAF, JCSF, типовой финтех-процесс, карта инструментов DevSecOps. См. [docs/references/sources.md](docs/references/sources.md).
+Справочники и extracts в [docs/references/](docs/references/) (DAF, JCSF, Secure SDLC, финтех, tooling). Атрибуция: [docs/references/sources.md](docs/references/sources.md).
 
 ## Лицензия шаблона
 

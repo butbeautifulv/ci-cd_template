@@ -16,4 +16,4 @@ jobs:
         if: always()
         run: |
           echo '{"runs":[{"results":[]}]}' > hadolint.sarif
-          python scripts/gate-check.py --control dockerfile --report hadolint.sarif || true
+          python scripts/gate-check.py --control dockerfile --report hadolint.sarif

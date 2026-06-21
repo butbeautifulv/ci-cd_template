@@ -42,7 +42,7 @@
 
 При аудите заполняйте колонку «Выполнение» в `DAF_public_RU.xlsx` и сверяйте с артефактами pipeline (SARIF, SBOM, чеклисты).
 
-Полный маппинг (**561 строка**): `.external/.../DAF_public_RU.xlsx` → лист `ГОСТ56939_mapping`. Колонки: `ID_требования`, `Требование ГОСТ 56939-2024`, `Практика DAF`, `Является требованием?`, `Маппинг?`.
+Полный маппинг (**561 строка**): [extracts/daf/ГОСТ56939_mapping.md](references/extracts/daf/ГОСТ56939_mapping.md). Колонки: `ID_требования`, `Требование ГОСТ 56939-2024`, `Практика DAF`, `Является требованием?`, `Маппинг?`.
 
 См. также [framework-mappings.md](references/framework-mappings.md) для SAMM/DSOMM/BSIMM.
 

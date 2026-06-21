@@ -1,5 +1,7 @@
 # Архитектура CI/CD pipeline
 
+См. также Secure SDLC (Plan→Monitor): [references/sdlc-mapping.md](references/sdlc-mapping.md).
+
 ## Стадии
 
 | Stage | GitLab | GitHub | Триггер |
@@ -64,6 +66,21 @@ flowchart LR
   Pentest --> CD --> WAF --> RASP --> CSPM --> SIEM
   CD --> VulnMon
 ```
+
+## Secure SDLC (Plan → Monitor)
+
+```mermaid
+flowchart LR
+  Plan[Plan_TM] --> Code[Code_SAST_SCA]
+  Code --> Build[Build_SBOM]
+  Build --> Test[Test_DAST]
+  Test --> Release[Release_sign]
+  Release --> Deploy[Deploy_WAF]
+  Deploy --> Operate[Operate_RASP]
+  Operate --> Monitor[Monitor_SCA]
+```
+
+Маппинг на pipeline и template: [references/sdlc-mapping.md](references/sdlc-mapping.md).
 
 ## Межплатформенные контракты
 

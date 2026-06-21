@@ -1,6 +1,6 @@
 # Кирилламида DAF — справочник
 
-Источник: лист `Кирилламида` в `DAF_public_RU.xlsx`, [DAF README](.external/DevSecOps-Assessment-Framework-main/README.md).
+Источник: лист `Кирилламида` — [extracts/daf/Кирилламида.md](extracts/daf/Кирилламида.md), [DAF README](daf/README.md).
 
 ## Уровни зрелости
 
@@ -72,4 +72,4 @@
 | P-ROLE-SC | Security Champions |
 | P-ROLE-RESP | Роли и ответственность |
 
-Полный текст практик: `.external/.../DAF_public_RU.md`.
+Полный текст практик: [daf/DAF_public_RU.md](daf/DAF_public_RU.md).

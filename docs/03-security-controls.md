@@ -4,28 +4,35 @@
 
 ## Сводная матрица
 
-| Контроль | SDLC-точка | Что сканируем | DAF | JCSF | Шаблон job | Статус |
-|----------|------------|---------------|-----|------|-------------|--------|
-| **Linters** | IDE, MR | Style + security rules | `T-DEV-SRC` | — | custom / Code-Quality | baseline |
-| **SAST** | IDE, MR, nightly | Исходный код | `T-CODE-SST` | — | `jobs/sast.*` | baseline |
-| **Secret scan** | SCM, MR | Код, IaC | `T-CODE-SECDN` | — | `jobs/secret-scan.*` | baseline |
-| **OSA/SCA** | MR, build, runtime | Зависимости, SBOM | `T-CODE-SC`, `T-ADI-DEP` | — | `jobs/sca.*` | baseline |
-| **IaC scan** | MR, pre-deploy | tf, k8s, helm | `T-PREPROD-MANSEC` | `man` | `jobs/iac-scan.*` | baseline |
-| **Dockerfile** | MR (paths) | Dockerfile | `T-CODE-DOCKERFS` | `Dock` | `jobs/dockerfile-lint.*` | baseline |
-| **Container scan** | Build, registry | Образы CVE | `T-CODE-IMG` | `img` | `jobs/container-scan.*` | C2 |
-| **SBOM** | Build | CycloneDX | `T-ADI-ART-3-1` | — | `jobs/sbom.*` | C1 |
-| **Signing** | Build | cosign | `T-ADI-ART-4-*` | — | `jobs/sign.*` | C4 |
-| **DAST** | Preprod | Web/API | `T-PREPROD-DAST` | — | `jobs/dast.*` | D1 |
-| **Fuzzing** | QA | Бинарники, API | финтех-PDF | — | doc / optional job | out-of-base |
-| **Sec func tests** | Preprod | Auth, headers | `T-PREPROD-SECTEST` | — | `jobs/sec-func-tests.*` | D2 |
-| **IAST** | Preprod | Runtime app | финтех-PDF | — | `jobs/iast-preprod.*` | F1 optional |
-| **ASTO** | Все этапы | SARIF агрегация | `P-DEFECT-CNS` | — | DefectDojo / ASPM | process |
-| **WAF/API** | Prod edge | L7, API | `T-PROD-NETWORK` | Gen L4/L7 | runbook F2 | out-of-CI |
-| **RASP** | Prod runtime | Атаки в app | `T-PROD-EVENTS` | `cont` | runbook F2 | out-of-CI |
-| **K8s admission** | Prod deploy | Pods, policies | `T-PROD-RUN` | `orchr` | `k8s/admission/` | E1 |
-| **Network policy** | Prod | L4 pod traffic | `T-PROD-NETWORK` | `gen` | `k8s/network/` | E2 |
-| **CWPP/Falco** | Prod | Syscalls, exec | `T-PROD-EVENTS` | `cont` | `k8s/runtime/` | E3 |
-| **Taint analysis** | Design | Поверхность атаки | `P-REQ-TM` | — | SecChamp tool | design |
+| Контроль | Secure SDLC | SDLC-точка | Что сканируем | DAF | JCSF | Шаблон job | Статус |
+|----------|-------------|------------|---------------|-----|------|-------------|--------|
+| **Linters** | Code | IDE, MR | Style + security rules | `T-DEV-SRC` | — | custom / Code-Quality | baseline |
+| **SAST** | Code, Test | IDE, MR, nightly | Исходный код | `T-CODE-SST` | — | `jobs/sast.*` | baseline |
+| **Secret scan** | Code | SCM, MR | Код, IaC | `T-CODE-SECDN` | — | `jobs/secret-scan.*` | baseline |
+| **OSA/SCA** | Code, Build, Monitor | MR, build, runtime | Зависимости, SBOM | `T-CODE-SC`, `T-ADI-DEP` | — | `jobs/sca.*` | baseline |
+| **IaC scan** | Code, Test | MR, pre-deploy | tf, k8s, helm | `T-PREPROD-MANSEC` | `man` | `jobs/iac-scan.*` | baseline |
+| **Dockerfile** | Build | MR (paths) | Dockerfile | `T-CODE-DOCKERFS` | `Dock` | `jobs/dockerfile-lint.*` | baseline |
+| **Container scan** | Build | Build, registry | Образы CVE | `T-CODE-IMG` | `img` | `jobs/container-scan.*` | C2 |
+| **SBOM** | Build | Build | CycloneDX | `T-ADI-ART-3-1` | — | `jobs/sbom.*` | C1 |
+| **Signing** | Release | Build | cosign | `T-ADI-ART-4-*` | — | `jobs/sign.*` | C4 |
+| **DAST** | Test | Preprod | Web/API | `T-PREPROD-DAST` | — | `jobs/dast.*` | D1 |
+| **Fuzzing** | Test | QA | Бинарники, API | финтех | — | doc / optional job | out-of-base |
+| **Sec func tests** | Test | Preprod | Auth, headers | `T-PREPROD-SECTEST` | — | `jobs/sec-func-tests.*` | D2 |
+| **IAST** | Test | Preprod | Runtime app | финтех | — | `jobs/iast-preprod.*` | F1 optional |
+| **ASTO** | All | Все этапы | SARIF агрегация | `P-DEFECT-CNS` | — | DefectDojo / ASPM | process |
+| **WAF/API** | Deploy, Operate | Prod edge | L7, API | `T-PROD-NETWORK` | Gen L4/L7 | runbook F2 | out-of-CI |
+| **RASP** | Deploy, Operate | Prod runtime | Атаки в app | `T-PROD-EVENTS` | `cont` | runbook F2 | out-of-CI |
+| **K8s admission** | Deploy | Prod deploy | Pods, policies | `T-PROD-RUN` | `orchr` | `k8s/admission/` | E1 |
+| **Network policy** | Deploy | Prod | L4 pod traffic | `T-PROD-NETWORK` | `gen` | `k8s/network/` | E2 |
+| **CWPP/Falco** | Operate | Prod | Syscalls, exec | `T-PROD-EVENTS` | `cont` | `k8s/runtime/` | E3 |
+| **Taint analysis** | Plan | Design | Поверхность атаки | `P-REQ-TM` | — | SecChamp tool | design |
+| **SBOM monitor** | Monitor | Continuous | CVE on deps | `T-ADI-DEP` | — | F3 runbook | F3 |
+| **Misuse/Abuse cases** | Plan | Design | Threat model | `P-REQ-TM-4-1` | — | governance checklist | gap |
+| **Config Drift (runtime)** | Build, Release | Cluster | Live vs Git | `T-PREPROD-MANSEC` | `man` | E1 Kyverno + drift runbook | partial |
+| **Performance testing** | Test | QA/UAT | Load, latency | финтех | — | doc / optional | gap |
+| **Chaos / Resilience** | Operate | Prod | Fault injection | DSOMM | — | [F4-resilience.md](phases/F4-resilience.md) | gap |
+| **PKI** | Deploy | Cluster | Certs, rotation | `T-PROD-NETWORK` | `orchr` | [runbooks/pki-k8s.md](runbooks/pki-k8s.md) | gap |
+| **IDS** | Deploy, Operate | Network | Intrusion detect | `T-PROD-EVENTS` | `gen` | Falco/SIEM partial | partial |
 
 ## Уровни внедрения
 

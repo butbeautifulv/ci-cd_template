@@ -10,6 +10,8 @@ sbom-generate:
   script:
     - syft dir:. -o cyclonedx-json > sbom.cdx.json
     - test -s sbom.cdx.json
+    - python scripts/gate-check.py --control sbom --report sbom.cdx.json \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:
     paths:
       - sbom.cdx.json

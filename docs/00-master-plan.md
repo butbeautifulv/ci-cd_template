@@ -2,13 +2,21 @@
 
 ## Executive summary
 
-Единый мастер-план безопасной разработки и доставки ПО в Kubernetes с поддержкой **GitLab CI** и **GitHub Actions**. Основан на DAF, JCSF, типовом финтех-процессе (ГОСТ 56939) и карте инструментов DevSecOps.
+Единый мастер-план безопасной разработки и доставки ПО в Kubernetes с поддержкой **GitLab CI** и **GitHub Actions**. Основан на DAF, JCSF, типовом финтех-процессе (ГОСТ 56939), карте инструментов DevSecOps и **Secure SDLC (8 этапов)**.
+
+**Три модели SDLC** (см. [references/sdlc-mapping.md](references/sdlc-mapping.md)):
+
+| Модель | Документ |
+|--------|----------|
+| DAF / Кирилламида | [references/daf-kirillamida.md](references/daf-kirillamida.md) |
+| Финтех swimlane | [references/fintech-swimlane.md](references/fintech-swimlane.md) |
+| Secure SDLC Plan→Monitor | [references/secure-sdlc-phases.md](references/secure-sdlc-phases.md) |
 
 Внедрение — **по подфазам** (P0→F3), каждая подфаза = отдельный PR с минимальным diff.
 
 ## Template status
 
-**v1.0** — production-ready template with progressive profiles, `adopt.sh`, gate enforcement. Execution tracked in `.cursor/plans/devsecops-execution.plan.md`.
+**v1.2** — GitLab-first gate enforcement, Kyverno v2, Plan-stage artifacts, adoption UX. **v1.1** references in `docs/references/`. Execution tracked in `.cursor/plans/devsecops-execution.plan.md`.
 
 ## Принципы
 
@@ -79,6 +87,6 @@ flowchart LR
 - Процесс: [01-sdlc-process.md](01-sdlc-process.md)
 - Контроли: [03-security-controls.md](03-security-controls.md)
 - K8s: [06-kubernetes-runtime.md](06-kubernetes-runtime.md)
-- Справочники: [references/daf-kirillamida.md](references/daf-kirillamida.md), [references/fintech-swimlane.md](references/fintech-swimlane.md)
+- Справочники: [references/](references/) — DAF, extracts, Secure SDLC, fintech
 - GitLab: [platforms/gitlab.md](platforms/gitlab.md)
 - GitHub: [platforms/github.md](platforms/github.md)

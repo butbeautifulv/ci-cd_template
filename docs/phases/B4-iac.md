@@ -26,3 +26,8 @@
 ## Gate
 
 Block High/Critical misconfigs on MR.
+
+## Acceptance
+
+- [x] `gate-check.py --control iac` без `|| true` на MR
+- [ ] Проверено на `examples/sample-app` (known IaC findings)

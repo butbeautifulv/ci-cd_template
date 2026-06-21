@@ -4,124 +4,133 @@ overview: "Зафиксировать поэтапное доведение ре
 todos:
   - id: cf-1-plan-agents
     content: "CF-1: Создать .cursor/plans/devsecops-execution.plan.md + AGENTS.md + README ссылка"
-    status: in_progress
+    status: completed
   - id: cf-2-rules
     content: "CF-2: .cursor/rules/phase-impl.mdc + templates-ci.mdc"
-    status: pending
+    status: completed
   - id: cf-3-skills-sync
     content: "CF-3: Обновить devsecops-template и devsecops-phase-impl skills"
-    status: pending
+    status: completed
   - id: g0-1-profiles
     content: "G0-1: templates/profiles/ — minimal, shift-left, supply-chain, full (GitLab+GitHub)"
-    status: pending
+    status: completed
   - id: g0-2-adopt-script
     content: "G0-2: scripts/adopt.sh — копирование фаз в целевой repo"
-    status: pending
+    status: completed
   - id: g0-3-sample-app
     content: "G0-3: examples/sample-app/ — Dockerfile, tf, k8s, уязвимый dep"
-    status: pending
+    status: completed
   - id: g0-4-templates-readme
     content: "G0-4: Расширить templates/README.md — profiles, migration guide"
-    status: pending
+    status: completed
   - id: g0-5-adoption-checklist
     content: "G0-5: docs/adoption-checklist.md"
-    status: pending
+    status: completed
   - id: v0-1-meta-ci
     content: "V0-1: validate-template.yml + scripts/validate-yaml.sh"
-    status: pending
+    status: completed
   - id: v0-2-policy-schema
     content: "V0-2: scripts/validate-policy.py"
-    status: pending
+    status: completed
   - id: h-core-gate-script
     content: "H-CORE: scripts/gate-check.py — SARIF + policy → exit code"
-    status: pending
+    status: completed
   - id: h-pre-commit
     content: "H-PRE: templates/pre-commit/.pre-commit-config.yaml"
-    status: pending
+    status: completed
   - id: h-p0
     content: "H-P0: phase doc acceptance + ссылка на execution plan"
-    status: pending
+    status: completed
   - id: h-a1
     content: "H-A1: platforms/* — copy-paste branch protection blocks"
-    status: pending
+    status: completed
   - id: h-a2
     content: "H-A2: _base.yml + ci.yml — opt-in real linters вместо echo"
-    status: pending
+    status: completed
   - id: h-b1
     content: "H-B1: secret-scan gate enforcement через gate-check.py"
-    status: pending
+    status: completed
   - id: h-b2
     content: "H-B2: sast SARIF/CodeQL hardening"
-    status: pending
+    status: completed
   - id: h-b3
     content: "H-B3: sca unified exit codes"
-    status: pending
+    status: completed
   - id: h-b4
     content: "H-B4: iac paths из policy"
-    status: pending
+    status: completed
   - id: h-b5
     content: "H-B5: dockerfile-lint + policy mode"
-    status: pending
+    status: completed
   - id: h-b6
     content: "H-B6: NEW linter-security job GitLab+GitHub + policy linters:"
-    status: pending
+    status: completed
   - id: h-c1
     content: "H-C1: sbom artifact contract sbom.cdx.json"
-    status: pending
+    status: completed
   - id: h-c2
     content: "H-C2: container-scan SARIF gate"
-    status: pending
+    status: completed
   - id: h-c3
     content: "H-C3: registry Kyverno deny external example"
-    status: pending
+    status: completed
   - id: h-c4
     content: "H-C4: cosign sign manual default + docs"
-    status: pending
+    status: completed
   - id: h-d1
     content: "H-D1: wire DAST chain в GitHub ci.yml"
-    status: pending
+    status: completed
   - id: h-d2
     content: "H-D2: sec-func-tests pytest @security без default skip"
-    status: pending
+    status: completed
   - id: h-d3
     content: "H-D3: release-gate environment protection example"
-    status: pending
+    status: completed
   - id: h-e1
     content: "H-E1: kyverno 3 policies hardening"
-    status: pending
+    status: completed
   - id: h-e2
     content: "H-E2: network default-deny + dns allow"
-    status: pending
+    status: completed
   - id: h-e3
     content: "H-E3: falco custom rules"
-    status: pending
+    status: completed
   - id: h-e4
     content: "H-E4: SIEM rules field mapping"
-    status: pending
+    status: completed
   - id: h-f1
     content: "H-F1: iast manual-only default"
-    status: pending
+    status: completed
   - id: h-f2
     content: "H-F2: F2 runbook checklist expand"
-    status: pending
+    status: completed
   - id: h-f3
     content: "H-F3: sbom-monitor Dependency-Track stub"
-    status: pending
+    status: completed
   - id: ai-1-docs
     content: "AI-1: docs/11-ai-security-appendix.md + references/cisco-ai-defense.md"
-    status: pending
+    status: completed
   - id: ai-2-skill
     content: "AI-2: skill devsecops-ai-security"
-    status: pending
+    status: completed
   - id: ai-3-phase
     content: "AI-3: docs/phases/AI1-skill-scan.md + optional job stub"
-    status: pending
+    status: completed
   - id: r-1-changelog
     content: "R-1: CHANGELOG.md + master-plan v1.0 status + phases [x]"
-    status: pending
+    status: completed
   - id: r-2-quickstart
     content: "R-2: docs/quickstart.md + README adopt banner"
-    status: pending
+    status: completed
+  - id: mig-references
+    content: "MIG: docs/references/ — DAF, extracts, Secure SDLC, assets"
+    status: completed
+  - id: mig-skills
+    content: "MIG: .agents/skills/ + .cursor/skills stubs, reference-lookup"
+    status: completed
+  - id: mig-v11
+    content: "MIG: CHANGELOG v1.1, master-plan три SDLC-модели"
+    status: completed
 isProject: false
 ---
 
@@ -129,7 +138,12 @@ isProject: false
 
 ## Текущее состояние
 
-**Уже сделано (scaffold):**
+**v1.1 (references migration):**
+- `docs/references/` — DAF md, xlsx extracts, Secure SDLC, PDF archives, assets
+- `.agents/skills/` (12) + `.cursor/skills/` stubs; `devsecops-reference-lookup`, `devsecops-secure-sdlc`
+- Три SDLC-модели: DAF, финтех swimlane, Secure SDLC 8-stage
+
+**Уже сделано (scaffold + v1.0 hardening):**
 - Документация: [`docs/00-master-plan.md`](docs/00-master-plan.md) … [`docs/08-compliance-gost-56939.md`](docs/08-compliance-gost-56939.md), 23 файла [`docs/phases/`](docs/phases/), 4 [`docs/references/`](docs/references/)
 - Шаблоны: GitLab ([`templates/gitlab/`](templates/gitlab/)), GitHub ([`templates/github/workflows/`](templates/github/workflows/)), K8s ([`templates/k8s/`](templates/k8s/)), [`config/security-gate-policy.yaml`](config/security-gate-policy.yaml)
 - Skills: 10 skills в [`.cursor/skills/`](.cursor/skills/), точка входа `devsecops-template`
@@ -148,7 +162,7 @@ isProject: false
 | Cursor fixation | Нет `AGENTS.md`, нет [`.cursor/rules/`](.cursor/rules/), нет **нового** execution-plan |
 | Example app | Нет `examples/` для проверки SAST/SCA/IaC/Dockerfile |
 | Self-CI | Сам template-repo не валидирует свои YAML/workflows |
-| Cisco AI | [`.external/CISCO_AI_DEFENCE.md`](.external/CISCO_AI_DEFENCE.md) — не синтезирован |
+| Cisco AI | [docs/references/cisco-ai-defense.md](docs/references/cisco-ai-defense.md) — синтезирован в v1.1 |
 
 ```mermaid
 flowchart TD

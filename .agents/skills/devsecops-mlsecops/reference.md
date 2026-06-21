@@ -29,8 +29,8 @@ ml_data:
 ## DAF lookup
 
 ```bash
-rg "T-MLDATA" .external/DevSecOps-Assessment-Framework-main/DAF_MLSO_public_RU.md
-python .cursor/skills/devsecops-external-sources/scripts/extract_daf_xlsx.py \
+rg "T-MLDATA" docs/references/daf/DAF_MLSO_public_RU.md
+python scripts/extract_daf_xlsx.py --xlsx /path/to/DAF_public_RU.xlsx \
   --sheet "Практики+MLSecOps" --rows 10
 ```
 

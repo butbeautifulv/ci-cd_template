@@ -27,7 +27,7 @@ dockerfile-lint:
         echo '{"runs":[{"results":[{"level":"error","message":{"text":"hadolint findings"}}]}]}' > hadolint.sarif
       fi
     - python scripts/gate-check.py --control dockerfile --report hadolint.sarif \
-        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}" || true
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   allow_failure: true
   artifacts:
     paths:

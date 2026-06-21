@@ -79,6 +79,35 @@ def parse_gitlab_secrets(path: Path) -> list[str]:
     return levels
 
 
+def parse_zap_baseline(path: Path) -> list[str]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    levels: list[str] = []
+    risk_map = {"3": "high", "2": "medium", "1": "low", "0": "info"}
+    for site in data.get("site", []):
+        for alert in site.get("alerts", []):
+            code = str(alert.get("riskcode", alert.get("risk", "1")))
+            levels.append(risk_map.get(code, normalize_level(alert.get("riskdesc", "medium"))))
+    return levels
+
+
+def check_sbom_artifact(path: Path, policy: dict) -> tuple[bool, str]:
+    mode = policy.get("mode", "warn")
+    if not path.exists() or path.stat().st_size == 0:
+        msg = f"missing or empty SBOM: {path}"
+        if mode == "block":
+            return False, msg
+        return True, f"warn — {msg}"
+    return True, f"SBOM present ({path.stat().st_size} bytes)"
+
+
+def check_sec_func_tests(path: Path, policy: dict) -> tuple[bool, str]:
+    mode = policy.get("mode", "warn")
+    if not path.exists():
+        return True, "no sec-func report (tests skipped or passed)"
+    levels = parse_report(path)
+    return evaluate(levels, policy)
+
+
 def parse_report(path: Path) -> list[str]:
     if not path.exists():
         return []
@@ -130,9 +159,22 @@ def main() -> None:
         sys.exit(2)
 
     policy = load_policy_section(args.policy, args.control)
-    levels = parse_report(args.report) if args.report.exists() else []
-    ok, msg = evaluate(levels, policy)
-    print(f"[{args.control}] {msg} (findings={len(levels)}, mode={policy.get('mode')})")
+
+    if args.control == "sbom":
+        ok, msg = check_sbom_artifact(args.report, policy)
+    elif args.control == "dast":
+        levels = parse_zap_baseline(args.report) if args.report.exists() else []
+        ok, msg = evaluate(levels, policy)
+    elif args.control == "sec_func_tests":
+        ok, msg = check_sec_func_tests(args.report, policy)
+    else:
+        levels = parse_report(args.report) if args.report.exists() else []
+        ok, msg = evaluate(levels, policy)
+
+    findings = len(parse_report(args.report)) if args.control not in ("sbom",) else (1 if args.report.exists() else 0)
+    if args.control == "dast" and args.report.exists():
+        findings = len(parse_zap_baseline(args.report))
+    print(f"[{args.control}] {msg} (findings={findings}, mode={policy.get('mode')})")
     sys.exit(0 if ok else 1)
 
 

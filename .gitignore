@@ -1,1 +1,1 @@
-.external/*
+# Optional local vendor cache (xlsx/pdf for re-extract only; not required at runtime)

@@ -1,6 +1,14 @@
 # SDLC и процесс безопасной разработки
 
-Интерпретация типового финтех-процесса (PDF) с привязкой к доменам DAF.
+Три согласованные модели SDLC в репозитории — см. [references/sdlc-mapping.md](references/sdlc-mapping.md):
+
+| Модель | Документ |
+|--------|----------|
+| Secure SDLC (8 этапов) | [references/secure-sdlc-phases.md](references/secure-sdlc-phases.md) |
+| DAF / Кирилламида | [references/daf-kirillamida.md](references/daf-kirillamida.md) |
+| Финтех swimlane | [references/fintech-swimlane.md](references/fintech-swimlane.md) |
+
+Ниже — синтез финтех-процесса с привязкой к DAF.
 
 Детальная swimlane-схема: [references/fintech-swimlane.md](references/fintech-swimlane.md).
 
@@ -82,6 +90,7 @@
 
 ## Связанные документы
 
+- [references/sdlc-mapping.md](references/sdlc-mapping.md)
 - [02-pipeline-architecture.md](02-pipeline-architecture.md)
 - [07-governance-and-docs.md](07-governance-and-docs.md)
 - [10-mlsecops-appendix.md](10-mlsecops-appendix.md) — при ML/ИИ

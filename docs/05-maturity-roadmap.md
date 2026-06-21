@@ -78,6 +78,21 @@ flowchart TD
 | F1–F3 | L6–7 | L4 | advanced |
 | ML* | MLSO | — | опционально — [10-mlsecops-appendix.md](10-mlsecops-appendix.md) |
 
+## Secure SDLC (8 этапов)
+
+| Этап | Template / milestone |
+|------|---------------------|
+| Plan | P0, A1, threat model |
+| Code | B1–B6 |
+| Build | A2, C1–C2 |
+| Test | D1–D2, F1 |
+| Release | C4, D3 |
+| Deploy | E1–E2, F2 |
+| Operate | E3–E4 |
+| Monitor | F3 |
+
+Детали: [references/secure-sdlc-phases.md](references/secure-sdlc-phases.md).
+
 ## Принцип минимального diff
 
 - ≤ 5 файлов на PR

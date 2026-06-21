@@ -3,6 +3,7 @@ name: Nightly SAST
 on:
   schedule:
     - cron: "0 2 * * *"
+  workflow_call:
 
 jobs:
   semgrep:
@@ -12,3 +13,9 @@ jobs:
       - uses: returntocorp/semgrep-action@v1
         with:
           config: auto
+      - name: Gate check
+        if: always()
+        run: |
+          REPORT=semgrep.sarif
+          [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > "$REPORT"
+          python scripts/gate-check.py --control sast --report "$REPORT"

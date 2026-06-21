@@ -100,3 +100,86 @@ spec:
             containers:
               - name: "*"
                 image: "registry.internal.example.com/*|ghcr.io/myorg/*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-host-path
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: no-host-path
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: hostPath volumes are not allowed (JCSF MAN-1-2)
+        pattern:
+          spec:
+            =(volumes):
+              - X(hostPath): "null"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: drop-all-capabilities
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: capabilities-drop-all
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: Containers must drop ALL capabilities (JCSF MAN-1-4)
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                securityContext:
+                  capabilities:
+                    drop:
+                      - ALL
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-read-only-rootfs
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: read-only-rootfs
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: readOnlyRootFilesystem is required (JCSF MAN-2-3)
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                securityContext:
+                  readOnlyRootFilesystem: true
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-seccomp-profile
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: seccomp-runtime-default
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: seccompProfile RuntimeDefault is required (JCSF MAN-3-3)
+        pattern:
+          spec:
+            securityContext:
+              seccompProfile:
+                type: RuntimeDefault

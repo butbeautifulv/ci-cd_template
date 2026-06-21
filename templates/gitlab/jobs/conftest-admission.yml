@@ -7,12 +7,17 @@ conftest-admission:
     - if: $CI_PIPELINE_SOURCE == "merge_request_event"
       changes:
         - templates/k8s/admission/**
+        - k8s/**
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - templates/k8s/admission/**
+        - k8s/**
   script:
     - |
-      for f in templates/k8s/admission/*.yaml; do
+      FAILED=0
+      for f in templates/k8s/admission/*.yaml k8s/**/*.yaml; do
         [ -f "$f" ] || continue
         echo "Validating $f"
-        conftest test "$f" --policy templates/k8s/admission/policies || true
+        conftest test "$f" --policy templates/k8s/admission/policies || FAILED=1
       done
-  allow_failure: true
+      exit $FAILED

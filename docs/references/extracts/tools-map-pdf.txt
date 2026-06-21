@@ -1,0 +1,575 @@
+Инструменты DevSecOps
+Разделение
+
+Тип
+
+SAST
+
+Класс
+
+Статический
+анализатор
+
+Вендорское ПО
+
+Open Source
+
+SVACE
+
+PVS Studio
+
+GitLab SAST
+
+Microfocus Fortify
+
+Coverity
+
+Bandit
+
+Weggli
+
+tfsec
+
+clj-holmes
+
+PMD
+
+Solar AppScreener
+(SAST)
+
+PT Application
+Inspector
+
+CheckMarx
+
+Klockwork
+
+SonarQube EE
+
+Terrascan
+
+Joern
+
+kics
+
+Dagda
+
+Retire.js
+
+CodeQL
+
+MATE
+
+bearer
+
+detect-secrets
+
+git-secrets
+
+Checkov
+
+Semgrep
+
+njsscan
+
+Osquery
+
+pyre-check
+
+Triton
+
+polytracker
+
+Ponce
+
+psalm
+
+find-sec-bugs
+
+airbus-seclab
+(bincat)
+
+FlowDroid
+
+pyt
+
+DongTai
+
+Contrast
+
+BlackDuck
+Attack Surface
+Analysis
+
+IAST
+
+Анализ поверхности атаки
+Интерактивный
+анализатор
+
+Анализатор
+SCA/OSA
+SBOM
+
+App
+Sec
+BCA
+
+Бинарный
+анализатор
+Whitebox фаззинг
+
+DAST
+(включая
+фаззинг, network
+protocol)
+
+DAST (включая
+Blackbox фаззинг)
+
+MAST
+RASP
+API
+
+Анализатор
+mobapp
+Анализатор
+при runtime
+API Sec / WAF
+
+Сodec overage
+
+Application Security
+Posture Management
+
+PVS Studio
+
+ИСП РАН Natch
+
+Qodana
+
+PT Application
+Inspector
+
+Synopsys Seeker
+
+Hdiv Detection (IAST)
+
+Contrast Assess
+
+CAST
+
+Microfocus Fortify
+WebInspect
+
+Veracode Interactive
+Analysis
+
+Checkmarx
+CxIAST
+
+Codename SCNR
+(Arachni)
+
+CodeScoring
+
+AppSec.Track
+
+Snyk
+
+JFrog Xray
+
+Debricked
+
+Grype
+
+OpenSCAP
+
+Dependency Track
+
+Solar AppScreener
+(SCA)
+
+Сканер уязвимостей Ya
+Cloud
+PT Application
+Inspector
+
+Spectral
+
+Azul
+
+qwiet
+
+BlackDuck
+
+DefendaBot
+
+Trivy
+
+Dependency Check
+
+FOSSA
+
+endorlabs
+
+Sonatype Repository Firewall
+Codenotary
+
+Trivy
+
+Jit
+
+spdx-sbom-generator
+
+Spectral
+
+rezilion
+
+Mend SCA
+Sonatype SBOM
+Manager
+
+Cybeats SBOM Studio
+
+Syft
+
+BinaryNinja
+
+IDAPRO
+
+Procyon
+
+Gidra (Hydra)
+
+orbit
+
+JADX
+
+JDCore
+
+ILSpy
+
+Dotpeek
+
+OlydDBG
+
+CFR
+
+Fernflower
+
+DNSpy
+
+BinSide
+
+AFL++
+
+go-fuzz
+
+Jazzer и Jazzer.js
+
+JQF + Zest
+
+SharpFuzz
+
+LLVM libFuzzer
+
+cargo-fuzz
+
+jsfuzz
+
+Javafuzz
+
+pythonfuzz
+
+Sydr/Sydr-fuzz
+
+Crusher
+
+CycloneDX (CDXGen)
+
+Acunetix
+
+PT Black Box
+
+HCL AppScan
+
+Burp Suite EE (Intruder)
+
+OWASP ZAP
+
+w3af
+
+Burp Suite CE
+
+OpenVAS
+
+BooFuzz
+
+InsightAppSec
+
+Solar AppScreener
+
+Checkmarx DAST
+
+Veracode DAST
+
+golismero
+
+nikto
+
+Wapiti
+
+Nuclei
+
+RESTler
+
+Стингрей
+
+App-Ray
+
+StaCoAn
+
+ImmuniWeb
+
+Cycript
+
+QARK
+
+RMS
+
+MobSF
+
+Objection
+
+Codified Security
+
+Quixxi
+
+ostorlab
+
+SandDroid
+
+dexcalibur
+
+MitmProxy
+
+Drozer
+
+Fortify
+
+Jscrambler
+
+Signal Sciences
+
+Appdome
+
+Falco
+
+OpenRASP
+
+Baiduʼs OpenRASP
+
+hdiv
+
+Sqreen
+
+Imperva
+
+Appsealing
+
+Liapp
+
+Akto
+
+brightsec
+
+fastly
+
+Fortify Webinspect
+
+Вебмониторэкс
+
+42Crunch
+
+API Security Empire
+
+Astra
+
+SSL Kill Switch 2
+
+appsentinels
+
+stackhawk
+
+PT Application Firewall
+
+QAPISec
+
+LAST (latio)
+
+UsageFinder
+
+WSO2
+
+Probely
+
+gcov
+
+llvm-cov
+
+JaCoCo
+
+Codacy
+
+start-req
+
+SourceClear
+
+BDD
+Automated
+Security Tests
+
+Calico
+
+Falco
+
+Anchore
+
+Talos
+
+Gitleaks
+
+bullseye
+Phoenix Security
+Platform
+
+OX Security Platform
+
+Faraday
+
+AppSOC Platform
+
+Kondukto
+
+Defect Dojo
+
+Legit Security
+
+ArmorCode
+
+Hexway
+
+Scribe Platform
+
+Reliability
+
+AppSec.Hub
+
+Tenable.sc
+
+anchore
+
+GFI LanGuard
+
+Nox
+
+Qualys
+
+ThreatMapper
+
+devprom ALM
+
+Harbor
+
+luntry
+
+Kaspersky Container Security
+
+Bastion
+
+js-x-ray
+
+CloudSec
+
+Snyk Container
+
+PT Container Security
+
+Quay
+
+cilium
+
+Prisma Cloud
+
+Aqua Security
+
+GitLab Container Scanning
+
+Hashicorp Vault
+
+Senhasegura
+
+AppSec.Code
+
+Cloud KMS
+
+Keywhiz
+
+AppArmor
+
+OPA Gatefeeper
+
+Infisical
+
+OpenBAO
+
+BitWarden
+
+StrongHold
+
+Azure Key Vault
+
+Knox
+
+Mozilla SOPS
+
+CheckMate
+
+CoSign
+
+Strongbox
+
+CyberArk Conjur
+
+Yandex Lockbox
+
+AWS Secrets
+Manager
+
+Spring Cloud
+Config Server
+
+Gerrit
+
+Consul
+
+Spectral Secret
+Scanner
+
+Gravitee
+
+Container Security
+(включая VM, proxy, registry)
+
+Secrets Management (Хранение образов,
+docker registry, Artifact Signature)
+
+Nexus Repository Management
+
+Confidant
+ЦУП 2.0
+
+Harbor
+
+

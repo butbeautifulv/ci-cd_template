@@ -8,10 +8,19 @@ sec-func-tests:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   script:
     - |
+      echo '{"runs":[{"results":[]}]}' > sec-func.sarif
       if [ -d tests/security ]; then
         pip install pytest requests -q
-        pytest tests/security/ -v
+        if ! pytest tests/security/ -v; then
+          echo '{"runs":[{"results":[{"level":"high","message":{"text":"security functional tests failed"}}]}]}' > sec-func.sarif
+        fi
       else
         echo "tests/security not found — add security tests (D2)"
       fi
+    - python scripts/gate-check.py --control sec_func_tests --report sec-func.sarif \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+  artifacts:
+    paths:
+      - sec-func.sarif
+    expire_in: 30 days
   allow_failure: true

@@ -1,5 +1,54 @@
 # Changelog
 
+## [1.2.0] — Template hardening (GitLab-first gates)
+
+### Added
+
+- `docs/phases/B6-linter-security.md`, `P1-threat-model.md`, `F4-resilience.md`
+- `templates/governance/threat-model-checklist.md`
+- `templates/gitlab/jobs/forbidden-files.yml` (fintech MR gate, warn)
+- Kyverno v2: hostPath, capabilities, readOnlyRootFS, seccomp (JCSF MAN)
+- `docs/runbooks/pki-k8s.md`
+- `gate-check.py` support for `sbom`, `dast`, `sec_func_tests`
+- `adopt.sh` rewrites GitLab include paths; copies `nightly-sast.yml` for full/GitHub
+
+### Hardened
+
+- GitLab: SAST/SCA/IaC block C/H without `|| true` on gate-check
+- GitLab: secrets/dockerfile/linters honest warn gates
+- GitLab: SBOM, DAST, sec-func gate-check; conftest-admission fails on violation
+- GitHub: mirror gate fixes; CodeQL gate; supply-chain profile + lint/test
+- `sdlc-mapping.md` Coverage column; adoption-checklist v1.2
+
+### Changed
+
+- `docs/phases/E1-admission.md` — JCSF policy table
+- `F2-rasp-waf.md` — PKI/IDS distinction
+
+## [1.1.0] — References migration + Secure SDLC
+
+### Added
+
+- `docs/references/secure-sdlc-phases.md` — 8-stage Secure SDLC (Plan→Monitor)
+- `docs/references/sdlc-mapping.md` — DAF ↔ template ↔ pipeline crosswalk
+- `docs/references/daf/` — full DAF/MLSO markdown + LICENSE
+- `docs/references/extracts/` — DAF/JCSF xlsx extracts, PDF text archives
+- `docs/references/assets/` — DAF/JCSF images
+- `.agents/skills/` — 12 canonical skills; `.cursor/skills/` stubs for discovery
+- `devsecops-secure-sdlc`, `devsecops-reference-lookup` skills
+- `scripts/extract_jcsf_xlsx.py`; extended `scripts/extract_daf_xlsx.py`
+
+### Changed
+
+- Core docs: SDLC three-model view, Secure SDLC column in controls matrix
+- All runtime paths → `docs/references/` (no dependency on local vendor cache)
+- `devsecops-external-sources` renamed → `devsecops-reference-lookup`
+- Expanded `docs/references/cisco-ai-defense.md`
+
+### Deprecated
+
+- Local vendor cache directory (gitignored) — optional for maintainer re-extract only
+
 ## [1.0.0] — Template release
 
 ### Added

@@ -1,4 +1,5 @@
 # Profile: shift-left (A2 + B1–B6)
+# Gates: SAST/SCA/IaC block critical+high; B1/B5/B6 warn (allow_failure)
 
 stages:
   - validate
@@ -19,3 +20,4 @@ include:
   - local: '/templates/gitlab/jobs/iac-scan.yml'
   - local: '/templates/gitlab/jobs/dockerfile-lint.yml'
   - local: '/templates/gitlab/jobs/linter-security.yml'
+  - local: '/templates/gitlab/jobs/forbidden-files.yml'
