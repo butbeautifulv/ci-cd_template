@@ -8,7 +8,7 @@ description: >-
 
 # DevSecOps tooling catalog
 
-Source: `docs/references/extracts/tools-map-pdf.txt`
+Source: `docs/references/extracts/tools-map-pdf.txt`, supplement [supplements/devsecops_tools.md](../../docs/references/supplements/devsecops_tools.md)
 
 Repo: `docs/04-tooling-catalog.md`, `config/security-gate-policy.yaml`, `config/aspm-export.yaml`.
 

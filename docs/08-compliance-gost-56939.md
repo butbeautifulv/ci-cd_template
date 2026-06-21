@@ -25,6 +25,17 @@
 | 5.1 Планирование процессов | `P-ROLE-RESP-2-4`, `P-ROLE-RESP-3-2` |
 | 5.2 Обучение | `P-EDU-AWR-*` |
 | 5.3 Требования безопасности | `P-REQ-RD-*`, `P-REQ-CR-*` |
+| 5.4 Управление конфигурацией | `T-DEV-SRC-*`, IaC |
+| 5.5 Управление изменениями | MR/PR, release gate |
+| 5.6 Анализ архитектуры | `P-REQ-TM-*`, design review |
+| 5.7 Моделирование угроз | `P-REQ-TM-*`, threat model checklist |
+| 5.9 Экспертиза кода | Code review, SecChamp |
+| 5.22 Поддержка ПО | patch process, SBOM monitor |
+| 5.23 Реагирование на уязвимости | ASTO triage, SLA |
+| 5.24 Поиск уязвимостей в эксплуатации | registry scan, passive DAST |
+| 5.25 Безопасный вывод из эксплуатации | decommission runbook |
+
+Полный перечень 5.1–5.25 (финтех supplement): [supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md](references/supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md#соответствие-гост-р-56939-2024).
 
 ## Трассировка в pipeline
 

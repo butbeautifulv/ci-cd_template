@@ -7,6 +7,7 @@
 | **Secure SDLC (8 этапов)** | [secure-sdlc-phases.md](secure-sdlc-phases.md) | Plan → Monitor |
 | **DAF / Кирилламида** | [daf-kirillamida.md](daf-kirillamida.md) | Зрелость 0–7, практики T-/P- |
 | **Финтех swimlane** | [fintech-swimlane.md](fintech-swimlane.md) | Зоны DEV/QA/UAT/PROD, MR gates |
+| **Финтех 12 этапов** (supplement) | [supplements/Типовой_процесс_...](supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md) | Требования → эксплуатация, ГОСТ 5.1–5.25 |
 
 ## Secure SDLC ↔ DAF ↔ Template ↔ Pipeline
 
@@ -41,13 +42,18 @@
 | Misuse/Abuse cases | [P1-threat-model.md](../phases/P1-threat-model.md) | doc-only |
 | Performance / Chaos | — | gap |
 | PKI / IDS | runbooks | gap |
-| **Skill scan** | Code | MR | Agent skills | Cisco | — | `jobs/skill-scanner.*` (AI1) | ai-ml opt-in |
-| **MCP scan** | Code | MR | MCP configs | Cisco | — | `jobs/mcp-scan.*` (AI1) | ai-ml opt-in |
-| **ML data PII** | Code, Build | MR | datasets | `T-MLDATA-DT-4-1` | — | `jobs/ml-data-scan.*` (ML1) | ai-ml block |
-| **ML-BOM** | Build | main | models/data | `T-ADI-ART-ML-3-3` | — | `jobs/ml-bom.*` (ML2) | ai-ml warn |
-| **AI BOM** | Build | main | AI components | Cisco aibom | — | `jobs/aibom.*` (AI2) | ai-ml warn |
-| **Pickle scan** | Build | MR | `.pkl` artifacts | Cisco | — | `jobs/pickle-scan.*` (AI2) | ai-ml warn |
-| **RAG / guardrails** | Operate | Runtime | RAG index | Cisco | — | [ai-runtime-guardrails.md](../runbooks/ai-runtime-guardrails.md) | doc-only |
+
+## AI/ML practices (profile `ai-ml`)
+
+| Practice | Stage | Target | DAF | Template job | Coverage |
+|----------|-------|--------|-----|--------------|----------|
+| Skill scan | Code | MR | Agent skills | `jobs/skill-scanner.*` (AI1) | ai-ml opt-in |
+| MCP scan | Code | MR | MCP configs | `jobs/mcp-scan.*` (AI1) | ai-ml opt-in |
+| ML data PII | Code, Build | MR | datasets | `T-MLDATA-DT-4-1` | `jobs/ml-data-scan.*` (ML1) | ai-ml block |
+| ML-BOM | Build | main | models/data | `T-ADI-ART-ML-3-3` | `jobs/ml-bom.*` (ML2) | ai-ml warn |
+| AI BOM | Build | main | AI components | Cisco aibom | `jobs/aibom.*` (AI2) | ai-ml warn |
+| Pickle scan | Build | MR | `.pkl` | Cisco | `jobs/pickle-scan.*` (AI2) | ai-ml warn |
+| RAG / guardrails | Operate | Runtime | RAG index | — | [ai-runtime-guardrails.md](../runbooks/ai-runtime-guardrails.md) | doc-only |
 
 ## Out of scope (documented only)
 
