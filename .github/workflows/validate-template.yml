@@ -22,6 +22,7 @@ jobs:
       - name: Validate YAML and policy
         run: |
           bash scripts/validate-yaml.sh
+          bash scripts/validate-pin-sync.sh
           bash scripts/validate-github-oss.sh
       - name: Gate-check self-test
         run: |

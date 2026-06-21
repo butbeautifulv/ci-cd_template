@@ -27,19 +27,7 @@ Tier: **builtin** (platform), **oss**, **commercial**.
 
 ## Template defaults
 
-| Control | GitLab | GitHub | GitHub oss-full |
-|---------|--------|--------|-----------------|
-| SAST | SAST template | CodeQL | Semgrep docker pin |
-| Linters | Code-Quality / custom | language linters | Ruff pin |
-| Secrets | Secret Detection | Gitleaks action | Gitleaks tarball |
-| SCA | Dependency Scanning | dependency-review + Trivy fs | Trivy tarball fs/image |
-| IaC | IaC Scanning | Checkov action | Checkov pip pin |
-| Container | Container Scanning | Trivy action | Trivy image tarball |
-| DAST | DAST (license) | ZAP action | ZAP docker pin |
-| ASPM | DefectDojo (`aspm-export.py`) | SARIF → DefectDojo | same |
-| Registry | GitLab CR / Nexus | ghcr.io / Nexus | `oss/build-push.yml` |
-
-GitHub oss-full: [docs/platforms/github-oss-full.md](../../docs/platforms/github-oss-full.md)
+See [04-tooling-catalog.md §Выбор для шаблона](../../docs/04-tooling-catalog.md#выбор-для-шаблона) and [github-oss-full.md](../../docs/platforms/github-oss-full.md) for oss-full pins.
 
 ## Classes (summary)
 

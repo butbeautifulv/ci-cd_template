@@ -20,19 +20,9 @@ jobs:
       - name: Scan filesystem
         run: |
           trivy fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
-      - name: Gate check
-        if: always()
-        run: |
-          [ -f osa.sarif ] || echo '{"runs":[{"results":[]}]}' > osa.sarif
-          python scripts/gate-check.py --control osa --report osa.sarif
-      - name: ASPM export
-        if: always() && vars.DEFECTDOJO_URL != ''
-        env:
-          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
-          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
-        run: python scripts/aspm-export.py --control osa --report osa.sarif || true
-      - uses: github/codeql-action/upload-sarif@v3
+      - uses: ./.github/actions/gate-and-export
         if: always()
         with:
-          sarif_file: osa.sarif
+          control: osa
+          report: osa.sarif
           category: osa

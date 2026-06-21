@@ -1,4 +1,5 @@
-# GitHub OSS env — mirror config/oss-tool-versions.yaml (copy into workflow env:)
+# GENERATED — do not edit. Run: python3 scripts/generate-oss-pins.py
+# GitHub OSS env — source: config/oss-tool-versions.yaml
 # Used by profile oss-full and security-gates-oss workflows
 
 REGISTRY_BACKEND: gitlab

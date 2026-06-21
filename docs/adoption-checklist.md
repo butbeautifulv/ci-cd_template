@@ -35,7 +35,7 @@ GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`.
 - [ ] `REGISTRY` / `ghcr.io` credentials
 - [ ] `ENABLE_REAL_LINTERS=true` при готовности
 - [ ] Pre-commit: `templates/pre-commit/.pre-commit-config.yaml`
-- [ ] Self-validation: `bash scripts/validate-yaml.sh`, `python3 scripts/validate-policy.py`, `bash scripts/validate-oss-pins.sh`, `bash scripts/validate-registry-config.sh`
+- [ ] Self-validation: `bash scripts/validate-yaml.sh`, `python3 scripts/validate-policy.py`, `bash scripts/validate-pin-sync.sh`, `bash scripts/validate-oss-pins.sh`, `bash scripts/validate-registry-config.sh`
 - [ ] Registry backend: GitLab (default) или Nexus/Harbor — [runbooks/nexus-docker-registry.md](runbooks/nexus-docker-registry.md)
 
 ## 5. Gates (shift-left)

@@ -1,12 +1,13 @@
 # SDLC и процесс безопасной разработки
 
-Три согласованные модели SDLC в репозитории — см. [references/sdlc-mapping.md](references/sdlc-mapping.md):
+Четыре согласованные модели SDLC в репозитории — см. [references/sdlc-mapping.md](references/sdlc-mapping.md):
 
 | Модель | Документ |
 |--------|----------|
 | Secure SDLC (8 этапов) | [references/secure-sdlc-phases.md](references/secure-sdlc-phases.md) |
 | DAF / Кирилламида | [references/daf-kirillamida.md](references/daf-kirillamida.md) |
 | Финтех swimlane | [references/fintech-swimlane.md](references/fintech-swimlane.md) |
+| Финтех 12 этапов (supplement) | [references/supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md](references/supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md) |
 
 Ниже — синтез финтех-процесса с привязкой к DAF.
 

@@ -32,36 +32,14 @@ env:
   OSS_RUFF_VERSION: "0.11.8"
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Lint
-        run: |
-          pip install -q "ruff==${OSS_RUFF_VERSION}"
-          ruff check . || true
-
-  unit-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: "3.11"
-      - name: Unit tests
-        run: |
-          if [ -f requirements.txt ] && [ -d tests ]; then
-            pip install -q pytest -r requirements.txt
-            pytest tests/ -q || true
-          else
-            echo "Placeholder unit tests — add tests/ and requirements.txt"
-          fi
+  validate:
+    uses: ./.github/workflows/base-validate.yml
+    with:
+      enable_real_linters: ${{ env.ENABLE_REAL_LINTERS }}
+      ruff_version: ${{ env.OSS_RUFF_VERSION }}
 
   security-gates:
-    needs: [lint, unit-test]
+    needs: [validate]
     uses: ./.github/workflows/security-gates-oss.yml
     permissions:
       contents: read

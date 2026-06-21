@@ -175,28 +175,9 @@ isProject: false
 **v1.1 (references migration):**
 - `docs/references/` — DAF md, xlsx extracts, Secure SDLC, PDF archives, assets
 - `.agents/skills/` (12) + `.cursor/skills/` stubs; `devsecops-reference-lookup`, `devsecops-secure-sdlc`
-- Три SDLC-модели: DAF, финтех swimlane, Secure SDLC 8-stage
+- Три SDLC-модели: DAF, финтех swimlane, Secure SDLC 8-stage (см. [sdlc-mapping.md](../../docs/references/sdlc-mapping.md) — четыре модели с supplement)
 
-**Уже сделано (scaffold + v1.0 hardening):**
-- Документация: [`docs/00-master-plan.md`](docs/00-master-plan.md) … [`docs/08-compliance-gost-56939.md`](docs/08-compliance-gost-56939.md), 23 файла [`docs/phases/`](docs/phases/), 4 [`docs/references/`](docs/references/)
-- Шаблоны: GitLab ([`templates/gitlab/`](templates/gitlab/)), GitHub ([`templates/github/workflows/`](templates/github/workflows/)), K8s ([`templates/k8s/`](templates/k8s/)), [`config/security-gate-policy.yaml`](config/security-gate-policy.yaml)
-- Skills: 10 skills в [`.cursor/skills/`](.cursor/skills/), точка входа `devsecops-template`
-- Старый план [`.cursor/plans/devsecops_master_plan_f0db300c.plan.md`](.cursor/plans/devsecops_master_plan_f0db300c.plan.md) — **все todo = completed**, но описывает «пустой repo» и не отражает hardening
-
-**Пробелы (почему это ещё не «готовый шаблон»):**
-
-| Область | Проблема |
-|---------|----------|
-| CI gates | GitHub jobs с `continue-on-error: true` (secrets, dockerfile, sec-tests) — policy не enforced |
-| Base pipeline | Placeholder lint/test/build в [`_base.yml`](templates/gitlab/jobs/_base.yml), [`ci.yml`](templates/github/workflows/ci.yml) |
-| Progressive adopt | GitLab entrypoint включает **все** jobs сразу — нет профилей «только B1» / «до C2» |
-| Adoption UX | [`templates/README.md`](templates/README.md) — 28 строк, нет скрипта миграции чужого pipeline |
-| Linter gate | В финтех-PDF и docs есть, **job отсутствует** |
-| Gate script | `security-gate-policy.yaml` декларативный, нет helper для exit code из SARIF |
-| Cursor fixation | Нет `AGENTS.md`, нет [`.cursor/rules/`](.cursor/rules/), нет **нового** execution-plan |
-| Example app | Нет `examples/` для проверки SAST/SCA/IaC/Dockerfile |
-| Self-CI | Сам template-repo не валидирует свои YAML/workflows |
-| Cisco AI | [docs/references/cisco-ai-defense.md](docs/references/cisco-ai-defense.md) — синтезирован в v1.1 |
+**Historical note:** Gap analysis from v1.0 scaffold was resolved in v1.2–v1.5 (gates, adopt profiles, linter job, gate-check.py, AGENTS.md, examples/, self-CI). See [CHANGELOG.md](../../CHANGELOG.md).
 
 ```mermaid
 flowchart TD

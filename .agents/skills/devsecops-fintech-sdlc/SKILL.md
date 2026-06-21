@@ -8,64 +8,17 @@ description: >-
 
 # Fintech SDLC swimlane
 
-Source: `docs/references/extracts/fintech-pdf.txt`, supplement [supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md](../../docs/references/supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md)
+Source: `docs/references/extracts/fintech-pdf.txt`, supplement [supplements/Типовой_процесс_...md](../../docs/references/supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md)
 
-Repo: `docs/01-sdlc-process.md`, `docs/references/fintech-swimlane.md`.
+Canonical docs:
+- [01-sdlc-process.md](../../docs/01-sdlc-process.md) — operational synthesis (zones, roles, trunk flow, artifacts)
+- [fintech-swimlane.md](../../docs/references/fintech-swimlane.md) — PDF diagram notes (IDE SAST variants, QA tool matrix, scheme comments)
 
-## Zones
+## Agent actions
 
-| Zone | Data | Controls |
-|------|------|----------|
-| DEV | Synthetic | IDE SAST, linters, MR pipeline |
-| QA | Synthetic | Unit, fuzzing, sanitizers |
-| UAT | Prepared test | DAST, IAST, load tests |
-| PROD | Real | WAF, RASP, SBOM monitor |
-| Security mgmt | — | Policies, ASTO, IRM/GRC |
+1. Align MR gate with B1–B6 template jobs (SAST, linters, secrets, forbidden files, SCA post-SBOM).
+2. Map zones to pipeline stages: DEV/QA → MR; UAT → D1–D2; PROD → E/F phases.
+3. For GOST 5.1–5.25 enumeration use the fintech supplement, not swimlane alone.
+4. Bugfix fast-path: reduced gate documented in `01-sdlc-process.md` §Bugfix.
 
-Feature branch environments allowed.
-
-## MR Security Gate (parallel)
-
-1. SAST (IDE light + CI full)
-2. Linters (style + security)
-3. Secret-check
-4. Forbidden/extra files (binaries)
-5. SCA (post-SBOM on build — «no regression» in CD)
-
-## IDE SAST options (from PDF)
-
-1. Standalone IDE plugin
-2. Corporate SAST server policies
-
-## Design
-
-- Threat model / attack surface
-- **Taint Analysis Tool** — SecChamp refines surface
-- Maps to GOST 5.6–5.7
-
-## QA / UAT testing
-
-| Type | Tools |
-|------|-------|
-| Fuzzing | AFL++, Jazzer, go-fuzz |
-| Concolic | language-specific engines |
-| Sanitizers | ASan, Valgrind |
-| DAST + coverage | ZAP + coverage metrics |
-| PII leak tests | custom |
-| Load | k6, JMeter |
-
-## Operations
-
-- **ASTO** — aggregate SAST/DAST/SCA (DefectDojo, Jit)
-- **IRM/GRC** — risk & compliance
-- OBOM + SBOM continuous monitoring
-- RASP, WAF, API Sec — prod only
-
-## Special modes
-
-- **Trunk-based** — default
-- **Bugfix** — reduced gate, skip UAT, documented risk
-- Risk acceptance with deferred checks allowed
-- All task artifacts in tracker
-
-Roles & details: [reference.md](reference.md)
+Roles & extended tables: [reference.md](reference.md) (links only).

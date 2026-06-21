@@ -1,6 +1,8 @@
 # OSS Tool Version Pinning
 
-Policy for GitLab **`oss-full`** profile and shared scanner jobs after the **TeamPCP** supply-chain incident (March 2026).
+Policy for **`oss-full`** profile (GitLab + GitHub) after the **TeamPCP** supply-chain incident (March 2026).
+
+Shared profile docs: [platforms/oss-full-shared.md](../platforms/oss-full-shared.md)
 
 ## Rules
 
@@ -21,11 +23,11 @@ Policy for GitLab **`oss-full`** profile and shared scanner jobs after the **Tea
 ### Required
 
 1. Semver or immutable image tag in [`config/oss-tool-versions.yaml`](../../config/oss-tool-versions.yaml)
-2. GitLab variables mirror in [`templates/gitlab/jobs/oss/versions.yml`](../../templates/gitlab/jobs/oss/versions.yml)
+2. Regenerate mirrors: `python3 scripts/generate-oss-pins.py`
 3. Updates **only via PR** with SecChamp + vendor advisory review
-4. Run `bash scripts/validate-oss-pins.sh` in CI or pre-merge
+4. CI checks: `validate-oss-pins.sh`, `validate-pin-sync.sh`
 
-## Manifest
+## Manifest and generated targets
 
 Single source of truth:
 
@@ -33,16 +35,23 @@ Single source of truth:
 config/oss-tool-versions.yaml
 ```
 
-Profile `oss-full` includes `versions.yml` first so jobs use `OSS_*` variables.
+Generated (header `# GENERATED — do not edit`):
+
+| File | Platform |
+|------|----------|
+| `templates/gitlab/jobs/oss/versions.yml` | GitLab `OSS_*` variables |
+| `config/github-oss-env.yml` | GitHub env reference |
+| `templates/profiles/oss-full.github.yml` | Profile `env:` block |
+
+GitLab jobs also use `${OSS_*:-default}` in `_base.yml`, `sbom.yml`, `dockerfile-lint.yml`.
 
 ## Updating a tool
 
 1. Read vendor release notes / CVE advisories
 2. Bump version in `config/oss-tool-versions.yaml`
-3. Sync matching keys in `templates/gitlab/jobs/oss/versions.yml`
-4. Update hardcoded pins in shared jobs if the image is not variable-driven (`sbom.yml`, `dockerfile-lint.yml`, etc.)
-5. `bash scripts/validate-oss-pins.sh`
-6. PR with SecChamp approval
+3. `python3 scripts/generate-oss-pins.py`
+4. `bash scripts/validate-pin-sync.sh && bash scripts/validate-oss-pins.sh`
+5. PR with SecChamp approval
 
 ## Trivy install (pinned tarball)
 
@@ -62,14 +71,14 @@ curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERS
 
 ## Incident context
 
-See [supply-chain-teampcp-2026.md](../references/supply-chain-teampcp-2026.md) — compromised Trivy → LiteLLM PyPI → Checkmarx Actions.
+See [supply-chain-teampcp-2026.md](../references/supply-chain-teampcp-2026.md).
 
 ## DAF alignment
 
 - `T-ADI-DEP-1-5` — reject latest tags (`osa.reject_latest_tags` in security gate policy)
 - `tooling_pins` section in [`config/security-gate-policy.yaml`](../../config/security-gate-policy.yaml)
 
-## Follow-up (not in v1.4.2)
+## Follow-up (not in scope)
 
 - Image digest pinning (`image@sha256:…`)
-- GitHub Actions `aquasecurity/trivy-action` pin audit
+- GitHub Actions `aquasecurity/trivy-action` pin audit for non-oss profiles

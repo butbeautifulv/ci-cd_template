@@ -1,5 +1,6 @@
 ---
 name: GitHub OSS Full Pipeline
+status: archived
 overview: Создать профиль `oss-full` для GitHub Actions (100% OSS, без CodeQL/dependency-review), проверить на `examples/sample-app`, расширить CI template-репозитория и прогнать push → Actions до зелёного статуса.
 todos:
   - id: gh-oss-workflows

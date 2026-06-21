@@ -15,21 +15,12 @@ Canonical reference: Plan → Code → Build → Test → Release → Deploy →
 |-----|---------|
 | `docs/references/secure-sdlc-phases.md` | Full stage definitions |
 | `docs/references/sdlc-mapping.md` | 8 stages ↔ DAF ↔ P0–F3 ↔ pipeline |
-| `docs/01-sdlc-process.md` | Three SDLC models overview |
+| `docs/01-sdlc-process.md` | Four SDLC models overview |
 | `docs/03-security-controls.md` | Control matrix with Secure SDLC column |
 
-## Stage → template (quick)
+## Stage → template
 
-| Stage | Template |
-|-------|----------|
-| Plan | P0, A1, threat model |
-| Code | B1–B6 |
-| Build | A2, C1–C2 |
-| Test | D1–D2, F1 |
-| Release | C4, D3 |
-| Deploy | E1–E2, F2 runbooks |
-| Operate | E3–E4 |
-| Monitor | F3 SBOM monitor |
+See [sdlc-mapping.md](../../docs/references/sdlc-mapping.md) for full crosswalk including coverage column.
 
 ## Out of base CI (document only)
 

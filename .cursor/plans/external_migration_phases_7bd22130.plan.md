@@ -1,5 +1,6 @@
 ---
 name: External migration phases
+status: archived
 overview: Интегрировать `.external/phases.md` как третий SDLC-взгляд (8 этапов Plan→Monitor), полностью перенести содержимое `.external/` в `docs/references/` (extracts-only для xlsx), реорганизовать skills в `.agents/skills/` с stub-слоями в `.cursor/skills/` для discovery Cursor, и снять runtime-зависимость от `.external/`.
 todos:
   - id: sdlc-1-phases-doc

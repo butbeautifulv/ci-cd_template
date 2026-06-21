@@ -10,29 +10,7 @@ description: >-
 
 Sources: `docs/references/daf/DAF_public_RU.md`, extracts in `docs/references/extracts/daf/`.
 
-Repo docs: `docs/references/daf-kirillamida.md`, `docs/05-maturity-roadmap.md`.
-
-## Kirillamida levels
-
-| № | Name | CI/CD meaning |
-|---|------|---------------|
-| 0 | Хаос | Ad-hoc |
-| 1 | Минимальный | First tools |
-| 2 | Базовый | **Default target start** |
-| 3 | Повышенный | MR automation |
-| 4 | Продвинутый | SBOM, DAST |
-| 5 | Развитый | Signing, K8s |
-| 6 | Экспертный | IAST, Red Team |
-| 7 | Космический | Max maturity |
-
-## Target level algorithm
-
-1. Default → **2 Базовый**
-2. Levels 0–2 at 80–100% → **3** or **4**
-3. 0–2 at 80%+, any 3–5 below 80% → **5**
-4. 0–5 at 80%+ → **6** or **7**
-
-Lower-level practices have priority (`DAF README`).
+Canonical: [daf-kirillamida.md](../../docs/references/daf-kirillamida.md) (levels 0–7, algorithm, subdomains). Roadmap: [05-maturity-roadmap.md](../../docs/05-maturity-roadmap.md).
 
 ## Practice ID format
 
@@ -42,15 +20,15 @@ Examples: `T-CODE-SST-2-1`, `P-DEFECT-CNS-2-1`, `T-DEV-CICD-1-3`
 
 ## Lookup
 
+For extract/re-grep commands see `devsecops-reference-lookup`. Quick:
+
 ```bash
 rg "T-CODE-SST-2-1" docs/references/daf/DAF_public_RU.md
-python scripts/extract_daf_xlsx.py \
-  --sheet "Практики" --grep "T-CODE-SST" --rows 5
 ```
 
 ## Subdomains
 
-Full T-* and P-* tables: [reference.md](reference.md)
+T-* technology table: [reference.md](reference.md). P-* process: `devsecops-governance` skill and [07-governance-and-docs.md](../../docs/07-governance-and-docs.md).
 
 ## Map to template
 

@@ -51,11 +51,7 @@ Reference repo: GitLab + GitHub CI, K8s runtime, DAF/JCSF/fintech/GOST synthesis
 
 ## Hard rules
 
-1. One sub-phase = one PR, ≤5 files
-2. warn → block in separate micro-PR
-3. WAF/RASP/F2 — runbooks only, not CI jobs
-4. SARIF + `security-gate-policy.yaml` = shared contract
-5. Reference material in `docs/references/` — no vendor xlsx in git
+See [AGENTS.md](../../AGENTS.md) § Rules and `.cursor/rules/phase-impl.mdc`.
 
 ## Phase order
 

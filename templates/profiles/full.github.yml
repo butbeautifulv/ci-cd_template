@@ -17,20 +17,11 @@ env:
   REGISTRY: ghcr.io/${{ github.repository }}
 
 jobs:
-  lint:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "lint stub"
-
-  unit-test:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - run: echo "test stub"
+  validate:
+    uses: ./.github/workflows/base-validate.yml
 
   security-gates:
-    needs: [lint, unit-test]
+    needs: [validate]
     uses: ./.github/workflows/security-gates.yml
     permissions:
       contents: read

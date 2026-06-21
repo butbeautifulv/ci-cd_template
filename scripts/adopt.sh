@@ -87,6 +87,7 @@ if [[ "$PLATFORM" == "gitlab" ]]; then
   fi
 elif [[ "$PLATFORM" == "github" ]]; then
   copy "$ROOT/templates/github/workflows" "$TARGET/.github/workflows"
+  copy "$ROOT/templates/github/actions" "$TARGET/.github/actions"
   copy "$ROOT/templates/profiles/${PROFILE}.github.yml" "$TARGET/.github/workflows/ci-profile.yml"
   copy "$ROOT/templates/github/dependabot.yml" "$TARGET/.github/dependabot.yml"
   copy "$ROOT/templates/CODEOWNERS" "$TARGET/CODEOWNERS"

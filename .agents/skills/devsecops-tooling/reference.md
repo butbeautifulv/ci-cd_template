@@ -1,5 +1,7 @@
 # Tool catalog (synthesized from PDF + template)
 
+Canonical: [04-tooling-catalog.md](../../docs/04-tooling-catalog.md). Exhaustive OCR list: [supplements/devsecops_tools.md](../../docs/references/supplements/devsecops_tools.md).
+
 ## Linters (MR gate — fintech)
 
 ESLint security, golangci-lint, Ruff/Bandit, shellcheck

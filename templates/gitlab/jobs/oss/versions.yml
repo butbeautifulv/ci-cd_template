@@ -1,4 +1,5 @@
-# OSS tool pins — mirror config/oss-tool-versions.yaml (do not use :latest)
+# GENERATED — do not edit. Run: python3 scripts/generate-oss-pins.py
+# OSS tool pins — source: config/oss-tool-versions.yaml
 
 variables:
   OSS_SEMGREP_IMAGE: "returntocorp/semgrep:1.117.0"
