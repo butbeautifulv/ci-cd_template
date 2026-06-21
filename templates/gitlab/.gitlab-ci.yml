@@ -1,4 +1,6 @@
 # GitLab CI entrypoint — copy to repository root as .gitlab-ci.yml
+# For 100% OSS (GitLab CE): use templates/profiles/oss-full.gitlab-ci.yml instead
+# (no GitLab Security/*.gitlab-ci.yml vendor templates)
 # Includes job fragments from templates/gitlab/jobs/
 
 stages:

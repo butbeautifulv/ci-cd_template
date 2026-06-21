@@ -2,8 +2,10 @@
 
 forbidden-files:
   stage: security
-  image: alpine:3.20
+  image: ${OSS_ALPINE_IMAGE:-alpine:3.20.3}
   extends: .workflow_rules
+  before_script:
+    - apk add --no-cache python3
   script:
     - |
       echo '{"runs":[{"results":[]}]}' > forbidden-files.sarif
@@ -22,7 +24,7 @@ forbidden-files:
       if [ "$FOUND" -eq 1 ]; then
         echo '{"runs":[{"results":[{"level":"medium","message":{"text":"forbidden or suspicious files detected"}}]}]}' > forbidden-files.sarif
       fi
-    - python scripts/gate-check.py --control linters --report forbidden-files.sarif \
+    - python3 scripts/gate-check.py --control linters --report forbidden-files.sarif \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:
     paths:

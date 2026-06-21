@@ -111,7 +111,10 @@ Sanitizers/concolic — QA-зона, без CI job по умолчанию (ASan
 
 | Tier | Примеры |
 |------|---------|
+| oss | **OWASP ZAP Full Scan** (active runtime / spider), Schemathesis (API runtime) |
 | commercial | Contrast Assess, Synopsys Seeker, Checkmarx CxIAST, Hdiv, Veracode Interactive |
+
+**В шаблоне:** OSS F1 — `iast-preprod.yml` / `iast-oss.yml` (ZAP full scan, manual preprod). Commercial agents — optional overlay, см. [phases/F1-iast.md](phases/F1-iast.md).
 
 ## RASP
 
@@ -182,10 +185,10 @@ ProGuard, DexGuard — для mobile; вне scope базового шаблон
 | DAST | DAST template (license) | ZAP action | ZAP (docker pin, manual) |
 | API fuzz | — | — | Schemathesis (manual) |
 | Binary fuzz | — | — | AFL++ / Go / Jazzer (manual) |
-| Sec func tests | custom | pytest stub | pytest stub |
+| Sec func tests | custom | pytest + `tests/security/` | pytest + `tests/security/` |
+| IAST | — | ZAP Full Scan (manual) | ZAP Full Scan (manual) |
 | Admission | — | — | Conftest (docker pin) |
 | ASPM | DefectDojo (self-hosted) | DefectDojo / SARIF upload | DefectDojo via `aspm-export.py` |
-| IAST | — | stub | **excluded** |
 | RASP / WAF | — | — | runbook F2 only |
 
 См. [platforms/](platforms/).

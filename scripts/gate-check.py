@@ -214,6 +214,9 @@ def main() -> None:
     elif args.control == "dast":
         levels = parse_zap_baseline(args.report) if args.report.exists() else []
         ok, msg = evaluate(levels, policy)
+    elif args.control == "iast":
+        levels = parse_zap_baseline(args.report) if args.report.exists() else []
+        ok, msg = evaluate(levels, policy)
     elif args.control == "fuzzing":
         levels = parse_junit(args.report) if args.report.exists() else []
         ok, msg = evaluate(levels, policy)
@@ -231,11 +234,13 @@ def main() -> None:
         findings = 1 if args.report.exists() else 0
     elif args.control == "dast" and args.report.exists():
         findings = len(parse_zap_baseline(args.report))
+    elif args.control == "iast" and args.report.exists():
+        findings = len(parse_zap_baseline(args.report))
     elif args.control == "fuzzing" and args.report.exists():
         findings = len(parse_junit(args.report))
     elif args.control == "binary_fuzz" and args.report.exists():
         findings = len(parse_junit(args.report))
-    elif args.control not in ("sbom", "dast", "fuzzing", "binary_fuzz"):
+    elif args.control not in ("sbom", "dast", "iast", "fuzzing", "binary_fuzz"):
         findings = len(parse_report(args.report)) if args.report.exists() else 0
     print(f"[{args.control}] {msg} (findings={findings}, mode={policy.get('mode')})")
     sys.exit(0 if ok else 1)

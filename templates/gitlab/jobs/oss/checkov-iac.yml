@@ -32,7 +32,7 @@ checkov-iac:
       [ -f "$REPORT" ] || REPORT=reports/checkov.sarif
       [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > reports/checkov.sarif
       [ -f reports/checkov.sarif ] || cp "$REPORT" reports/checkov.sarif
-    - python scripts/gate-check.py --control iac --report reports/checkov.sarif \
+    - python3 scripts/gate-check.py --control iac --report reports/checkov.sarif \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:
     paths:

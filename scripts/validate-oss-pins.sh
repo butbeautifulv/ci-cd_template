@@ -11,8 +11,14 @@ SCAN_DIRS=(
   templates/gitlab/jobs/dockerfile-lint.yml
   templates/gitlab/jobs/conftest-admission.yml
   templates/gitlab/jobs/dast.yml
+  templates/gitlab/jobs/iast-preprod.yml
+  templates/gitlab/jobs/api-fuzz-schemathesis.yml
+  templates/gitlab/jobs/binary-fuzz.yml
+  templates/gitlab/jobs/forbidden-files.yml
+  templates/gitlab/jobs/sign.yml
   templates/gitlab/jobs/linter-security.yml
   templates/gitlab/jobs/nightly-full-sast.yml
+  templates/gitlab/jobs/sec-func-tests.yml
   templates/gitlab/jobs/_base.yml
   templates/profiles/oss-full.gitlab-ci.yml
   templates/github/workflows/jobs/oss

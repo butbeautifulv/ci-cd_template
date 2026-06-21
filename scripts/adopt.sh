@@ -69,6 +69,17 @@ chmod +x "$TARGET/scripts/registry-login.sh" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-auth-env.sh" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-resolve-env.sh" 2>/dev/null || true
 
+if [[ "$PROFILE" == "oss-full" ]]; then
+  copy "$ROOT/scripts/run-binary-fuzz.sh" "$TARGET/scripts/run-binary-fuzz.sh"
+  copy "$ROOT/scripts/binary-fuzz-to-junit.py" "$TARGET/scripts/binary-fuzz-to-junit.py"
+  copy "$ROOT/tests/security" "$TARGET/tests/security"
+  copy "$ROOT/examples/fuzzing" "$TARGET/examples/fuzzing"
+  mkdir -p "$TARGET/examples/openapi"
+  copy "$ROOT/examples/openapi/minimal.yaml" "$TARGET/examples/openapi/minimal.yaml"
+  chmod +x "$TARGET/scripts/run-binary-fuzz.sh" 2>/dev/null || true
+  chmod +x "$TARGET/scripts/binary-fuzz-to-junit.py" 2>/dev/null || true
+fi
+
 if [[ "$PLATFORM" == "gitlab" ]]; then
   copy "$ROOT/templates/profiles/${PROFILE}.gitlab-ci.yml" "$TARGET/.gitlab-ci.yml"
   copy "$ROOT/templates/gitlab/jobs" "$TARGET/.gitlab/jobs"
@@ -97,6 +108,9 @@ elif [[ "$PLATFORM" == "github" ]]; then
   if [[ "$PROFILE" == "oss-full" ]]; then
     copy "$ROOT/templates/github/workflows/nightly-sast-oss.yml" "$TARGET/.github/workflows/nightly-sast-oss.yml"
     copy "$ROOT/templates/github/workflows/dast-oss.yml" "$TARGET/.github/workflows/dast-oss.yml"
+    copy "$ROOT/templates/github/workflows/api-fuzz-oss.yml" "$TARGET/.github/workflows/api-fuzz-oss.yml"
+    copy "$ROOT/templates/github/workflows/binary-fuzz-oss.yml" "$TARGET/.github/workflows/binary-fuzz-oss.yml"
+    copy "$ROOT/templates/github/workflows/iast-oss.yml" "$TARGET/.github/workflows/iast-oss.yml"
     if [[ $DRY_RUN -eq 0 ]]; then
       cp "$TARGET/.github/workflows/ci-profile.yml" "$TARGET/.github/workflows/ci.yml"
       echo "Activated oss-full as .github/workflows/ci.yml"
@@ -125,11 +139,13 @@ cat <<EOF
 [ ] Phases included: $PHASES
 [ ] Gates: SAST/SCA/IaC block C/H; secrets/dockerfile/linters warn (shift-left)
 [ ] ai-ml profile: PII block (ml_data); AI scans warn
-[ ] oss-full GitLab: set KUBECONFIG (file), enable Container Registry; chart/ copied if missing
+[ ] oss-full GitLab CE: KUBECONFIG (file var), Container Registry enabled, privileged Docker runner (dind)
+[ ] oss-full GitLab CE: CI/CD → Schedules → nightly-sast-scheduled (cron)
+[ ] oss-full GitLab CE: validate — bash scripts/validate-gitlab-oss.sh
 [ ] oss-full GitHub: enable GHCR (packages: write), copy ci-profile.yml → ci.yml on adopt
 [ ] ASPM: set DEFECTDOJO_URL + DEFECTDOJO_API_TOKEN for findings export
 [ ] Run: python3 scripts/gate-check.py --help
-[ ] Validate: bash scripts/validate-yaml.sh && bash scripts/validate-oss-pins.sh && bash scripts/validate-registry-config.sh && bash scripts/validate-github-oss.sh && python3 scripts/validate-policy.py
+[ ] Validate: bash scripts/validate-yaml.sh && bash scripts/validate-oss-pins.sh && bash scripts/validate-registry-config.sh && bash scripts/validate-github-oss.sh && bash scripts/validate-gitlab-oss.sh && python3 scripts/validate-policy.py
 [ ] See docs/adoption-checklist.md
 
 EOF

@@ -95,7 +95,23 @@ jobs:
     needs: [build]
     uses: ./.github/workflows/jobs/sec-func-tests.yml
 
-# DAST: templates/github/workflows/dast-oss.yml (workflow_dispatch)
-# API fuzz: templates/github/workflows/api-fuzz-oss.yml (workflow_dispatch)
-# Binary fuzz: templates/github/workflows/binary-fuzz-oss.yml (workflow_dispatch)
-# Nightly SAST: templates/github/workflows/nightly-sast-oss.yml (schedule)
+  deploy-preprod:
+    if: github.ref == 'refs/heads/main'
+    needs: [sign, build]
+    uses: ./.github/workflows/oss/helm-deploy.yml
+    with:
+      environment: preprod
+      namespace: preprod
+      image: ${{ needs.build.outputs.image }}
+
+  iast-preprod:
+    if: github.ref == 'refs/heads/main'
+    needs: [build]
+    uses: ./.github/workflows/jobs/oss/iast-preprod.yml
+
+# Manual preprod scans (also runnable standalone):
+# DAST: templates/github/workflows/dast-oss.yml
+# API fuzz: templates/github/workflows/api-fuzz-oss.yml
+# Binary fuzz: templates/github/workflows/binary-fuzz-oss.yml
+# IAST standalone: templates/github/workflows/iast-oss.yml
+# Nightly SAST: templates/github/workflows/nightly-sast-oss.yml

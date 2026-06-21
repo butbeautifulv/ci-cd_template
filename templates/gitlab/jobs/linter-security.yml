@@ -19,7 +19,7 @@ linter-security:
       fi
       pip install -q "ruff==${OSS_RUFF_VERSION:-0.11.8}"
       ruff check . --output-format sarif -o linter.sarif || true
-    - python scripts/gate-check.py --control linters --report linter.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+    - python3 scripts/gate-check.py --control linters --report linter.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:
     reports:
       codequality: linter.sarif

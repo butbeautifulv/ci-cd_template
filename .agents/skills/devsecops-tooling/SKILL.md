@@ -43,11 +43,11 @@ Config: `config/security-gate-policy.yaml`, `config/oss-tool-versions.yaml`, `co
 | DAST | D1 | ✅ manual | `dast*.yml` | OWASP ZAP docker | ZAP action |
 | **API fuzz** | D1 | ✅ manual | `api-fuzz-schemathesis.*` | Schemathesis docker | Schemathesis |
 | **Binary fuzz** | QA | ✅ manual | `binary-fuzz.*` | AFL++ / Go / Jazzer | same |
-| Sec func tests | D2 | ✅ | `sec-func-tests.*` | pytest stub | pytest stub |
-| IAST | F1 | 🔧 stub | `iast-preprod.*` | **excluded** | commercial stub |
+| Sec func tests | D2 | ✅ | `sec-func-tests.*` | pytest + `tests/security/` | same |
+| **IAST** | F1 | ✅ manual | `iast-preprod.*` | ZAP Full Scan docker | ZAP Full Scan |
 | Pentest gate | D3 | 📋 | [release-gate-checklist.md](../../docs/release-gate-checklist.md) | checklist | checklist |
 | Conftest admission | E1 | ✅ | `conftest-admission.*` | Conftest docker | same |
-| Helm deploy | D/E | ✅ manual | `oss/helm-deploy.yml` | Helm | deploy-preprod stub |
+| Helm deploy | D/E | ✅ manual | `oss/helm-deploy.yml` | Helm | Helm (oss workflow) |
 | K8s admission | E1 | 📋 | `templates/k8s/admission/` | Kyverno/OPA YAML | same |
 | Network policy | E2 | 📋 | `templates/k8s/network/` | NetworkPolicy | same |
 | Falco / CWPP | E3 | 📋 | `templates/k8s/runtime/` | Falco helm values | same |
@@ -55,12 +55,10 @@ Config: `config/security-gate-policy.yaml`, `config/oss-tool-versions.yaml`, `co
 | **WAF / API Sec** | F2 | 📋 **no CI** | [F2-rasp-waf.md](../../docs/phases/F2-rasp-waf.md) | runbook | runbook |
 | **RASP** | F2 | 📋 **no CI** | [F2-rasp-waf.md](../../docs/phases/F2-rasp-waf.md) | runbook + SIEM | runbook |
 | SBOM monitor | F3 | 📋 | [F3-advanced.md](../../docs/phases/F3-advanced.md) | DTrack + policy | doc |
-| Fuzzing (API) | QA | ✅ manual | `api-fuzz-schemathesis.*` | Schemathesis | Schemathesis |
-| Fuzzing (binary) | QA | ✅ manual | `binary-fuzz.*` | AFL++, Go, Jazzer | same |
 | ASTO | all | ✅ | `aspm-export.py`, `.aspm_export` | DefectDojo | DefectDojo |
 | AI/ML scans | opt | ✅ | `skill-scanner`, `ml-*` | profile `ai-ml` | profile `ai-ml` |
 
-**Important:** RASP, WAF, cloud L7 WAF, and most commercial IAST are **prod/runtime** — not pipeline gates (AGENTS.md rule #4). Evidence = runbooks + SIEM, not SARIF in MR.
+**Important:** RASP, WAF, cloud L7 WAF — **prod/runtime runbooks** (F2), не CI gates. OSS **F1 IAST** = ZAP Full Scan в preprod. Commercial in-process agents (Contrast/Seeker) — optional overlay.
 
 ---
 
@@ -70,7 +68,7 @@ Config: `config/security-gate-policy.yaml`, `config/oss-tool-versions.yaml`, `co
 |-------|---------------|------------|------------------|
 | **RASP** | OpenRASP, Falco (syscall) | Contrast, Sqreen, Imperva | 📋 F2 runbook; Falco in `k8s/runtime/` |
 | **WAF / API** | ModSecurity, OWASP CRS | Cloud WAF, Kong, 42Crunch, Gravitee | 📋 F2 runbook; policies in Git |
-| **IAST** | — | Contrast, Seeker, CxIAST | 🔧 `iast-preprod.*` stub (`full` only) |
+| **IAST** | — | Contrast, Seeker, CxIAST | ✅ ZAP Full Scan (`iast-preprod.*`); commercial optional |
 | **Passive DAST** | — | — | F3 doc (prod monitoring) |
 
 More names: supplement §RASP, §API Security, §DAST (Nuclei, StackHawk, …).
@@ -84,8 +82,8 @@ More names: supplement §RASP, §API Security, §DAST (Nuclei, StackHawk, …).
 | `minimal` | — | — |
 | `shift-left` | vendor or mixed | — |
 | `supply-chain` | + SBOM/sign | — |
-| `full` | GitLab Security / CodeQL | DAST, IAST stub, **no RASP CI** |
-| **`oss-full`** | 100% OSS docker/pip pins | DAST ZAP, Schemathesis, **binary fuzz**, conftest, Falco-ready K8s, **no IAST** |
+| `full` | GitLab Security / CodeQL | DAST, IAST (ZAP full + optional commercial), **no RASP CI** |
+| **`oss-full`** | 100% OSS docker/pip pins | B–F incl. IAST ZAP full, Schemathesis, binary fuzz, conftest, Helm |
 | `ai-ml` | + skill/MCP/ML jobs | optional |
 
 Adopt: `scripts/adopt.sh --profile oss-full|full --platform gitlab|github`
