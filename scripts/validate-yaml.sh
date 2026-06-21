@@ -8,7 +8,7 @@ fail=0
 if command -v yamllint >/dev/null 2>&1; then
   # GitLab CI uses !reference — yamllint cannot parse it; lint GitHub + config only
   mapfile -t yml_files < <(
-    find .github/workflows templates/github templates/profiles config \
+    find .github/workflows templates/github/workflows templates/profiles config \
       \( -name '*.yml' -o -name '*.yaml' \) 2>/dev/null | sort
   )
   if ! yamllint -d relaxed --no-warnings "${yml_files[@]}"; then
