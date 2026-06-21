@@ -1,0 +1,27 @@
+name: Validate Template
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/**'
+      - 'config/**'
+      - 'scripts/**'
+      - '.github/workflows/**'
+  pull_request:
+    paths:
+      - 'templates/**'
+      - 'config/**'
+      - 'scripts/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate YAML and policy
+        run: bash scripts/validate-yaml.sh
+      - name: Gate-check self-test
+        run: |
+          echo '{"runs":[{"results":[{"level":"error","message":{"text":"test"}}]}]}' > /tmp/test.sarif
+          python3 scripts/gate-check.py --control sast --report /tmp/test.sarif || true

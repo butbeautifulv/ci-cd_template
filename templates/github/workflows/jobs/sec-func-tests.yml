@@ -1,0 +1,23 @@
+name: Security Functional Tests
+
+on:
+  workflow_call:
+
+jobs:
+  pytest-security:
+    runs-on: ubuntu-latest
+    env:
+      PREPROD_URL: ${{ vars.PREPROD_URL || 'https://preprod.example.com' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: |
+          pip install pytest requests -q
+          pytest tests/security/ -v -m "security or not security"
+      - name: Gate check stub
+        if: always()
+        run: |
+          echo '{"runs":[{"results":[]}]}' > sec-tests.sarif
+          python scripts/gate-check.py --control sec_func_tests --report sec-tests.sarif || true

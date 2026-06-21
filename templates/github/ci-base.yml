@@ -1,0 +1,7 @@
+# GitHub CI base
+
+Entry workflow: [workflows/ci.yml](workflows/ci.yml)
+
+Reusable security: [workflows/security-gates.yml](workflows/security-gates.yml)
+
+Copy entire `workflows/` directory to `.github/workflows/` in your repository.

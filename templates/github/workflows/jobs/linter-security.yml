@@ -1,0 +1,25 @@
+name: Security Linters
+
+on:
+  workflow_call:
+
+jobs:
+  linter-security:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run security linters
+        run: |
+          if [ "${ENABLE_REAL_LINTERS:-false}" = "true" ]; then
+            pip install ruff
+            ruff check . --output-format sarif -o linter.sarif || true
+          else
+            echo "Linter stub — set ENABLE_REAL_LINTERS=true"
+            echo '{"runs":[{"results":[]}]}' > linter.sarif
+          fi
+      - name: Gate check
+        run: python scripts/gate-check.py --control linters --report linter.sarif
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: linter.sarif

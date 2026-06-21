@@ -1,0 +1,22 @@
+# D1 — DAST (OWASP ZAP baseline)
+
+dast-zap:
+  stage: post-deploy
+  image:
+    name: ghcr.io/zaproxy/zaproxy:stable
+    entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      when: manual
+  variables:
+    PREPROD_URL: "https://preprod.example.com"
+  script:
+    - mkdir -p reports
+    - zap-baseline.py -t "${PREPROD_URL}" -J reports/zap-baseline.json || true
+  artifacts:
+    paths:
+      - reports/zap-baseline.json
+    expire_in: 30 days
+  allow_failure: true

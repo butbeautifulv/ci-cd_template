@@ -1,0 +1,17 @@
+# D2 — Security functional tests
+
+sec-func-tests:
+  stage: test
+  image: python:3.12-alpine
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - |
+      if [ -d tests/security ]; then
+        pip install pytest requests -q
+        pytest tests/security/ -v
+      else
+        echo "tests/security not found — add security tests (D2)"
+      fi
+  allow_failure: true

@@ -1,0 +1,27 @@
+# B5 — Dockerfile lint
+
+## Цель
+
+Автоматическая проверка Dockerfile.
+
+## DAF
+
+- `T-CODE-DOCKERFS-2-1`, `T-PREPROD-MANSEC-1-1`
+
+## Файлы PR
+
+- `templates/gitlab/jobs/dockerfile-lint.yml`
+- `templates/github/workflows/jobs/dockerfile-lint.yml`
+- `docs/phases/B5-dockerfile.md`
+
+## Trigger
+
+Only if `Dockerfile*` changed.
+
+## Gate
+
+warn → block after 2 sprints (policy changelog).
+
+## Контрольная точка B
+
+MR pipeline: 5 security jobs, SARIF format, `03-security-controls` status baseline.

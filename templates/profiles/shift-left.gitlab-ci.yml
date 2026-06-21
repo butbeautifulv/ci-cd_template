@@ -1,0 +1,21 @@
+# Profile: shift-left (A2 + B1–B6)
+
+stages:
+  - validate
+  - test
+  - security
+  - build
+
+variables:
+  REGISTRY: "${CI_REGISTRY_IMAGE}"
+  SECURITY_POLICY: "config/security-gate-policy.yaml"
+  ENABLE_REAL_LINTERS: "false"
+
+include:
+  - local: '/templates/gitlab/jobs/_base.yml'
+  - local: '/templates/gitlab/jobs/secret-scan.yml'
+  - local: '/templates/gitlab/jobs/sast.yml'
+  - local: '/templates/gitlab/jobs/sca.yml'
+  - local: '/templates/gitlab/jobs/iac-scan.yml'
+  - local: '/templates/gitlab/jobs/dockerfile-lint.yml'
+  - local: '/templates/gitlab/jobs/linter-security.yml'

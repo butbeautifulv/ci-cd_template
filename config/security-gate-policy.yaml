@@ -1,0 +1,87 @@
+version: "1.0"
+changelog:
+  - phase: execution
+    note: gate-check.py, linters B6, profiles, hardening
+  - phase: A2
+    note: Initial defaults
+  - phase: B1
+    note: secrets warn-only
+  - phase: B5
+    note: dockerfile warn → block after stabilization
+
+defaults:
+  severity_block: [critical, high]
+  severity_warn: [medium]
+  severity_info: [low]
+
+secrets:
+  mode: warn
+  block_on_verified: false
+  artifact_retention_days: 30
+
+sast:
+  mode: block
+  severity_block: [critical, high]
+  severity_warn: [medium]
+  mr_scope: diff
+  main_scope: full
+  ignore_files_require_review: true
+
+sca:
+  mode: block
+  block_direct_critical: true
+  block_transitive_critical: false
+  reject_latest_tags: true
+
+iac:
+  mode: block
+  severity_block: [critical, high]
+  paths:
+    - "**/*.tf"
+    - "**/k8s/**"
+    - "**/helm/**"
+    - "docker-compose*.yml"
+
+dockerfile:
+  mode: warn
+  paths: ["Dockerfile", "Dockerfile.*", "**/Dockerfile"]
+
+linters:
+  mode: warn
+  severity_block: [critical, high]
+  enable_var: ENABLE_REAL_LINTERS
+
+sbom:
+  mode: block
+  required_on_main: true
+  format: cyclonedx-json
+  artifact_name: sbom.cdx.json
+
+container:
+  mode: block
+  severity_block: [critical, high]
+  registry_periodic_scan: documented
+
+signing:
+  mode: optional
+  required_on_main: false
+  tool: cosign
+  default_trigger: manual
+
+dast:
+  mode: warn
+  block_release_debt: false
+  trigger: manual_or_label
+
+sec_func_tests:
+  mode: warn
+  min_automated_percent: 5
+  target_percent: 20
+
+iast:
+  mode: info
+  block_ci: false
+  default_trigger: manual
+
+waf_rasp:
+  in_pipeline: false

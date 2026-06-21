@@ -1,0 +1,14 @@
+name: IAST Preprod
+
+on:
+  workflow_call:
+
+jobs:
+  iast:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.ref == 'refs/heads/main'
+    environment: preprod
+    steps:
+      - run: |
+          echo "IAST manual job — configure vendor agent (Contrast/Seeker/Hdiv)"
+          echo "Findings → DefectDojo; does not block CI per policy iast.block_ci=false"

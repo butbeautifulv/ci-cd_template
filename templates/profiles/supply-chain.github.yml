@@ -1,0 +1,54 @@
+# GitHub profile: supply-chain — shift-left + SBOM + container scan
+
+name: CI Supply Chain
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+
+jobs:
+  security-gates:
+    uses: ./.github/workflows/security-gates.yml
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [security-gates]
+    outputs:
+      image_tag: ${{ steps.meta.outputs.tag }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: meta
+        run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
+      - run: echo "docker build -t ${{ env.REGISTRY }}:${{ github.sha }} ."
+
+  sbom:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/jobs/sbom.yml
+
+  container-scan:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/jobs/container-scan.yml
+    with:
+      image: ${{ env.REGISTRY }}:${{ github.sha }}
+
+  sign:
+    if: github.ref == 'refs/heads/main'
+    needs: [container-scan]
+    uses: ./.github/workflows/jobs/sign.yml

@@ -1,0 +1,32 @@
+# B4 — IaC scanning (paths from policy iac.paths)
+
+include:
+  - template: Security/IaC-Scanning.gitlab-ci.yml
+
+iac-sast:
+  stage: security
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - "**/*.tf"
+        - "**/k8s/**"
+        - "**/helm/**"
+        - "docker-compose*.yml"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - "**/*.tf"
+        - "**/k8s/**"
+        - "**/helm/**"
+        - "docker-compose*.yml"
+  artifacts:
+    reports:
+      sast: gl-sast-report.json
+    expire_in: 30 days
+  after_script:
+    - |
+      REPORT=gl-sast-report.json
+      [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > iac.sarif
+      python scripts/gate-check.py --control iac --report iac.sarif \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}" || \
+      python scripts/gate-check.py --control iac --report "$REPORT" \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}" || true

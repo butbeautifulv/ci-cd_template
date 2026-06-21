@@ -1,0 +1,102 @@
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-privileged
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: privileged
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: Privileged containers are not allowed
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                securityContext:
+                  privileged: false
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: disallow-latest-tag
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: validate-image-tag
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: Using latest tag is not allowed
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                image: "!*:latest"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-app-label
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: require-labels
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: Label app is required
+        pattern:
+          metadata:
+            labels:
+              app: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: require-resource-limits
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: require-limits
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: CPU and memory limits are required
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                resources:
+                  limits:
+                    memory: "?*"
+                    cpu: "?*"
+---
+apiVersion: kyverno.io/v1
+kind: ClusterPolicy
+metadata:
+  name: trusted-registry-only
+spec:
+  validationFailureAction: Enforce
+  rules:
+    - name: check-registry
+      match:
+        any:
+          - resources:
+              kinds: [Pod]
+      validate:
+        message: Images must be from trusted registry (C3)
+        pattern:
+          spec:
+            containers:
+              - name: "*"
+                image: "registry.internal.example.com/*|ghcr.io/myorg/*"

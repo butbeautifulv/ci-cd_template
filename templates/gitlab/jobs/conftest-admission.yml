@@ -1,0 +1,18 @@
+# E1 — Conftest admission policy tests
+
+conftest-admission:
+  stage: validate
+  image: openpolicyagent/conftest:latest
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - templates/k8s/admission/**
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  script:
+    - |
+      for f in templates/k8s/admission/*.yaml; do
+        [ -f "$f" ] || continue
+        echo "Validating $f"
+        conftest test "$f" --policy templates/k8s/admission/policies || true
+      done
+  allow_failure: true

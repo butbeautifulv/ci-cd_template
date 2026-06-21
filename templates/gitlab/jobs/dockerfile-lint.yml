@@ -1,0 +1,35 @@
+# B5 — Dockerfile lint
+
+dockerfile-lint:
+  stage: security
+  image: hadolint/hadolint:latest-debian
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - Dockerfile
+        - Dockerfile.*
+        - "**/Dockerfile"
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      changes:
+        - Dockerfile
+        - Dockerfile.*
+        - "**/Dockerfile"
+  script:
+    - |
+      : > hadolint.sarif
+      echo '{"runs":[{"results":[]}]}' > hadolint.sarif
+      FAILED=0
+      find . -name 'Dockerfile' -o -name 'Dockerfile.*' | while read -r f; do
+        echo "Linting $f"
+        hadolint "$f" || FAILED=1
+      done
+      if [ "$FAILED" -eq 1 ]; then
+        echo '{"runs":[{"results":[{"level":"error","message":{"text":"hadolint findings"}}]}]}' > hadolint.sarif
+      fi
+    - python scripts/gate-check.py --control dockerfile --report hadolint.sarif \
+        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}" || true
+  allow_failure: true
+  artifacts:
+    paths:
+      - hadolint.sarif
+    expire_in: 30 days

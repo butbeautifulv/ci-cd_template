@@ -1,0 +1,14 @@
+# F1 — IAST preprod (optional stub)
+
+iast-preprod:
+  stage: post-deploy
+  image: alpine:3.20
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs:
+    - job: deploy-preprod
+  script:
+    - echo "IAST agent injection — configure vendor (Contrast/Seeker/Hdiv)"
+    - echo "Findings export to DefectDojo — does not block pipeline"
+  allow_failure: true

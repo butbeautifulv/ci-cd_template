@@ -1,0 +1,26 @@
+name: Security Gates
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+jobs:
+  secrets:
+    uses: ./.github/workflows/jobs/secret-scan.yml
+  sast:
+    uses: ./.github/workflows/jobs/sast.yml
+  sca:
+    uses: ./.github/workflows/jobs/sca.yml
+  iac:
+    uses: ./.github/workflows/jobs/iac-scan.yml
+  dockerfile:
+    uses: ./.github/workflows/jobs/dockerfile-lint.yml
+  linters:
+    uses: ./.github/workflows/jobs/linter-security.yml
+  sec-func-tests:
+    if: github.ref == 'refs/heads/main'
+    uses: ./.github/workflows/jobs/sec-func-tests.yml

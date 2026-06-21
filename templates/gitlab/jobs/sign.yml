@@ -1,0 +1,20 @@
+# C4 — Cosign signing (manual default)
+
+sign-image:
+  stage: post-deploy
+  image: gcr.io/projectsigstore/cosign:v2.4.0
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      when: manual
+  needs:
+    - job: build-image
+    - job: container_scanning
+  script:
+    - |
+      if [ "${IMAGE_TAG}" = "none" ]; then
+        echo "No image to sign"
+        exit 0
+      fi
+      echo "Keyless: cosign sign --yes ${REGISTRY}:${CI_COMMIT_SHA}"
+      echo "Or set COSIGN_PRIVATE_KEY CI variable"
+  allow_failure: true

@@ -1,0 +1,14 @@
+name: Skill Scanner
+
+on:
+  workflow_call:
+  workflow_dispatch:
+
+jobs:
+  scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          echo "Optional: pip install skill-scanner from cisco-ai-defense/skill-scanner"
+          echo "skill-scanner scan .cursor/skills/ || true"

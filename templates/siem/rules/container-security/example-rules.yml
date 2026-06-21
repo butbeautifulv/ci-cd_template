@@ -1,0 +1,35 @@
+# Example SIEM rules — container security (E4)
+# Field mapping: Falco jsonOutput → falco.priority, falco.output, k8s.pod.name
+
+rule: k8s_privileged_pod_created
+description: Privileged pod created in cluster
+source: kubernetes_audit
+fields:
+  user: requestObject.metadata.annotations["kubectl.kubernetes.io/last-applied-configuration"]
+  namespace: requestObject.metadata.namespace
+  pod: requestObject.metadata.name
+condition: objectRef.resource == "pods" and requestObject.spec.containers[].securityContext.privileged == true
+severity: high
+action: alert_soc
+
+rule: falco_shell_in_container
+description: Shell execution detected by Falco
+source: falco
+fields:
+  priority: output_fields.priority
+  container: output_fields.k8s.pod.name
+  rule: output_fields.rule
+  output: output
+condition: rule == "Terminal shell in container"
+severity: medium
+action: alert_soc_and_ticket
+
+rule: falco_sensitive_mount
+description: Sensitive host file access in container
+source: falco
+fields:
+  container: output_fields.k8s.pod.name
+  file: output_fields.fd.name
+condition: rule == "Sensitive mount in container"
+severity: critical
+action: page_oncall

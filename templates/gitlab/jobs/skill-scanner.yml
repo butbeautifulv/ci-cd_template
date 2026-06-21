@@ -1,0 +1,14 @@
+# AI1 — Skill scanner (optional, warn-only)
+
+skill-scanner:
+  stage: security
+  image: alpine:3.20
+  rules:
+    - if: $CI_PIPELINE_SOURCE == "merge_request_event"
+      changes:
+        - ".cursor/skills/**/*"
+    - when: manual
+  script:
+    - echo "Install skill-scanner: https://github.com/cisco-ai-defense/skill-scanner"
+    - echo "skill-scanner scan .cursor/skills/ || true"
+  allow_failure: true

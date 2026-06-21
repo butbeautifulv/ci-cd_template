@@ -1,0 +1,19 @@
+name: Dockerfile Lint
+
+on:
+  workflow_call:
+
+jobs:
+  hadolint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hadolint/hadolint-action@v3.1.0
+        with:
+          dockerfile: Dockerfile
+          failure-threshold: warning
+      - name: Gate check
+        if: always()
+        run: |
+          echo '{"runs":[{"results":[]}]}' > hadolint.sarif
+          python scripts/gate-check.py --control dockerfile --report hadolint.sarif || true

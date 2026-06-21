@@ -1,0 +1,47 @@
+# GitHub profile: minimal (A2)
+# Copy relevant jobs to .github/workflows/ci.yml or use as reference
+
+name: CI Minimal
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+  ENABLE_REAL_LINTERS: "false"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if [ "${{ env.ENABLE_REAL_LINTERS }}" = "true" ]; then
+            pip install ruff
+            ruff check . || true
+          else
+            echo "Placeholder lint — set ENABLE_REAL_LINTERS=true"
+          fi
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Placeholder unit tests — replace with project tests"
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [lint, unit-test]
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if [ -f Dockerfile ]; then
+            echo "docker build -t ${{ env.REGISTRY }}:${{ github.sha }} ."
+          fi

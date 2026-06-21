@@ -1,0 +1,140 @@
+#!/usr/bin/env python3
+"""Evaluate scan reports against security-gate-policy.yaml."""
+from __future__ import annotations
+
+import argparse
+import json
+import re
+import sys
+from pathlib import Path
+
+SEVERITY_ORDER = {"note": 0, "none": 0, "info": 1, "low": 2, "medium": 3, "high": 4, "critical": 5, "error": 5}
+
+
+def load_policy_section(path: Path, control: str) -> dict:
+    text = path.read_text(encoding="utf-8")
+    lines = text.splitlines()
+    in_section = False
+    section: dict = {}
+    indent = None
+    for line in lines:
+        if re.match(rf"^{re.escape(control)}:\s*$", line):
+            in_section = True
+            indent = len(line) - len(line.lstrip())
+            continue
+        if not in_section:
+            continue
+        if line.strip() and not line.startswith(" ") and not line.startswith("\t"):
+            break
+        m = re.match(r"^\s+(\w+):\s*(.+)$", line)
+        if m:
+            key, val = m.group(1), m.group(2).strip()
+            if val.startswith("[") and val.endswith("]"):
+                section[key] = [x.strip().strip("'\"") for x in val[1:-1].split(",") if x.strip()]
+            elif val in ("true", "false"):
+                section[key] = val == "true"
+            else:
+                section[key] = val.strip("'\"")
+    defaults = {}
+    in_defaults = False
+    for line in lines:
+        if line.strip() == "defaults:":
+            in_defaults = True
+            continue
+        if in_defaults:
+            if line.strip() and not line.startswith(" "):
+                break
+            m = re.match(r"^\s+(\w+):\s*(.+)$", line)
+            if m:
+                key, val = m.group(1), m.group(2).strip()
+                if val.startswith("[") and val.endswith("]"):
+                    defaults[key] = [x.strip().strip("'\"") for x in val[1:-1].split(",") if x.strip()]
+    section.setdefault("mode", "warn")
+    section.setdefault("severity_block", defaults.get("severity_block", ["critical", "high"]))
+    section.setdefault("severity_warn", defaults.get("severity_warn", ["medium"]))
+    return section
+
+
+def normalize_level(level: str) -> str:
+    return (level or "note").lower().replace("warning", "medium").replace("error", "high")
+
+
+def parse_sarif(path: Path) -> list[str]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    levels: list[str] = []
+    for run in data.get("runs", []):
+        for result in run.get("results", []):
+            levels.append(normalize_level(result.get("level", "note")))
+    return levels
+
+
+def parse_gitlab_secrets(path: Path) -> list[str]:
+    data = json.loads(path.read_text(encoding="utf-8"))
+    levels: list[str] = []
+    for vuln in data.get("vulnerabilities", data.get("secrets", [])):
+        sev = normalize_level(vuln.get("severity", "high"))
+        levels.append(sev)
+    if data.get("total") or data.get("secret_detection"):
+        levels.append("high")
+    return levels
+
+
+def parse_report(path: Path) -> list[str]:
+    if not path.exists():
+        return []
+    text = path.read_text(encoding="utf-8").strip()
+    if not text:
+        return []
+    data = json.loads(text)
+    if "runs" in data:
+        return parse_sarif(path)
+    if "vulnerabilities" in data or "secrets" in data:
+        return parse_gitlab_secrets(path)
+    if isinstance(data, list):
+        return [normalize_level(x.get("severity", "high")) for x in data]
+    return []
+
+
+def evaluate(levels: list[str], policy: dict) -> tuple[bool, str]:
+    mode = policy.get("mode", "warn")
+    if mode in ("info", "optional", "artifact"):
+        return True, f"mode={mode}, gate skipped"
+
+    block_set = {normalize_level(s) for s in policy.get("severity_block", ["critical", "high"])}
+    warn_set = {normalize_level(s) for s in policy.get("severity_warn", ["medium"])}
+
+    blocking = [l for l in levels if l in block_set]
+    warning = [l for l in levels if l in warn_set]
+
+    if blocking:
+        msg = f"blocking findings: {blocking}"
+        if mode == "block":
+            return False, msg
+        return True, f"warn only — {msg}"
+
+    if warning and mode == "block":
+        return True, f"warnings only: {warning}"
+
+    return True, "ok"
+
+
+def main() -> None:
+    p = argparse.ArgumentParser(description="Security gate check")
+    p.add_argument("--control", required=True)
+    p.add_argument("--report", required=True, type=Path)
+    p.add_argument("--policy", default="config/security-gate-policy.yaml", type=Path)
+    args = p.parse_args()
+
+    if not args.policy.exists():
+        print(f"Policy not found: {args.policy}", file=sys.stderr)
+        sys.exit(2)
+
+    policy = load_policy_section(args.policy, args.control)
+    levels = parse_report(args.report) if args.report.exists() else []
+    ok, msg = evaluate(levels, policy)
+    print(f"[{args.control}] {msg} (findings={len(levels)}, mode={policy.get('mode')})")
+    sys.exit(0 if ok else 1)
+
+
+if __name__ == "__main__":
+    main()

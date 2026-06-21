@@ -1,0 +1,30 @@
+# Falco Helm values — E3 runtime detection
+
+falco:
+  jsonOutput: true
+  jsonIncludeOutputProperty: true
+  httpOutput:
+    enabled: true
+    url: "http://falco-exporter.monitoring.svc:2801/events"
+
+customRules:
+  falco_custom_rules.yaml: |
+    - rule: Terminal shell in container
+      desc: Detect shell spawned in container
+      condition: spawned_process and container and proc.name in (bash, sh, zsh)
+      output: "Shell in container (user=%user.name container=%container.name)"
+      priority: WARNING
+      tags: [container, shell, mitre_execution]
+
+    - rule: Sensitive mount in container
+      desc: Detect sensitive host path mounted
+      condition: container and fd.name startswith /etc/shadow
+      output: "Sensitive file access (file=%fd.name container=%container.name)"
+      priority: CRITICAL
+      tags: [container, mitre_credential_access]
+
+falcosidekick:
+  enabled: true
+  config:
+    slack:
+      minimumpriority: warning

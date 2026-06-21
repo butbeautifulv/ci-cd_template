@@ -1,0 +1,53 @@
+# GitHub profile: shift-left — includes security-gates reusable workflow
+
+name: CI Shift Left
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+  ENABLE_REAL_LINTERS: "false"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          if [ "${{ env.ENABLE_REAL_LINTERS }}" = "true" ]; then
+            pip install ruff
+            ruff check .
+          else
+            echo "Placeholder lint"
+          fi
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "Placeholder unit tests"
+
+  security-gates:
+    needs: [lint, unit-test]
+    uses: ./.github/workflows/security-gates.yml
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [security-gates]
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "build stub — see templates/github/workflows/ci.yml"

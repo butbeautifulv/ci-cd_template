@@ -1,0 +1,15 @@
+# Profile: minimal (A2) — validate, test, build only
+# Copy to .gitlab-ci.yml or include from your entrypoint
+
+stages:
+  - validate
+  - test
+  - build
+
+variables:
+  REGISTRY: "${CI_REGISTRY_IMAGE}"
+  SECURITY_POLICY: "config/security-gate-policy.yaml"
+  ENABLE_REAL_LINTERS: "false"
+
+include:
+  - local: '/templates/gitlab/jobs/_base.yml'

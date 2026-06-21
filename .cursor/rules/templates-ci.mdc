@@ -1,0 +1,33 @@
+---
+description: CI/CD template conventions for GitLab and GitHub job files
+globs: templates/**/*.{yml,yaml}
+alwaysApply: false
+---
+
+# Templates CI conventions
+
+## Stages (GitLab)
+
+`validate` → `test` → `security` → `build` → `deploy` → `post-deploy`
+
+## Job files
+
+- One control per file: `secret-scan.yml`, `sast.yml`, etc.
+- GitLab: `include: local:` paths; document copy to `.gitlab/jobs/`
+- GitHub: reusable `workflow_call` in `workflows/jobs/`
+
+## Gates
+
+- Upload SARIF where supported
+- Run `python scripts/gate-check.py --control <name> --report <file>` after scan
+- Read mode from `config/security-gate-policy.yaml` (`mode: warn|block`)
+- Do not use blind `continue-on-error: true` — gate script decides
+
+## Variables
+
+- `REGISTRY` / `SECURITY_POLICY` in entrypoint
+- `ENABLE_REAL_LINTERS=true` for opt-in real linters (A2)
+
+## Mirror rule
+
+Every GitLab job change needs matching GitHub workflow job with same severity contract.
