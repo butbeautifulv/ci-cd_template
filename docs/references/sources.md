@@ -31,6 +31,12 @@
 
 - **В repo:** [secure-sdlc-phases.md](secure-sdlc-phases.md), [sdlc-mapping.md](sdlc-mapping.md)
 
+## Supplements (ChatGPT reinterpretations)
+
+- **В repo:** [supplements/](supplements/) — structured MD views of tools map, fintech 12-stage process, JCSF practices overview
+- **Optional local:** `.external/chatgpt_mds/` (same content; not required at runtime)
+- **Canonical first:** [04-tooling-catalog.md](../04-tooling-catalog.md), [fintech-swimlane.md](fintech-swimlane.md), [extracts/jcsf/](extracts/jcsf/)
+
 ## Cisco AI Defense (optional)
 
 - **В repo:** [cisco-ai-defense.md](cisco-ai-defense.md)

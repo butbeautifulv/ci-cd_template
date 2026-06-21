@@ -40,10 +40,11 @@
 | [platforms/github](docs/platforms/github.md) | Профиль GitHub Actions |
 | [platforms/github-oss-full](docs/platforms/github-oss-full.md) | GitHub OSS full |
 | [references/secure-sdlc-phases](docs/references/secure-sdlc-phases.md) | Secure SDLC 8 этапов |
-| [references/sdlc-mapping](docs/references/sdlc-mapping.md) | Три модели SDLC |
+| [references/sdlc-mapping](docs/references/sdlc-mapping.md) | Четыре модели SDLC |
 | [references/sources](docs/references/sources.md) | Источники и атрибуция |
 | [references/daf-kirillamida](docs/references/daf-kirillamida.md) | Уровни и поддомены DAF |
 | [references/fintech-swimlane](docs/references/fintech-swimlane.md) | Swimlane финтех-PDF |
+| [references/supplements](docs/references/supplements/) | Supplements: tools, финтех 12 этапов, JCSF overview |
 | [references/framework-mappings](docs/references/framework-mappings.md) | SAMM/DSOMM/ГОСТ/CIS |
 
 ## Agent skills

@@ -161,3 +161,24 @@ ProGuard, DexGuard — для mobile; вне scope базового шаблон
 | ASPM | DefectDojo (self-hosted) | DefectDojo / SARIF upload |
 
 См. [platforms/](platforms/).
+
+## Extended catalog (supplement)
+
+Дополнительные инструменты из [supplements/devsecops_tools.md](references/supplements/devsecops_tools.md) (OCR карты PDF), не все в pipeline по умолчанию:
+
+| Класс | Дополнительно (commercial / niche OSS) |
+|-------|----------------------------------------|
+| SAST | SVACE, PVS Studio, Weggli, Joern, KICS, Dagda, Retire.js, MATE, detect-secrets, git-secrets, clj-holmes, PMD |
+| SCA | Osquery, pyre-check, Triton, Debricked, EndorLabs, Sonatype Firewall, OpenSCAP |
+| SBOM | Sonatype SBOM Manager, Cybeats SBOM Studio |
+| BCA | Procyon, CFR, Fernflower, dnSpy, dotPeek |
+| Fuzzing | Sydr, Sydr-fuzz, SharpFuzz, JQF+Zest, jsfuzz, Javafuzz, pythonfuzz |
+| DAST | Nuclei, RESTler, Nikto, Wapiti, OpenVAS |
+| MAST | Drozer, Objection, dexcalibur, MitmProxy |
+| RASP | OpenRASP, Imperva, Appdome, AppSealing, Liapp (Falco — runtime K8s) |
+| API / WAF | 42Crunch, Gravitee, WSO2, QAPISec, StackHawk, Probely |
+| Container | Talos, Cilium, Quay, Harbor (registry) |
+| Secrets | Yandex Lockbox, Infisical, OpenBAO, Bitwarden, CyberArk Conjur |
+| ASPM | Phoenix, OX Security, Faraday, AppSOC, Kondukto, ArmorCode, AppSec.Hub |
+
+**Nexus / Artifactory / Harbor** — registry и artifact storage: [runbooks/nexus-docker-registry.md](runbooks/nexus-docker-registry.md), phase [C3-registry.md](phases/C3-registry.md).

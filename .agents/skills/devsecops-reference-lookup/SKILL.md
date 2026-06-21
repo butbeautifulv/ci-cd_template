@@ -23,6 +23,7 @@ docs/references/
 ├── daf-kirillamida.md
 ├── framework-mappings.md
 ├── fintech-swimlane.md
+├── supplements/            # ChatGPT MD views (tools, fintech 12-stage, JCSF overview)
 └── cisco-ai-defense.md
 ```
 
@@ -71,8 +72,11 @@ Full sheet list: run `--all-sheets` or see filenames in extract dirs.
 | Secure SDLC | `references/secure-sdlc-phases.md` | `devsecops-secure-sdlc` |
 | Framework mappings | `references/framework-mappings.md` | `devsecops-gost` |
 | Fintech swimlane | `references/fintech-swimlane.md` | `devsecops-fintech-sdlc` |
+| Fintech 12 stages | `references/supplements/Типовой_процесс_...md` | `devsecops-fintech-sdlc` |
 | Tool catalog | `04-tooling-catalog.md` | `devsecops-tooling` |
+| Tool supplement | `references/supplements/devsecops_tools.md` | `devsecops-tooling` |
 | JCSF | `06-kubernetes-runtime.md` | `devsecops-jcsf` |
+| JCSF overview | `references/supplements/JCSF_v7_public.md` | `devsecops-jcsf` |
 | MLSecOps | `10-mlsecops-appendix.md` | `devsecops-mlsecops` |
 
 After extraction, update `docs/` — do not commit vendor xlsx/pdf to git.

@@ -8,7 +8,7 @@ description: >-
 
 # Fintech SDLC swimlane
 
-Source: `docs/references/extracts/fintech-pdf.txt`
+Source: `docs/references/extracts/fintech-pdf.txt`, supplement [supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md](../../docs/references/supplements/Типовой_процесс_безопасной_разработки_для_финтеха.md)
 
 Repo: `docs/01-sdlc-process.md`, `docs/references/fintech-swimlane.md`.
 
