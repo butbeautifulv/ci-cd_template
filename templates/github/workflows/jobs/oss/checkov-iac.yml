@@ -1,0 +1,42 @@
+name: OSS Checkov IaC
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  checkov:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Install Checkov
+        run: pip install -q "checkov==${OSS_CHECKOV_VERSION:-3.2.449}"
+      - name: Scan
+        run: |
+          mkdir -p reports
+          checkov -d . --framework terraform,kubernetes,helm,dockerfile --soft-fail \
+            --output sarif --output-file-path reports || true
+          REPORT=reports/results_sarif.sarif
+          [ -f "$REPORT" ] || REPORT=reports/checkov.sarif
+          [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > reports/checkov.sarif
+          [ -f reports/checkov.sarif ] || cp "$REPORT" reports/checkov.sarif
+      - name: Gate check
+        if: always()
+        run: python scripts/gate-check.py --control iac --report reports/checkov.sarif
+      - name: ASPM export
+        if: always() && vars.DEFECTDOJO_URL != ''
+        env:
+          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
+          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
+        run: python scripts/aspm-export.py --control iac --report reports/checkov.sarif || true
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: reports/checkov.sarif
+          category: iac

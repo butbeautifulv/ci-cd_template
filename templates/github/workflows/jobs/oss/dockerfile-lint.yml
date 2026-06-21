@@ -1,0 +1,40 @@
+name: OSS Dockerfile Lint
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  hadolint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Hadolint
+        run: |
+          IMAGE="${OSS_HADOLINT_IMAGE:-hadolint/hadolint:v2.12.0-alpine}"
+          echo '{"runs":[{"results":[]}]}' > hadolint.sarif
+          FAILED=0
+          find . -name 'Dockerfile' -o -name 'Dockerfile.*' | while read -r f; do
+            echo "Linting $f"
+            docker run --rm -i "$IMAGE" < "$f" || FAILED=1
+          done
+          if [ "$FAILED" -eq 1 ]; then
+            echo '{"runs":[{"results":[{"level":"error","message":{"text":"hadolint findings"}}]}]}' > hadolint.sarif
+          fi
+      - name: Gate check
+        if: always()
+        run: python scripts/gate-check.py --control dockerfile --report hadolint.sarif
+      - name: ASPM export
+        if: always() && vars.DEFECTDOJO_URL != ''
+        env:
+          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
+          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
+        run: python scripts/aspm-export.py --control dockerfile --report hadolint.sarif || true
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: hadolint.sarif
+          category: dockerfile

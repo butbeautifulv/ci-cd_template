@@ -27,16 +27,19 @@ Tier: **builtin** (platform), **oss**, **commercial**.
 
 ## Template defaults
 
-| Control | GitLab | GitHub |
-|---------|--------|--------|
-| SAST | SAST template | CodeQL |
-| Linters | Code-Quality / custom | language linters |
-| Secrets | Secret Detection | Gitleaks |
-| SCA | Dependency Scanning | dependency-review + Trivy fs |
-| IaC | IaC Scanning | Checkov |
-| Container | Container Scanning | Trivy |
-| DAST | DAST (license) | ZAP action |
-| ASPM | DefectDojo (`aspm-export.py`) | SARIF → DefectDojo |
+| Control | GitLab | GitHub | GitHub oss-full |
+|---------|--------|--------|-----------------|
+| SAST | SAST template | CodeQL | Semgrep docker pin |
+| Linters | Code-Quality / custom | language linters | Ruff pin |
+| Secrets | Secret Detection | Gitleaks action | Gitleaks tarball |
+| SCA | Dependency Scanning | dependency-review + Trivy fs | Trivy tarball fs/image |
+| IaC | IaC Scanning | Checkov action | Checkov pip pin |
+| Container | Container Scanning | Trivy action | Trivy image tarball |
+| DAST | DAST (license) | ZAP action | ZAP docker pin |
+| ASPM | DefectDojo (`aspm-export.py`) | SARIF → DefectDojo | same |
+| Registry | GitLab CR / Nexus | ghcr.io / Nexus | `oss/build-push.yml` |
+
+GitHub oss-full: [docs/platforms/github-oss-full.md](../../docs/platforms/github-oss-full.md)
 
 ## Classes (summary)
 

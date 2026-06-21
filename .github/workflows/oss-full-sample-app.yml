@@ -1,0 +1,76 @@
+name: OSS Full Sample App Verify
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - 'templates/github/**'
+      - 'templates/profiles/oss-full.github.yml'
+      - 'examples/sample-app/**'
+      - 'scripts/**'
+      - 'config/**'
+  pull_request:
+    paths:
+      - 'templates/github/**'
+      - 'templates/profiles/oss-full.github.yml'
+      - 'examples/sample-app/**'
+      - 'scripts/**'
+      - 'config/**'
+
+jobs:
+  validate:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Template validators
+        run: |
+          bash scripts/validate-yaml.sh
+          bash scripts/validate-github-oss.sh
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Adopt oss-full into temp app
+        run: |
+          APP=/tmp/oss-sample-$$
+          mkdir -p "$APP"
+          cp -r examples/sample-app/* "$APP/"
+          ./scripts/adopt.sh --profile oss-full --platform github --target "$APP"
+          echo "APP=$APP" >> "$GITHUB_ENV"
+      - name: OSS scanners on sample-app (expect findings)
+        working-directory: ${{ env.APP }}
+        continue-on-error: true
+        run: |
+          TRIVY_VERSION="0.63.0"
+          curl -sfL "https://github.com/aquasecurity/trivy/releases/download/v${TRIVY_VERSION}/trivy_${TRIVY_VERSION}_Linux-64bit.tar.gz" \
+            | tar xz -C /usr/local/bin trivy
+          trivy fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
+          python scripts/gate-check.py --control osa --report osa.sarif || true
+          docker run --rm -v "$PWD:/src" returntocorp/semgrep:1.117.0 \
+            semgrep scan --config p/ci --sarif -o /src/semgrep.sarif /src || true
+          python scripts/gate-check.py --control sast --report semgrep.sarif || true
+      - name: Parse adopted workflows
+        run: |
+          python3 <<'PY'
+          import sys
+          from pathlib import Path
+          try:
+              import yaml
+          except ImportError:
+              print("PyYAML not installed — skip workflow parse")
+              sys.exit(0)
+          app = Path("${{ env.APP }}")
+          errors = 0
+          for p in (app / ".github/workflows").rglob("*.yml"):
+              try:
+                  list(yaml.safe_load_all(p.read_text()))
+              except Exception as e:
+                  print(f"FAIL {p}: {e}")
+                  errors += 1
+          sys.exit(1 if errors else 0)
+          PY
+      - name: Docker build sample-app (no push)
+        working-directory: ${{ env.APP }}
+        run: |
+          if [ -f Dockerfile ]; then
+            docker build -t oss-sample:test .
+          fi

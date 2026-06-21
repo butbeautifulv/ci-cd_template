@@ -108,7 +108,14 @@ Performance, Chaos ([F4-resilience.md](phases/F4-resilience.md)), PKI ([runbooks
 - [ ] `bash scripts/validate-oss-pins.sh` passes (no `:latest` / Trivy `main`)
 - [ ] Runbook: [runbooks/oss-tool-pinning.md](runbooks/oss-tool-pinning.md)
 
-## 13. Документы организации
+## 13. GitHub OSS full (profile `oss-full` + platform `github`)
+
+- [ ] `./scripts/adopt.sh --profile oss-full --platform github --target .`
+- [ ] GHCR enabled (packages: write permission)
+- [ ] `bash scripts/validate-github-oss.sh`
+- [ ] Doc: [platforms/github-oss-full.md](platforms/github-oss-full.md)
+
+## 14. Документы организации
 
 - [ ] [07-governance-and-docs.md](07-governance-and-docs.md) — регламенты DSO
 

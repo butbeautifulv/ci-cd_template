@@ -28,3 +28,12 @@ binaries:
 pip:
   checkov: "3.2.449"
   ruff: "0.11.8"
+
+github_actions:
+  checkout: "v4"
+  upload_sarif: "v3"
+  upload_artifact: "v4"
+  login_ghcr: "v3"
+  build_push: "v6"
+  cosign_installer: "v3.6.0"
+  # Trivy: use CLI tarball in oss-full (avoid trivy-action compromised range)

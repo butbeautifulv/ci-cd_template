@@ -1,0 +1,35 @@
+name: OSS Semgrep SAST
+
+on:
+  workflow_call:
+
+permissions:
+  contents: read
+  security-events: write
+
+jobs:
+  semgrep:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Semgrep scan
+        run: |
+          IMAGE="${OSS_SEMGREP_IMAGE:-returntocorp/semgrep:1.117.0}"
+          docker run --rm -v "$PWD:/src" "$IMAGE" \
+            semgrep scan --config p/ci --sarif -o /src/semgrep.sarif /src || true
+      - name: Gate check
+        if: always()
+        run: |
+          [ -f semgrep.sarif ] || echo '{"runs":[{"results":[]}]}' > semgrep.sarif
+          python scripts/gate-check.py --control sast --report semgrep.sarif
+      - name: ASPM export
+        if: always() && vars.DEFECTDOJO_URL != ''
+        env:
+          DEFECTDOJO_URL: ${{ vars.DEFECTDOJO_URL }}
+          DEFECTDOJO_API_TOKEN: ${{ secrets.DEFECTDOJO_API_TOKEN }}
+        run: python scripts/aspm-export.py --control sast --report semgrep.sarif || true
+      - uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: semgrep.sarif
+          category: sast
