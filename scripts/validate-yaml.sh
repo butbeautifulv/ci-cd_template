@@ -11,7 +11,7 @@ if command -v yamllint >/dev/null 2>&1; then
     find .github/workflows templates/github templates/profiles config \
       \( -name '*.yml' -o -name '*.yaml' \) 2>/dev/null | sort
   )
-  if ! yamllint -d relaxed "${yml_files[@]}"; then
+  if ! yamllint -d relaxed --no-warnings "${yml_files[@]}"; then
     fail=1
   fi
 else
