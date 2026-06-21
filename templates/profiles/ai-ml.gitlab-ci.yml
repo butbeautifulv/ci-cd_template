@@ -1,0 +1,31 @@
+# Profile: ai-ml — shift-left + AI1 + ML1–ML2 (opt-in)
+# PII block (ml_data); skill/MCP/aibom/pickle warn
+
+stages:
+  - validate
+  - test
+  - security
+  - build
+  - post-deploy
+
+variables:
+  REGISTRY: "${CI_REGISTRY_IMAGE}"
+  SECURITY_POLICY: "config/security-gate-policy.yaml"
+  ENABLE_REAL_LINTERS: "false"
+
+include:
+  - local: '/templates/gitlab/jobs/_base.yml'
+  - local: '/templates/gitlab/jobs/secret-scan.yml'
+  - local: '/templates/gitlab/jobs/sast.yml'
+  - local: '/templates/gitlab/jobs/sca.yml'
+  - local: '/templates/gitlab/jobs/iac-scan.yml'
+  - local: '/templates/gitlab/jobs/dockerfile-lint.yml'
+  - local: '/templates/gitlab/jobs/linter-security.yml'
+  - local: '/templates/gitlab/jobs/forbidden-files.yml'
+  - local: '/templates/gitlab/jobs/skill-scanner.yml'
+  - local: '/templates/gitlab/jobs/mcp-scan.yml'
+  - local: '/templates/gitlab/jobs/pickle-scan.yml'
+  - local: '/templates/gitlab/jobs/ml-data-scan.yml'
+  - local: '/templates/gitlab/jobs/aibom.yml'
+  - local: '/templates/gitlab/jobs/ml-bom.yml'
+  - local: '/templates/gitlab/jobs/ml-model-scan.yml'

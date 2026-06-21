@@ -1,8 +1,16 @@
 # MLSecOps — опциональное приложение
 
-Источник: `DAF_MLSO_public_RU.md`, лист `Практики+MLSecOps` в `DAF_public_RU.xlsx`.
+Источник: [daf/DAF_MLSO_public_RU.md](references/daf/DAF_MLSO_public_RU.md), extract [extracts/daf/Практики_MLSecOps.md](references/extracts/daf/Практики_MLSecOps.md).
 
-Не входит в базовый CI/CD шаблон (фазы P0–F3). Подключайте при разработке ML/ИИ систем.
+Не входит в базовый CI/CD шаблон (фазы P0–F3). Подключайте профилем **`ai-ml`**.
+
+## Phase docs
+
+| Phase | Doc | Gate |
+|-------|-----|------|
+| ML1 | [phases/ML1-data-scan.md](phases/ML1-data-scan.md) | PII **block** |
+| ML2 | [phases/ML2-ml-bom.md](phases/ML2-ml-bom.md) | ML-BOM warn |
+| ML3 | [phases/ML3-model-scan.md](phases/ML3-model-scan.md) | manual warn |
 
 ## Дополнительные домены
 
@@ -30,10 +38,10 @@
 
 ## Интеграция в pipeline
 
-Добавьте jobs после B-фазы:
+```bash
+./scripts/adopt.sh --profile ai-ml --platform gitlab --target .
+```
 
-1. `ml-data-scan` — PII / poisoning на датасетах в MR
-2. `ml-model-scan` — adversarial robustness (preprod)
-3. Артефакт `ml-bom.json` рядом с `sbom.cdx.json`
+Jobs: `ml-data-scan`, `ml-bom`, `ml-model-scan` + AI jobs — см. [11-ai-security-appendix.md](11-ai-security-appendix.md).
 
-Подфаза не выделена — создайте `docs/phases/ML1-data-scan.md` при внедрении.
+Demo: [examples/sample-ml-app/](examples/sample-ml-app/).

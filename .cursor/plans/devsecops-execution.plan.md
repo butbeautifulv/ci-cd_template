@@ -131,12 +131,46 @@ todos:
   - id: mig-v11
     content: "MIG: CHANGELOG v1.1, master-plan три SDLC-модели"
     status: completed
+  - id: ai-pr1-skill-mcp
+    content: "AI-PR1: skill-scanner + mcp-scan jobs (GL/GH), policy, gate-check"
+    status: completed
+  - id: ai-pr2-supply-chain
+    content: "AI-PR2: AI2 phase, aibom.yml, pickle-scan.yml"
+    status: completed
+  - id: ai-pr3-rag-runtime
+    content: "AI-PR3: AI3 phase + ai-runtime-guardrails runbook, sdlc-mapping"
+    status: completed
+  - id: ml-pr1-data-pii
+    content: "ML-PR1: ML1-data-scan job, PII block policy + gate-check"
+    status: completed
+  - id: ml-pr2-ml-bom
+    content: "ML-PR2: ML2 ml-bom job + phase doc"
+    status: completed
+  - id: ml-pr3-model-scan
+    content: "ML-PR3: ML3 model-scan manual job + phase doc"
+    status: completed
+  - id: ex-sample-ml-app
+    content: "EX: examples/sample-ml-app/ demo targets for AI/ML scanners"
+    status: completed
+  - id: ex-profile-adopt
+    content: "EX: ai-ml profile, adopt.sh, adoption docs, controls matrix, skills"
+    status: completed
+  - id: sync-v13
+    content: "SYNC: CHANGELOG v1.3, master-plan, AGENTS.md, execution plan todos"
+    status: completed
 isProject: false
 ---
 
 # План выполнения DevSecOps Master Plan (Cursor)
 
 ## Текущее состояние
+
+**v1.3 (AI + MLSecOps):**
+- Profile **`ai-ml`** — shift-left + AI1–AI2 + ML1–ML3 jobs (opt-in)
+- `scripts/ai-ml-scan.py`, `examples/sample-ml-app/`
+- Phase docs AI1–AI3, ML1–ML3; PII **block** on `ml_data`
+
+**v1.2 (template hardening):** GitLab gates, Kyverno v2, adoption UX — см. CHANGELOG 1.2.0
 
 **v1.1 (references migration):**
 - `docs/references/` — DAF md, xlsx extracts, Secure SDLC, PDF archives, assets

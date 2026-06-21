@@ -76,7 +76,8 @@ flowchart TD
 | D1–D3 | L4–L5 | — | preprod |
 | E1–E4 | — | L2–L3 (orchr, cont) | k8s templates |
 | F1–F3 | L6–7 | L4 | advanced |
-| ML* | MLSO | — | опционально — [10-mlsecops-appendix.md](10-mlsecops-appendix.md) |
+| AI1–AI3 | Cisco AI | — | opt-in — [11-ai-security-appendix.md](11-ai-security-appendix.md) |
+| ML1–ML3 | MLSO | — | opt-in — [10-mlsecops-appendix.md](10-mlsecops-appendix.md), profile `ai-ml` |
 
 ## Secure SDLC (8 этапов)
 

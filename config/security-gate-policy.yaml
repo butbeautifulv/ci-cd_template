@@ -85,3 +85,42 @@ iast:
 
 waf_rasp:
   in_pipeline: false
+
+skill_scan:
+  mode: warn
+  paths:
+    - ".cursor/skills/**"
+    - ".agents/skills/**"
+
+mcp_scan:
+  mode: warn
+  paths:
+    - "**/.cursor/mcp.json"
+    - "**/mcp*.json"
+
+ml_data:
+  mode: block
+  block_pii: true
+  paths:
+    - "data/**"
+    - "datasets/**"
+
+ml_bom:
+  mode: warn
+  required_on_main: true
+  artifact_name: ml-bom.json
+
+aibom:
+  mode: warn
+  artifact_name: aibom.json
+
+pickle_scan:
+  mode: warn
+  paths:
+    - "**/*.pkl"
+    - "**/*.pickle"
+    - "models/**"
+
+ml_model:
+  mode: warn
+  default_trigger: manual

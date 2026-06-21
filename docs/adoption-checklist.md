@@ -89,7 +89,15 @@ python3 ../../scripts/gate-check.py --control sast --report /path/to/report.sari
 
 Performance, Chaos ([F4-resilience.md](phases/F4-resilience.md)), PKI ([runbooks/pki-k8s.md](runbooks/pki-k8s.md)) — runbooks only.
 
-## 11. Документы организации
+## 11. AI/ML optional (profile `ai-ml`)
+
+- [ ] `./scripts/adopt.sh --profile ai-ml --platform gitlab --target .`
+- [ ] Demo: [examples/sample-ml-app/](examples/sample-ml-app/)
+- [ ] ML1 PII gate — [phases/ML1-data-scan.md](phases/ML1-data-scan.md)
+- [ ] AI1 skills — [phases/AI1-skill-scan.md](phases/AI1-skill-scan.md)
+- [ ] Runtime — [runbooks/ai-runtime-guardrails.md](runbooks/ai-runtime-guardrails.md)
+
+## 12. Документы организации
 
 - [ ] [07-governance-and-docs.md](07-governance-and-docs.md) — регламенты DSO
 

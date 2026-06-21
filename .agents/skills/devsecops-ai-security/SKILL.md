@@ -11,8 +11,8 @@ Sources: `docs/references/cisco-ai-defense.md`, `docs/11-ai-security-appendix.md
 
 ## When to use
 
-- Repo contains `.cursor/skills/`, MCP configs, or ML models
-- Not needed for standard web/app pipelines (P0–F3)
+- Repo contains `.cursor/skills/`, `.agents/skills/`, MCP configs, or ML models
+- Adopt profile: **`ai-ml`** — not included in `shift-left` / `full` by default
 
 ## Tools
 
@@ -21,17 +21,25 @@ Sources: `docs/references/cisco-ai-defense.md`, `docs/11-ai-security-appendix.md
 | skill-scanner | Agent SKILL.md files |
 | mcp-scanner | MCP server definitions |
 | aibom | AI dependencies |
-| pickle-fuzzer | Python pickle in ML artifacts |
+| pickle-scan | Python pickle in ML artifacts |
 
-## CI jobs (optional)
+## CI jobs (profile ai-ml)
 
-- `templates/gitlab/jobs/skill-scanner.yml` — manual/warn
-- Phase doc: `docs/phases/AI1-skill-scan.md`
+| Job | Phase | Gate |
+|-----|-------|------|
+| `skill-scanner.yml` | AI1 | warn |
+| `mcp-scan.yml` | AI1 | warn |
+| `aibom.yml` | AI2 | warn |
+| `pickle-scan.yml` | AI2 | warn |
+
+Fallback scanner: `scripts/ai-ml-scan.py`
+
+Phase docs: `docs/phases/AI1-skill-scan.md` … `AI3-rag-runtime.md`
 
 ## MLSecOps overlap
 
-ML data gates: `T-MLDATA-DT-4-*` — see `devsecops-mlsecops` skill.
+ML data gates: `devsecops-mlsecops` skill — `T-MLDATA-DT-4-*`
 
 ## PR scope
 
-Same rules: ≤5 files, warn-only default for AI1.
+Same rules: ≤5 files, warn-only default for AI1–AI2.

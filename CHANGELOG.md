@@ -1,5 +1,28 @@
 # Changelog
 
+## [1.3.0] — AI + MLSecOps (opt-in profile)
+
+### Added
+
+- Profile **`ai-ml`** (GitLab + GitHub) — shift-left + AI1 + ML1–ML2
+- Jobs: `skill-scanner`, `mcp-scan`, `aibom`, `pickle-scan`, `ml-data-scan`, `ml-bom`, `ml-model-scan`
+- `scripts/ai-ml-scan.py` — fallback scanner + BOM generators
+- Phase docs: AI1–AI3, ML1–ML3
+- `docs/runbooks/ai-runtime-guardrails.md`
+- `examples/sample-ml-app/` — PII/skill/MCP/pickle demo targets
+- Policy sections: `skill_scan`, `mcp_scan`, `ml_data`, `ml_bom`, `aibom`, `pickle_scan`, `ml_model`
+
+### Gates
+
+- **ML1 PII** — `ml_data` block on datasets (DAF `T-MLDATA-DT-4-1`)
+- AI/MCP/aibom/pickle — warn (profile `ai-ml` only)
+
+### Changed
+
+- `adopt.sh` — profile `ai-ml`, copies `ai-ml-scan.py`
+- `03-security-controls.md`, `sdlc-mapping.md` — AI/ML rows
+- Skills `devsecops-ai-security`, `devsecops-mlsecops` updated
+
 ## [1.2.0] — Template hardening (GitLab-first gates)
 
 ### Added

@@ -16,7 +16,7 @@
 
 ## Template status
 
-**v1.2** — GitLab-first gate enforcement, Kyverno v2, Plan-stage artifacts, adoption UX. **v1.1** references in `docs/references/`. Execution tracked in `.cursor/plans/devsecops-execution.plan.md`.
+**v1.3** — optional **`ai-ml`** profile (Cisco AI + DAF MLSO). **v1.2** GitLab gates. Execution tracked in `.cursor/plans/devsecops-execution.plan.md`.
 
 ## Принципы
 

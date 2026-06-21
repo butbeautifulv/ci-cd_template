@@ -1,4 +1,4 @@
-# AI1 — Skill / MCP security scan (optional)
+# Skill / MCP security scan (optional)
 
 ## Goal
 
@@ -7,31 +7,28 @@ Scan agent skills and MCP configs on MR (Cisco AI Defense OSS).
 ## Files
 
 - `templates/gitlab/jobs/skill-scanner.yml`
-- `templates/github/workflows/jobs/skill-scanner.yml`
-- `docs/phases/AI1-skill-scan.md`
+- `templates/gitlab/jobs/mcp-scan.yml`
+- `scripts/ai-ml-scan.py` (fallback scanner)
+- `config/security-gate-policy.yaml` → `skill_scan:`, `mcp_scan:`
 
 ## Gate
 
-**warn only** — manual trigger default.
+**warn only** — does not block standard app pipeline.
 
 ## Tools
 
 - [skill-scanner](https://github.com/cisco-ai-defense/skill-scanner)
 - [mcp-scanner](https://github.com/cisco-ai-defense/mcp-scanner)
 
-## DAF / Cisco
+## Acceptance
 
-Integrated AI Security Framework; see `docs/11-ai-security-appendix.md`.
-
-## Критерии приёмки
-
-- [x] Job runs on changes to `.cursor/skills/**`
-- [x] Does not block standard app pipeline
-- [x] Documented in AI appendix
+- [x] Jobs run on changes to `.cursor/skills/`, `.agents/skills/`, `mcp*.json`
+- [x] `gate-check.py` without `|| true`
+- [x] Profile `ai-ml` includes jobs
 
 ## Verification
 
 ```bash
-# When skill-scanner CLI installed:
-skill-scanner scan .cursor/skills/
+python scripts/ai-ml-scan.py skill_scan --report /tmp/skill.sarif
+python scripts/gate-check.py --control skill_scan --report /tmp/skill.sarif
 ```

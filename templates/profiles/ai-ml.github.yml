@@ -1,0 +1,78 @@
+# GitHub profile: ai-ml — shift-left + AI/ML optional jobs
+
+name: CI AI ML
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+  ENABLE_REAL_LINTERS: "false"
+
+jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "lint stub"
+
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "unit-test stub"
+
+  security-gates:
+    needs: [lint, unit-test]
+    uses: ./.github/workflows/security-gates.yml
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
+
+  skill-scanner:
+    needs: [security-gates]
+    uses: ./.github/workflows/jobs/skill-scanner.yml
+
+  mcp-scan:
+    needs: [security-gates]
+    uses: ./.github/workflows/jobs/mcp-scan.yml
+
+  ml-data-scan:
+    needs: [security-gates]
+    uses: ./.github/workflows/jobs/ml-data-scan.yml
+
+  pickle-scan:
+    needs: [security-gates]
+    uses: ./.github/workflows/jobs/pickle-scan.yml
+
+  build:
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    needs: [security-gates]
+    steps:
+      - uses: actions/checkout@v4
+      - run: echo "build stub"
+
+  aibom:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/jobs/aibom.yml
+
+  ml-bom:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/jobs/ml-bom.yml
+
+  ml-model-scan:
+    if: github.ref == 'refs/heads/main'
+    needs: build
+    uses: ./.github/workflows/jobs/ml-model-scan.yml

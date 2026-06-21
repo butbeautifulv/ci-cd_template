@@ -42,9 +42,10 @@ Cursor discovery: thin stubs in `.cursor/skills/` → canonical `.agents/skills/
 
 - Policy: `config/security-gate-policy.yaml`
 - Gate script: `scripts/gate-check.py`
-- Adopt: `scripts/adopt.sh --profile shift-left --platform gitlab --target /path`
+- Adopt: `scripts/adopt.sh --profile shift-left|ai-ml --platform gitlab --target /path`
 - Profiles: `templates/profiles/`
 - References: `docs/references/` (DAF, extracts, Secure SDLC)
+- AI/ML: `examples/sample-ml-app/`, profile `ai-ml`
 - Example app: `examples/sample-app/`
 
 ## Cursor rules

@@ -1,0 +1,3 @@
+name,email,notes
+Alice,alice@example.com,synthetic row
+Bob,123-45-6789,ssn-like pattern for ML1 demo

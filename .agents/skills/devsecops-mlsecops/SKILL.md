@@ -8,42 +8,45 @@ description: >-
 
 # MLSecOps (optional)
 
-Sources: `DAF_MLSO_public_RU.md`, xlsx sheet `Практики+MLSecOps`
+Sources: `docs/references/daf/DAF_MLSO_public_RU.md`, `docs/references/extracts/daf/Практики_MLSecOps.md`
 
 Repo: `docs/10-mlsecops-appendix.md`
 
-**Not in base P0–F3 template.** Enable for ML/AI repos only.
+**Profile `ai-ml`** — opt-in; not in base P0–F3.
 
-## Domains
+## Phase docs
 
-| Domain | Examples |
-|--------|----------|
-| Data protection | T-MLDATA-DT — training/RAG data |
-| Model protection | adversarial, poisoning |
-| AI runtime | inference guardrails |
-| Artifacts | T-ADI-ART-ML-*, MLflow cards |
+| Phase | Doc | Gate |
+|-------|-----|------|
+| ML1 | `docs/phases/ML1-data-scan.md` | PII **block** |
+| ML2 | `docs/phases/ML2-ml-bom.md` | warn |
+| ML3 | `docs/phases/ML3-model-scan.md` | manual warn |
 
-## CI/CD gate practices
+## CI jobs
+
+| Job | Control |
+|-----|---------|
+| `ml-data-scan.yml` | `ml_data` |
+| `ml-bom.yml` | `ml_bom` |
+| `ml-model-scan.yml` | `ml_model` |
+
+Scanner: `scripts/ai-ml-scan.py` (Presidio optional upgrade)
+
+## Gate practices (DAF MLSO)
 
 | ID | Gate |
 |----|------|
 | T-MLDATA-DT-4-1 | Block build on PII in data |
-| T-MLDATA-DT-4-2 | Block on poisoned data |
-| T-MLDATA-DT-4-3 | Block on adversarial data attacks |
+| T-MLDATA-DT-4-2 | Block on poisoned data (future) |
+| T-MLDATA-DT-4-3 | Block on adversarial data (future) |
 | T-ADI-ART-ML-3-3 | ML-BOM artifact required |
 
-## Tools (DAF MLSO)
+## Adopt
 
-- Presidio, ARX — PII detection
-- Alibi Detect, ART — poisoning / adversarial
-- DVC, MLflow — versioning
+```bash
+./scripts/adopt.sh --profile ai-ml --platform gitlab --target .
+```
 
-## Suggested jobs (after B-phase)
-
-1. `ml-data-scan` — PII/poisoning on datasets in MR
-2. `ml-model-scan` — adversarial robustness in preprod
-3. Artifact `ml-bom.json` alongside `sbom.cdx.json`
-
-Create `docs/phases/ML1-data-scan.md` when adopting.
+Demo: `examples/sample-ml-app/`
 
 Details: [reference.md](reference.md)

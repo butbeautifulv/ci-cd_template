@@ -6,7 +6,7 @@ usage() {
   cat <<'EOF'
 Usage: adopt.sh --profile PROFILE --platform PLATFORM --target DIR [--dry-run]
 
-Profiles: minimal | shift-left | supply-chain | full
+Profiles: minimal | shift-left | supply-chain | full | ai-ml
 Platforms: gitlab | github
 
 Examples:
@@ -52,6 +52,7 @@ echo "=== DevSecOps adopt: profile=$PROFILE platform=$PLATFORM ==="
 # Policy always
 copy "$ROOT/config/security-gate-policy.yaml" "$TARGET/config/security-gate-policy.yaml"
 copy "$ROOT/scripts/gate-check.py" "$TARGET/scripts/gate-check.py"
+copy "$ROOT/scripts/ai-ml-scan.py" "$TARGET/scripts/ai-ml-scan.py"
 chmod +x "$TARGET/scripts/gate-check.py" 2>/dev/null || true
 
 if [[ "$PLATFORM" == "gitlab" ]]; then
@@ -80,6 +81,7 @@ case "$PROFILE" in
   shift-left) PHASES="A2 B1-B6" ;;
   supply-chain) PHASES="A2 B1-B6 C1-C4" ;;
   full)       PHASES="A2 B1-B6 C1-C4 D1-D3 F1-F3" ;;
+  ai-ml)      PHASES="A2 B1-B6 AI1 AI2 ML1 ML2 ML3(optional)" ;;
   *) echo "Unknown profile: $PROFILE"; exit 1 ;;
 esac
 
@@ -91,6 +93,7 @@ cat <<EOF
 [ ] Set REGISTRY / ghcr.io secrets
 [ ] Phases included: $PHASES
 [ ] Gates: SAST/SCA/IaC block C/H; secrets/dockerfile/linters warn (shift-left)
+[ ] ai-ml profile: PII block (ml_data); AI scans warn
 [ ] Run: python3 scripts/gate-check.py --help
 [ ] Validate: bash scripts/validate-yaml.sh && python3 scripts/validate-policy.py
 [ ] See docs/adoption-checklist.md

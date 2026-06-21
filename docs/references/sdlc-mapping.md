@@ -39,6 +39,13 @@
 | Misuse/Abuse cases | [P1-threat-model.md](../phases/P1-threat-model.md) | doc-only |
 | Performance / Chaos | — | gap |
 | PKI / IDS | runbooks | gap |
+| **Skill scan** | Code | MR | Agent skills | Cisco | — | `jobs/skill-scanner.*` (AI1) | ai-ml opt-in |
+| **MCP scan** | Code | MR | MCP configs | Cisco | — | `jobs/mcp-scan.*` (AI1) | ai-ml opt-in |
+| **ML data PII** | Code, Build | MR | datasets | `T-MLDATA-DT-4-1` | — | `jobs/ml-data-scan.*` (ML1) | ai-ml block |
+| **ML-BOM** | Build | main | models/data | `T-ADI-ART-ML-3-3` | — | `jobs/ml-bom.*` (ML2) | ai-ml warn |
+| **AI BOM** | Build | main | AI components | Cisco aibom | — | `jobs/aibom.*` (AI2) | ai-ml warn |
+| **Pickle scan** | Build | MR | `.pkl` artifacts | Cisco | — | `jobs/pickle-scan.*` (AI2) | ai-ml warn |
+| **RAG / guardrails** | Operate | Runtime | RAG index | Cisco | — | [ai-runtime-guardrails.md](../runbooks/ai-runtime-guardrails.md) | doc-only |
 
 ## Out of scope (documented only)
 

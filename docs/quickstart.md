@@ -1,6 +1,6 @@
 # Quickstart
 
-v1.2: GitLab-first gate hardening; три SDLC-модели — [references/sdlc-mapping.md](references/sdlc-mapping.md).
+v1.3: optional **`ai-ml`** profile (AI + MLSecOps). v1.2: GitLab-first gate hardening; три SDLC-модели — [references/sdlc-mapping.md](references/sdlc-mapping.md).
 
 ## 1. Greenfield (new repo)
 
@@ -20,11 +20,14 @@ Enable branch protection: [platforms/gitlab.md](platforms/gitlab.md) or [platfor
 | 2 | `shift-left` | MR security gates (default) |
 | 3 | `supply-chain` | SBOM + image scan on main |
 | 4 | `full` | DAST, preprod, nightly SAST |
+| 5 | **`ai-ml`** | AI agents + ML datasets/models (opt-in) |
 
 ```bash
 ./scripts/adopt.sh --profile shift-left --platform gitlab --target ~/myapp
-./scripts/adopt.sh --profile supply-chain --platform gitlab --target ~/myapp --dry-run
+./scripts/adopt.sh --profile ai-ml --platform gitlab --target ~/myapp --dry-run
 ```
+
+Demo ML/AI scanners: [examples/sample-ml-app/](examples/sample-ml-app/).
 
 ## 3. GitLab migrate (existing pipeline)
 

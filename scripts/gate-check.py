@@ -90,14 +90,32 @@ def parse_zap_baseline(path: Path) -> list[str]:
     return levels
 
 
-def check_sbom_artifact(path: Path, policy: dict) -> tuple[bool, str]:
+def check_artifact(path: Path, policy: dict, label: str) -> tuple[bool, str]:
     mode = policy.get("mode", "warn")
     if not path.exists() or path.stat().st_size == 0:
-        msg = f"missing or empty SBOM: {path}"
+        msg = f"missing or empty {label}: {path}"
         if mode == "block":
             return False, msg
-        return True, f"warn — {msg}"
-    return True, f"SBOM present ({path.stat().st_size} bytes)"
+        if policy.get("required_on_main") and mode == "warn":
+            return True, f"warn — {msg}"
+        return True, f"warn — {msg}" if mode == "warn" else msg
+    return True, f"{label} present ({path.stat().st_size} bytes)"
+
+
+def check_ml_data(path: Path, policy: dict) -> tuple[bool, str]:
+    if not path.exists():
+        return True, "no ml_data report (clean or no datasets)"
+    levels = parse_report(path)
+    # PII findings emitted as error/high — block when mode=block
+    if policy.get("block_pii"):
+        high = [l for l in levels if l in ("high", "critical", "error")]
+        if high and policy.get("mode") == "block":
+            return False, f"PII or blocking ml_data findings: {len(high)}"
+    return evaluate(levels, policy)
+
+
+def check_sbom_artifact(path: Path, policy: dict) -> tuple[bool, str]:
+    return check_artifact(path, policy, "SBOM")
 
 
 def check_sec_func_tests(path: Path, policy: dict) -> tuple[bool, str]:
@@ -115,6 +133,9 @@ def parse_report(path: Path) -> list[str]:
     if not text:
         return []
     data = json.loads(text)
+    levels = [normalize_level(r.get("level", "note")) for r in data.get("runs", [{}])[0].get("results", [])]
+    if levels:
+        return levels
     if "runs" in data:
         return parse_sarif(path)
     if "vulnerabilities" in data or "secrets" in data:
@@ -162,6 +183,10 @@ def main() -> None:
 
     if args.control == "sbom":
         ok, msg = check_sbom_artifact(args.report, policy)
+    elif args.control in ("ml_bom", "aibom"):
+        ok, msg = check_artifact(args.report, policy, args.control)
+    elif args.control == "ml_data":
+        ok, msg = check_ml_data(args.report, policy)
     elif args.control == "dast":
         levels = parse_zap_baseline(args.report) if args.report.exists() else []
         ok, msg = evaluate(levels, policy)

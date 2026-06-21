@@ -33,6 +33,12 @@
 | **Chaos / Resilience** | Operate | Prod | Fault injection | DSOMM | — | [F4-resilience.md](phases/F4-resilience.md) | gap |
 | **PKI** | Deploy | Cluster | Certs, rotation | `T-PROD-NETWORK` | `orchr` | [runbooks/pki-k8s.md](runbooks/pki-k8s.md) | gap |
 | **IDS** | Deploy, Operate | Network | Intrusion detect | `T-PROD-EVENTS` | `gen` | Falco/SIEM partial | partial |
+| **Skill scan** | Code | MR | Agent skills | Cisco AI | — | `jobs/skill-scanner.*` | AI1 optional |
+| **MCP scan** | Code | MR | MCP configs | Cisco AI | — | `jobs/mcp-scan.*` | AI1 optional |
+| **ML data PII** | Code | MR | datasets | `T-MLDATA-DT-4-1` | — | `jobs/ml-data-scan.*` | ML1 block |
+| **ML-BOM** | Build | main | models/data | `T-ADI-ART-ML-3-3` | — | `jobs/ml-bom.*` | ML2 optional |
+| **AI BOM** | Build | main | AI stack | Cisco | — | `jobs/aibom.*` | AI2 optional |
+| **Pickle scan** | Build | MR | pickle files | Cisco | — | `jobs/pickle-scan.*` | AI2 optional |
 
 ## Уровни внедрения
 
