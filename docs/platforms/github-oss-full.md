@@ -23,13 +23,13 @@ Manual: `dast-oss.yml` (workflow_dispatch), `nightly-sast-oss.yml` (schedule).
 
 | Job | Tool | Workflow |
 |-----|------|----------|
-| `secrets` | Gitleaks docker | `jobs/oss/gitleaks.yml` |
-| `sast` | Semgrep docker | `jobs/oss/semgrep-sast.yml` |
-| `osa` | Trivy docker (`aquasec/trivy`) | `jobs/oss/trivy-osa.yml` |
-| `iac` | Checkov pip pin | `jobs/oss/checkov-iac.yml` |
-| `dockerfile` | Hadolint docker | `jobs/oss/dockerfile-lint.yml` |
-| `linters` | Ruff pip pin | `jobs/oss/linter-security.yml` |
-| `forbidden` | find + gate | `jobs/oss/forbidden-files.yml` |
+| `secrets` | Gitleaks docker | inline in `security-gates-oss.yml` |
+| `sast` | Semgrep docker | inline in `security-gates-oss.yml` |
+| `osa` | Trivy docker (`aquasec/trivy`) | inline in `security-gates-oss.yml` |
+| `iac` | Checkov pip pin | inline in `security-gates-oss.yml` |
+| `dockerfile` | Hadolint docker | inline in `security-gates-oss.yml` |
+| `linters` | Ruff pip pin (Python projects) | inline in `security-gates-oss.yml` |
+| `forbidden` | find + gate | inline in `security-gates-oss.yml` |
 | `build` | docker build-push | `oss/build-push.yml` |
 | `sbom` | Syft docker | `jobs/sbom-oss.yml` |
 | `sca-image` | Trivy image | `oss/sca-image.yml` |
@@ -37,8 +37,10 @@ Manual: `dast-oss.yml` (workflow_dispatch), `nightly-sast-oss.yml` (schedule).
 | `conftest` | OPA Conftest docker | `jobs/oss/conftest-admission.yml` |
 | `sbom-upload` | Dependency-Track | `jobs/oss/sbom-upload.yml` (optional) |
 
-Orchestrator: `security-gates-oss.yml`  
-Optional: `dast-oss.yml` (workflow_dispatch), `nightly-sast-oss.yml` (schedule)
+Orchestrator: `security-gates-oss.yml` (**inline jobs** — GitHub rejects reusable workflows under `workflows/jobs/`).  
+Reference copies for copy-paste: `jobs/oss/*.yml`.  
+Node/TypeScript stack: profile [`oss-full-node`](github-oss-full-node.md).  
+Case study: [fstec-adaptation-case-study.md](../references/supplements/fstec-adaptation-case-study.md).
 
 ## Required permissions
 

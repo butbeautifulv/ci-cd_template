@@ -11,7 +11,7 @@
 ## 1. Подготовка
 
 - [ ] Оценка зрелости: [05-maturity-roadmap.md](05-maturity-roadmap.md)
-- [ ] Выбор профиля: `minimal` | `shift-left` | `supply-chain` | `full`
+- [ ] Выбор профиля: `minimal` | `shift-left` | `supply-chain` | `full` | `oss-full` | `oss-full-node` (Node/TS)
 - [ ] Назначен SecChamp на команду
 
 ## 2. Копирование (автоматически)
@@ -48,6 +48,8 @@ GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`.
 | Forbidden files | warn | no |
 
 Policy: [config/security-gate-policy.yaml](../config/security-gate-policy.yaml)
+
+**Day-1 adoption (noisy SAST/secrets/dockerfile):** copy [config/security-gate-policy-adopt.yaml](../config/security-gate-policy-adopt.yaml) → `security-gate-policy.yaml`, then tighten `sast.mode` to `block` after Semgrep triage. See [fstec-adaptation-case-study.md](references/supplements/fstec-adaptation-case-study.md).
 
 ## 6. По фазам
 
@@ -112,10 +114,31 @@ Performance, Chaos ([F4-resilience.md](phases/F4-resilience.md)), PKI ([runbooks
 
 - [ ] `./scripts/adopt.sh --profile oss-full --platform github --target .`
 - [ ] GHCR enabled (packages: write permission)
+- [ ] `security-gates-oss.yml` uses **inline jobs** (GitHub rejects reusable workflows under `workflows/jobs/`)
+- [ ] `gate-and-export` receives DefectDojo via **inputs** (composite actions cannot use `vars`/`secrets` directly)
 - [ ] `bash scripts/validate-github-oss.sh`
 - [ ] Doc: [platforms/github-oss-full.md](platforms/github-oss-full.md)
 
-## 14. Документы организации
+## 14. Node/TypeScript OSS (profile `oss-full-node`)
+
+- [ ] `./scripts/adopt.sh --profile oss-full-node --platform github --target .`
+- [ ] Validate: npm scripts `typecheck`, `lint`, `test` / `test:coverage`
+- [ ] Optional Compose DAST: [dast-compose-oss.yml](../templates/github/workflows/dast-compose-oss.yml)
+- [ ] Sec-func: `tests/security/` (pytest) **or** Vitest `@security` / `npm run test:security`
+- [ ] Doc: [platforms/github-oss-full-node.md](platforms/github-oss-full-node.md)
+- [ ] Case study: [fstec-adaptation-case-study.md](references/supplements/fstec-adaptation-case-study.md)
+
+## 15. GitLab enterprise (common-templates / Kaniko+Helm)
+
+- [ ] Profile `oss-full-enterprise` or map vars from [gitlab-enterprise-deploy.md](references/supplements/gitlab-enterprise-deploy.md)
+- [ ] Stages: `security` → `static-security-upload` → `build` → `image` → `supply-chain` → `image-security-upload` → `deploy` → `post-deploy`
+- [ ] ASPM upload waves: `DEFECTDOJO_URL` + `DEFECTDOJO_API_TOKEN` (both required)
+- [ ] DAST opt-in: set `DAST_WEBSITE` or non-placeholder `PREPROD_URL`
+- [ ] Kill-switch: `SAST_DISABLED=true` disables security + ASPM uploads
+- [ ] Day-1 warn policy: [security-gate-policy-adopt.yaml](../config/security-gate-policy-adopt.yaml)
+- [ ] Case study: [common-templates-adaptation-case-study.md](references/supplements/common-templates-adaptation-case-study.md)
+
+## 16. Документы организации
 
 - [ ] [07-governance-and-docs.md](07-governance-and-docs.md) — регламенты DSO
 

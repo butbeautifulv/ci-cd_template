@@ -1,0 +1,82 @@
+# GitHub profile: oss-full-node — Node/TypeScript stack (Next.js, npm, Vitest)
+# No Ruff/pytest validate, no Helm deploy by default — see dast-compose-oss.yml for Compose DAST
+
+name: CI OSS Full Node
+
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+    branches: [main, master]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  security-events: write
+  pull-requests: read
+  packages: write
+  id-token: write
+
+env:
+  REGISTRY: ghcr.io/${{ github.repository }}
+  CI_REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
+  REGISTRY_BACKEND: gitlab
+  SECURITY_POLICY: config/security-gate-policy.yaml
+  OSS_SEMGREP_IMAGE: returntocorp/semgrep:1.117.0
+  OSS_SYFT_VERSION: v1.20.0
+  OSS_TRIVY_IMAGE: aquasec/trivy:0.63.0
+  OSS_GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.22.1
+  OSS_HADOLINT_IMAGE: hadolint/hadolint:v2.12.0-alpine
+  OSS_CHECKOV_VERSION: "3.2.449"
+  NODE_VERSION: "20"
+
+jobs:
+  validate:
+    uses: ./.github/workflows/base-validate-node.yml
+    with:
+      node_version: ${{ env.NODE_VERSION }}
+
+  security-gates:
+    needs: [validate]
+    uses: ./.github/workflows/security-gates-oss.yml
+    secrets: inherit
+    permissions:
+      contents: read
+      security-events: write
+      pull-requests: read
+
+  build:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: [security-gates]
+    uses: ./.github/workflows/oss/build-push.yml
+    permissions:
+      contents: read
+      packages: write
+
+  sbom:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: build
+    uses: ./.github/workflows/jobs/sbom-oss.yml
+
+  sca-image:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: build
+    uses: ./.github/workflows/oss/sca-image.yml
+    with:
+      image: ${{ needs.build.outputs.image }}
+
+  sign:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: [build, sca-image]
+    uses: ./.github/workflows/jobs/sign-oss.yml
+    with:
+      image: ${{ needs.build.outputs.image }}
+    secrets: inherit
+
+  sec-func-tests:
+    if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
+    needs: [build]
+    uses: ./.github/workflows/jobs/sec-func-tests.yml
+
+# Manual Compose DAST: templates/github/workflows/dast-compose-oss.yml
+# Optional CodeQL / dependency-review — add separate workflows as needed

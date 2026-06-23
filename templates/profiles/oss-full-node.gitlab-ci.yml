@@ -1,5 +1,5 @@
-# Profile: oss-full — 100% OSS scanners + Helm deploy (GitLab CE compatible)
-# No GitLab Security/*.gitlab-ci.yml templates
+# Profile: oss-full-node — Node/TypeScript stack (npm, Vitest) + OSS security gates
+# No Ruff/pytest validate, no Helm deploy by default
 
 stages:
   - validate
@@ -8,18 +8,13 @@ stages:
   - static-security-upload
   - build
   - image-security-upload
-  - deploy
   - post-deploy
 
 variables:
   REGISTRY: "${CI_REGISTRY_IMAGE}"
   SECURITY_POLICY: "config/security-gate-policy.yaml"
-  ENABLE_REAL_LINTERS: "true"
-  HELM_CHART_PATH: "chart"
-  HELM_RELEASE: "sample-app"
-  NAMESPACE_PREPROD: "preprod"
-  NAMESPACE_PROD: "prod"
-  PREPROD_URL: "https://preprod.example.com"
+  PREPROD_URL: "http://localhost:3000"
+  DAST_COMPOSE_ENABLED: "true"
 
 include:
   - local: '/templates/gitlab/jobs/_security.common.yml'
@@ -27,7 +22,7 @@ include:
   - local: '/templates/gitlab/jobs/oss/_docker.yml'
   - local: '/templates/gitlab/jobs/registry/variables.yml'
   - local: '/templates/gitlab/jobs/registry/login.yml'
-  - local: '/templates/gitlab/jobs/oss/_base-validate.yml'
+  - local: '/templates/gitlab/jobs/oss/validate-node.yml'
   - local: '/templates/gitlab/jobs/oss/build-push.yml'
   - local: '/templates/gitlab/jobs/oss/gitleaks.yml'
   - local: '/templates/gitlab/jobs/forbidden-files.yml'
@@ -35,19 +30,10 @@ include:
   - local: '/templates/gitlab/jobs/oss/trivy-osa.yml'
   - local: '/templates/gitlab/jobs/oss/checkov-iac.yml'
   - local: '/templates/gitlab/jobs/dockerfile-lint.yml'
-  - local: '/templates/gitlab/jobs/linter-security.yml'
   - local: '/templates/gitlab/jobs/aspm/upload-static.yml'
   - local: '/templates/gitlab/jobs/sbom.yml'
   - local: '/templates/gitlab/jobs/oss/trivy-sca.yml'
   - local: '/templates/gitlab/jobs/aspm/upload-image.yml'
-  - local: '/templates/gitlab/jobs/oss/helm-deploy.yml'
-  - local: '/templates/gitlab/jobs/dast.yml'
   - local: '/templates/gitlab/jobs/dast-compose.yml'
-  - local: '/templates/gitlab/jobs/api-fuzz-schemathesis.yml'
-  - local: '/templates/gitlab/jobs/binary-fuzz.yml'
   - local: '/templates/gitlab/jobs/sec-func-tests.yml'
-  - local: '/templates/gitlab/jobs/iast-preprod.yml'
   - local: '/templates/gitlab/jobs/sign.yml'
-  - local: '/templates/gitlab/jobs/conftest-admission.yml'
-  - local: '/templates/gitlab/jobs/nightly-full-sast.yml'
-  - local: '/templates/gitlab/jobs/oss/sbom-upload.yml'

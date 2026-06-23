@@ -3,12 +3,9 @@
 trivy-sca:
   stage: build
   extends:
-    - .aspm_export
+    - .security_job_defaults
     - .registry_auth_env
     - .trivy_job
-  variables:
-    ASPM_CONTROL: sca
-    ASPM_REPORT: sca.sarif
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:

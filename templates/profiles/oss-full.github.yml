@@ -47,6 +47,7 @@ jobs:
   security-gates:
     needs: [validate]
     uses: ./.github/workflows/security-gates-oss.yml
+    secrets: inherit
     permissions:
       contents: read
       security-events: write

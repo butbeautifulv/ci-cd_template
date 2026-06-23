@@ -6,7 +6,7 @@ usage() {
   cat <<'EOF'
 Usage: adopt.sh --profile PROFILE --platform PLATFORM --target DIR [--dry-run]
 
-Profiles: minimal | shift-left | supply-chain | full | ai-ml | oss-full
+Profiles: minimal | shift-left | supply-chain | full | ai-ml | oss-full | oss-full-node | oss-full-enterprise
 Platforms: gitlab | github
 
 Examples:
@@ -58,16 +58,24 @@ if [[ -f "$ROOT/config/github-oss-env.yml" ]]; then
   copy "$ROOT/config/github-oss-env.yml" "$TARGET/config/github-oss-env.yml"
 fi
 copy "$ROOT/scripts/gate-check.py" "$TARGET/scripts/gate-check.py"
+copy "$ROOT/scripts/normalize-sarif.py" "$TARGET/scripts/normalize-sarif.py"
 copy "$ROOT/scripts/aspm-export.py" "$TARGET/scripts/aspm-export.py"
 copy "$ROOT/scripts/ai-ml-scan.py" "$TARGET/scripts/ai-ml-scan.py"
 copy "$ROOT/scripts/registry-login.sh" "$TARGET/scripts/registry-login.sh"
 copy "$ROOT/scripts/registry-auth-env.sh" "$TARGET/scripts/registry-auth-env.sh"
 copy "$ROOT/scripts/registry-resolve-env.sh" "$TARGET/scripts/registry-resolve-env.sh"
 chmod +x "$TARGET/scripts/gate-check.py" 2>/dev/null || true
+chmod +x "$TARGET/scripts/normalize-sarif.py" 2>/dev/null || true
 chmod +x "$TARGET/scripts/aspm-export.py" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-login.sh" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-auth-env.sh" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-resolve-env.sh" 2>/dev/null || true
+
+if [[ "$PROFILE" == "oss-full" || "$PROFILE" == "oss-full-node" ]]; then
+  if [[ -f "$ROOT/config/security-gate-policy-adopt.yaml" ]]; then
+    copy "$ROOT/config/security-gate-policy-adopt.yaml" "$TARGET/config/security-gate-policy-adopt.yaml"
+  fi
+fi
 
 if [[ "$PROFILE" == "oss-full" ]]; then
   copy "$ROOT/scripts/run-binary-fuzz.sh" "$TARGET/scripts/run-binary-fuzz.sh"
@@ -116,6 +124,13 @@ elif [[ "$PLATFORM" == "github" ]]; then
       echo "Activated oss-full as .github/workflows/ci.yml"
     fi
   fi
+  if [[ "$PROFILE" == "oss-full-node" ]]; then
+    copy "$ROOT/templates/github/workflows/dast-compose-oss.yml" "$TARGET/.github/workflows/dast-compose-oss.yml"
+    if [[ $DRY_RUN -eq 0 ]]; then
+      cp "$TARGET/.github/workflows/ci-profile.yml" "$TARGET/.github/workflows/ci.yml"
+      echo "Activated oss-full-node as .github/workflows/ci.yml"
+    fi
+  fi
 else
   echo "Unknown platform: $PLATFORM"; exit 1
 fi
@@ -127,6 +142,8 @@ case "$PROFILE" in
   full)       PHASES="A2 B1-B6 C1-C4 D1-D3 F1-F3" ;;
   ai-ml)      PHASES="A2 B1-B6 AI1 AI2 ML1 ML2 ML3(optional)" ;;
   oss-full)   PHASES="A2 B1-B6 C1-C4 D1 Helm deploy F3 (100% OSS scanners)" ;;
+  oss-full-node) PHASES="A2 B1-B6 (Node validate) C1-C2 optional D1 compose-DAST (100% OSS)" ;;
+  oss-full-enterprise) PHASES="A2 B1-B6 C1-C2 enterprise stages + contour Helm (common-templates)" ;;
   *) echo "Unknown profile: $PROFILE"; exit 1 ;;
 esac
 

@@ -18,6 +18,9 @@ jobs:
           FOUND=0
           PATTERNS='\.env$|\.pem$|\.key$|id_rsa|\.p12$|\.pfx$'
           while IFS= read -r f; do
+            case "$f" in
+              */.env.example|*/.env.sample) continue ;;
+            esac
             echo "WARN: suspicious file $f"
             FOUND=1
           done < <(find . -type f -regextype posix-extended -regex ".*(${PATTERNS})" \
@@ -36,3 +39,6 @@ jobs:
           control: linters
           report: forbidden-files.sarif
           category: forbidden-files
+          tool_name: forbidden-files
+          defectdojo_url: ${{ vars.DEFECTDOJO_URL }}
+          defectdojo_token: ${{ secrets.DEFECTDOJO_API_TOKEN }}

@@ -4,16 +4,45 @@
 
 ## Стадии
 
-| Stage | GitLab | GitHub | Триггер |
-|-------|--------|--------|---------|
-| validate | `validate` | `validate` job group | MR, push main |
-| test | `test` | `test` | MR, push main |
-| security | `security` | reusable `security-gates` | MR, push main |
-| build | `build` | `build` | push main, tags |
-| deploy-preprod | `deploy` | `deploy-preprod` | main, manual |
-| deploy-prod | `deploy` | `deploy-prod` | tag, manual |
+| Stage | GitLab (`oss-full`) | GitLab enterprise (`oss-full-enterprise`) | GitHub | Триггер |
+|-------|---------------------|-------------------------------------------|--------|---------|
+| validate | `validate` | `validate` | `validate` job group | MR, push main |
+| test | `test` | `test` | `test` | MR, push main |
+| security | `security` (static B1–B6) | `security` | `security-gates` | MR, push main |
+| ASPM static | `static-security-upload` | `static-security-upload` | inline `gate-and-export` | after security |
+| build | `build` (image + SBOM + SCA) | `build` (artifact) | `build` | push main |
+| image | — | `image` (docker push) | — | push main |
+| supply-chain | — | `supply-chain` (SBOM + image SCA) | sbom + sca jobs | push main |
+| ASPM image | `image-security-upload` | `image-security-upload` | inline export | after build/supply-chain |
+| deploy | `deploy` | `deploy` | `deploy-preprod` | main, manual |
+| post-deploy | `post-deploy` (DAST/IAST) | `post-deploy` | manual workflows | after deploy |
 
 Шаблоны: `templates/gitlab/`, `templates/github/workflows/`.
+
+### Enterprise stage model (common-templates)
+
+Совместимость с библиотекой `common-templates` (Kaniko + Helm): static scans **до** build; SBOM/SCA **после** image; DAST **после** deploy. Профиль: `oss-full-enterprise.gitlab-ci.yml`.
+
+```mermaid
+flowchart LR
+  security[security] --> aspStatic[static-security-upload]
+  aspStatic --> build[build]
+  build --> image[image]
+  image --> supply[supply-chain]
+  supply --> aspImg[image-security-upload]
+  aspImg --> deploy[deploy]
+  deploy --> postDeploy[post-deploy]
+```
+
+### Deploy-safe security modes
+
+| Mode | Policy | Security jobs | Deploy impact |
+|------|--------|---------------|---------------|
+| **Enterprise warn-only** | `security-gate-policy-adopt.yaml` | `allow_failure: true` | Deploy never blocked by scan jobs |
+| **Gate mode** | `security-gate-policy.yaml` | `gate-check.py` may fail job | Stage order may block deploy if job fails and `allow_failure: false` |
+| **Kill-switch** | — | `SAST_DISABLED=true` or `SECURITY_DISABLED=true` | Skips all security + ASPM upload jobs |
+
+Deploy jobs (`helm-deploy`, `helm-deploy-contour`) use `needs: trivy-sca optional: true` — image SCA does not hard-block deploy.
 
 ## Security Gates по стадиям
 
