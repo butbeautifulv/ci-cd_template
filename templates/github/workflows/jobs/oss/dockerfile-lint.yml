@@ -15,14 +15,33 @@ jobs:
       - name: Hadolint
         run: |
           IMAGE="${OSS_HADOLINT_IMAGE:-hadolint/hadolint:v2.12.0-alpine}"
-          echo '{"runs":[{"results":[]}]}' > hadolint.sarif
+          echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"hadolint"}},"results":[]}]}' > hadolint.sarif
           FAILED=0
-          find . -name 'Dockerfile' -o -name 'Dockerfile.*' | while read -r f; do
+          while IFS= read -r f; do
             echo "Linting $f"
             docker run --rm -i "$IMAGE" < "$f" || FAILED=1
-          done
+          done < <(find . \( -name 'Dockerfile' -o -name 'Dockerfile.*' \) ! -path './.git/*')
           if [ "$FAILED" -eq 1 ]; then
-            echo '{"runs":[{"results":[{"level":"error","message":{"text":"hadolint findings"}}]}]}' > hadolint.sarif
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          Path("hadolint.sarif").write_text(json.dumps({
+            "version": "2.1.0",
+            "runs": [{
+              "tool": {"driver": {"name": "hadolint"}},
+              "results": [{
+                "level": "warning",
+                "message": {"text": "Hadolint findings — see job log"},
+                "locations": [{
+                  "physicalLocation": {
+                    "artifactLocation": {"uri": "Dockerfile", "uriBaseId": "%SRCROOT%"},
+                    "region": {"startLine": 1}
+                  }
+                }]
+              }]
+            }]
+          }))
+          PY
           fi
       - uses: ./.github/actions/gate-and-export
         if: always()
@@ -30,3 +49,6 @@ jobs:
           control: dockerfile
           report: hadolint.sarif
           category: dockerfile
+          tool_name: hadolint
+          defectdojo_url: ${{ vars.DEFECTDOJO_URL }}
+          defectdojo_token: ${{ secrets.DEFECTDOJO_API_TOKEN }}

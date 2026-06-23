@@ -13,9 +13,19 @@ See also: [github-oss-full.md](github-oss-full.md) (GitHub Actions equivalent).
 
 ## Pipeline stages
 
+### Standard (`oss-full`)
+
 ```
-validate → test → security → build → deploy → post-deploy
+validate → test → security → static-security-upload → build → image-security-upload → deploy → post-deploy
 ```
+
+### Enterprise (`oss-full-enterprise`, common-templates compatible)
+
+```
+validate → test → security → static-security-upload → build → image → supply-chain → image-security-upload → deploy → post-deploy
+```
+
+Unit tests live in `validate`/`test` — not mixed into `security` (common-templates v2 naming).
 
 ## Full job list (B–F)
 
@@ -62,7 +72,10 @@ Register a runner with `privileged = true` for dind. See [GitLab Docker executor
 |----------|------|---------|
 | `CI_REGISTRY_*` | builtin | Container Registry login (default backend `gitlab`) |
 | `KUBECONFIG` | File, masked | kubectl/helm access to cluster |
-| `PREPROD_URL` | Variable | DAST / IAST / Schemathesis target |
+| `PREPROD_URL` | Variable | DAST / IAST target (alias: `DAST_WEBSITE` in common-templates) |
+| `DAST_WEBSITE` | Variable | Opt-in DAST URL — auto-runs `dast-zap` on main when set |
+| `DAST_COMPOSE_ENABLED` | Variable | Set `true` to auto-run `dast-compose` on main |
+| `SAST_DISABLED` / `SECURITY_DISABLED` | Variable | Kill-switch — skip all security + ASPM upload jobs |
 | `HELM_CHART_PATH` | Variable | Default `chart/` (copied on adopt) |
 | `HELM_RELEASE` | Variable | Default `sample-app` |
 | `NAMESPACE_PREPROD` / `NAMESPACE_PROD` | Variable | K8s namespaces |
@@ -93,7 +106,9 @@ CI/CD → Schedules → New schedule → target branch `main`, cron e.g. `0 2 * 
 
 ## DefectDojo
 
-GitLab uses `.aspm_export` after_script in each scanner job — see [runbooks/aspm-export.md](../runbooks/aspm-export.md).
+GitLab uses **ASPM upload waves** (`static-security-upload`, `image-security-upload`) with `needs: optional: true` — see [`aspm/upload-static.yml`](../../templates/gitlab/jobs/aspm/upload-static.yml). Upload jobs skip when `DEFECTDOJO_URL` / `DEFECTDOJO_API_TOKEN` unset or artifact missing.
+
+Enterprise profile: [`oss-full-enterprise.gitlab-ci.yml`](../../templates/profiles/oss-full-enterprise.gitlab-ci.yml). Case study: [common-templates-adaptation-case-study.md](../references/supplements/common-templates-adaptation-case-study.md).
 
 ## Validation
 

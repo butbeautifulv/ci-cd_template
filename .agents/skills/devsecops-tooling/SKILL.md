@@ -84,9 +84,21 @@ More names: supplement §RASP, §API Security, §DAST (Nuclei, StackHawk, …).
 | `supply-chain` | + SBOM/sign | — |
 | `full` | GitLab Security / CodeQL | DAST, IAST (ZAP full + optional commercial), **no RASP CI** |
 | **`oss-full`** | 100% OSS docker/pip pins | B–F incl. IAST ZAP full, Schemathesis, binary fuzz, conftest, Helm |
+| **`oss-full-node`** | OSS scanners + npm/Vitest validate | B–C, Compose DAST; no Helm/Ruff by default |
+| **`oss-full-enterprise`** | OSS + upload waves + contour Helm | common-templates stages; Kaniko+Helm |
 | `ai-ml` | + skill/MCP/ML jobs | optional |
 
-Adopt: `scripts/adopt.sh --profile oss-full|full --platform gitlab|github`
+Adopt: `scripts/adopt.sh --profile oss-full|oss-full-node|oss-full-enterprise|full --platform gitlab|github`
+
+### GitLab enterprise (common-templates)
+
+- ASPM **upload waves** (`static-security-upload`, `image-security-upload`) — not inline `after_script` per scan
+- `SAST_DISABLED` / `SECURITY_DISABLED` kill-switch — [`_security.common.yml`](../../templates/gitlab/jobs/_security.common.yml)
+- DAST opt-in via `DAST_WEBSITE` or `PREPROD_URL` — case study: [common-templates-adaptation-case-study.md](../../docs/references/supplements/common-templates-adaptation-case-study.md)
+
+### GitHub limitation (reusable workflows)
+
+Reusable workflows (`workflow_call`) must live at **top level** `.github/workflows/*.yml`. Do **not** call `./.github/workflows/jobs/oss/*.yml` — use flat inline jobs in `security-gates-oss.yml`. Composite actions cannot reference `vars`/`secrets` in `if:`/`env:` — pass via `inputs` from the caller workflow.
 
 ---
 

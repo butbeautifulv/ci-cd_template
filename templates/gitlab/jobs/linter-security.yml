@@ -4,12 +4,10 @@ linter-security:
   stage: security
   image: python:3.11.11-slim-bookworm
   extends:
-    - .workflow_rules
-    - .aspm_export
+    - .workflow_rules_security
+    - .security_job_defaults
   variables:
     ENABLE_REAL_LINTERS: "${ENABLE_REAL_LINTERS:-false}"
-    ASPM_CONTROL: linters
-    ASPM_REPORT: linter.sarif
   script:
     - |
       if [ "$ENABLE_REAL_LINTERS" != "true" ]; then
@@ -26,4 +24,3 @@ linter-security:
     paths:
       - linter.sarif
     expire_in: 30 days
-  allow_failure: true

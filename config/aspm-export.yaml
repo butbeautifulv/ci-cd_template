@@ -32,11 +32,13 @@ controls:
     scan_type: "SARIF"
     test_title: "sca-trivy-image"
   iac:
-    scan_type: "SARIF"
+    scan_type: "Checkov Scan"
     test_title: "iac-checkov"
+    report_glob: "reports/checkov-report.json"
   dockerfile:
-    scan_type: "SARIF"
+    scan_type: "Hadolint Dockerfile check"
     test_title: "dockerfile-hadolint"
+    report_glob: "hadolint-report.json"
   linters:
     scan_type: "SARIF"
     test_title: "linters"
@@ -52,3 +54,6 @@ controls:
   binary_fuzz:
     scan_type: "JUnit Test"
     test_title: "binary-fuzz"
+  sbom:
+    scan_type: "CycloneDX Scan"
+    test_title: "sbom-syft"

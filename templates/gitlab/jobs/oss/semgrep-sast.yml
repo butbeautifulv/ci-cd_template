@@ -4,11 +4,8 @@ semgrep-sast:
   stage: security
   image: ${OSS_SEMGREP_IMAGE}
   extends:
-    - .workflow_rules
-    - .aspm_export
-  variables:
-    ASPM_CONTROL: sast
-    ASPM_REPORT: semgrep.sarif
+    - .workflow_rules_security
+    - .security_job_defaults
   script:
     - semgrep scan --config p/ci --sarif -o semgrep.sarif . || true
     - |

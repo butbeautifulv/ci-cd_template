@@ -15,12 +15,9 @@
 trivy-osa:
   stage: security
   extends:
-    - .workflow_rules
-    - .aspm_export
+    - .workflow_rules_security
+    - .security_job_defaults
     - .trivy_job
-  variables:
-    ASPM_CONTROL: osa
-    ASPM_REPORT: osa.sarif
   script:
     - trivy fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
     - |

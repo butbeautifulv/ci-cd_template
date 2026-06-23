@@ -36,12 +36,14 @@
 | [platforms/gitlab-oss-full](docs/platforms/gitlab-oss-full.md) | GitLab OSS full |
 | [platforms/github](docs/platforms/github.md) | Профиль GitHub Actions |
 | [platforms/github-oss-full](docs/platforms/github-oss-full.md) | GitHub OSS full |
+| [platforms/github-oss-full-node](docs/platforms/github-oss-full-node.md) | GitHub OSS full — Node/TypeScript |
 | [references/secure-sdlc-phases](docs/references/secure-sdlc-phases.md) | Secure SDLC 8 этапов |
 | [references/sdlc-mapping](docs/references/sdlc-mapping.md) | Четыре модели SDLC |
 | [references/sources](docs/references/sources.md) | Источники и атрибуция |
 | [references/daf-kirillamida](docs/references/daf-kirillamida.md) | Уровни и поддомены DAF |
 | [references/fintech-swimlane](docs/references/fintech-swimlane.md) | Swimlane финтех-PDF |
-| [references/supplements](docs/references/supplements/) | Supplements: tools, финтех 12 этапов, JCSF overview |
+| [references/supplements/fstec-adaptation-case-study](docs/references/supplements/fstec-adaptation-case-study.md) | FSTEC real-app adoption case study |
+| [references/supplements/common-templates-adaptation-case-study](docs/references/supplements/common-templates-adaptation-case-study.md) | GitLab enterprise library adaptation |
 | [references/framework-mappings](docs/references/framework-mappings.md) | SAMM/DSOMM/ГОСТ/CIS |
 
 ## Agent skills

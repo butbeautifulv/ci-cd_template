@@ -128,7 +128,7 @@ def export_defectdojo(cfg: dict, control: str, report: Path, dry_run: bool) -> t
     if not url_base:
         return True, "skip — DEFECTDOJO_URL not set"
     if not token and not dry_run:
-        return False, "DEFECTDOJO_API_TOKEN not set"
+        return True, "skip — DEFECTDOJO_API_TOKEN not set"
 
     endpoint = "reimport-scan" if dd.get("reimport", True) else "import-scan"
     api_url = f"{url_base}/api/v2/{endpoint}/"

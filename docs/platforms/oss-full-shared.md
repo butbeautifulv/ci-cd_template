@@ -29,6 +29,7 @@ All scanner **runtimes** come from **pinned container images** in [`config/oss-t
 | C4 | Sign | cosign | GHA installer pin | `sign-image` | `jobs/sign-oss.yml` |
 | C4+ | SBOM monitor | Dependency-Track | REST API | `sbom-upload` (manual) | `jobs/oss/sbom-upload.yml` |
 | D1 | DAST | OWASP ZAP | `ghcr.io/zaproxy/zaproxy` | `dast-zap` (manual) | `dast-oss.yml` |
+| D1 | DAST (Compose) | ZAP on localhost | same | `dast-compose` (manual) | `dast-compose-oss.yml` |
 | D1 | API fuzz | Schemathesis | `ghcr.io/schemathesis/schemathesis` | `api-fuzz-schemathesis` (manual) | `api-fuzz-oss.yml` |
 | QA | Binary fuzz | AFL++, Go, Jazzer | pinned docker images | `binary-fuzz` (manual) | `binary-fuzz-oss.yml` |
 | D2 | Sec func tests | pytest | python | `sec-func-tests` | `jobs/sec-func-tests.yml` |
@@ -36,7 +37,7 @@ All scanner **runtimes** come from **pinned container images** in [`config/oss-t
 | E1 | Admission | Conftest/OPA | `openpolicyagent/conftest` | `conftest-admission` | `jobs/oss/conftest-admission.yml` |
 | E2 | Deploy | Helm + kubectl | `alpine/helm` | `helm-deploy` | `oss/helm-deploy.yml` |
 | F3 | Nightly SAST | Semgrep auto | `returntocorp/semgrep` | schedule job | `nightly-sast-oss.yml` |
-| F3 | ASPM | DefectDojo | self-hosted API | `.aspm_export` | `gate-and-export` action |
+| F3 | ASPM | DefectDojo | self-hosted API | upload waves `aspm/upload-*.yml` | `gate-and-export` action |
 
 ### Explicitly OSS-only (not in CI job)
 
@@ -85,7 +86,24 @@ bash scripts/validate-github-oss.sh
 bash scripts/validate-gitlab-oss.sh
 ./scripts/adopt.sh --profile oss-full --platform gitlab --target /tmp/t --dry-run
 ./scripts/adopt.sh --profile oss-full --platform github --target /tmp/t --dry-run
+./scripts/adopt.sh --profile oss-full-node --platform github --target /tmp/t --dry-run
 ```
+
+**Node/TypeScript apps (no Ruff/pytest):** profile `oss-full-node` — [github-oss-full-node.md](github-oss-full-node.md).  
+**GitLab enterprise (Kaniko+Helm):** profile `oss-full-enterprise` — [gitlab-enterprise-deploy.md](../references/supplements/gitlab-enterprise-deploy.md).  
+**Real adoption case studies:** [fstec-adaptation-case-study.md](../references/supplements/fstec-adaptation-case-study.md), [common-templates-adaptation-case-study.md](../references/supplements/common-templates-adaptation-case-study.md).
+
+### DAST URL variables
+
+| Variable | Platform | Behavior |
+|----------|----------|----------|
+| `PREPROD_URL` | GitLab/GitHub | Default preprod target; opt-in DAST when not placeholder |
+| `DAST_WEBSITE` | GitLab (alias) | Same as common-templates — auto-runs DAST when set |
+| `DAST_COMPOSE_ENABLED` | GitLab | Auto-runs `dast-compose` on main when `true` |
+
+### Security kill-switch
+
+Set `SAST_DISABLED=true` or `SECURITY_DISABLED=true` to skip all security scan and ASPM upload jobs.
 
 ## vs profile `full`
 

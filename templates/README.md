@@ -17,6 +17,8 @@
 | `full` | all jobs | + DAST/preprod/nightly | + D*, F* | + DAST/sec-func warn |
 | **`ai-ml`** | shift-left + AI/ML jobs | + skill/MCP/ML scans | AI1–AI2, ML1–ML2 | PII **block**; AI **warn** |
 | **`oss-full`** | 100% OSS (full B–F scope) + Helm | OSS gates + GHCR + conftest/DAST/IAST/fuzz/nightly | B–F incl. F1 ZAP full | GitLab CE / GitHub; docker-only scanners |
+| **`oss-full-node`** | Node/TS validate + OSS gates | npm/Vitest + flat security-gates | B–C + Compose DAST | Next.js/React; no Ruff/Helm default |
+| **`oss-full-enterprise`** | common-templates stages | upload waves + contour Helm | B–C + DAST opt-in | Kaniko+Helm library consumers |
 
 `ENABLE_REAL_LINTERS=false` by default — except **`oss-full`** (`true`).
 

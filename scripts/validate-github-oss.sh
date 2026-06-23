@@ -13,11 +13,14 @@ report() {
 
 required=(
   templates/profiles/oss-full.github.yml
+  templates/profiles/oss-full-node.github.yml
   templates/github/workflows/base-validate.yml
+  templates/github/workflows/base-validate-node.yml
   templates/github/workflows/security-gates-oss.yml
   templates/github/workflows/oss/build-push.yml
   templates/github/workflows/oss/sca-image.yml
   templates/github/actions/gate-and-export/action.yml
+  scripts/normalize-sarif.py
   templates/github/workflows/jobs/oss/gitleaks.yml
   templates/github/workflows/jobs/oss/forbidden-files.yml
   templates/github/workflows/jobs/oss/conftest-admission.yml
@@ -29,6 +32,7 @@ required=(
   templates/github/workflows/jobs/oss/linter-security.yml
   templates/github/workflows/jobs/sbom-oss.yml
   templates/github/workflows/jobs/sign-oss.yml
+  templates/github/workflows/dast-compose-oss.yml
   config/github-oss-env.yml
 )
 
@@ -41,8 +45,29 @@ if ! grep -q 'base-validate.yml' templates/profiles/oss-full.github.yml; then
   report "oss-full.github.yml must use base-validate.yml"
 fi
 
+if ! grep -q 'base-validate-node.yml' templates/profiles/oss-full-node.github.yml; then
+  report "oss-full-node.github.yml must use base-validate-node.yml"
+fi
+
 if ! grep -q 'forbidden-files' templates/github/workflows/security-gates-oss.yml; then
   report "security-gates-oss.yml must include forbidden-files job"
+fi
+
+if grep -qE '\./\.github/workflows/jobs/' templates/github/workflows/security-gates-oss.yml; then
+  report "security-gates-oss.yml must use inline jobs (no nested ./.github/workflows/jobs/ refs)"
+fi
+
+if grep -qE '(if:.*vars\.|env:.*vars\.|if:.*secrets\.|env:.*secrets\.)' \
+  templates/github/actions/gate-and-export/action.yml 2>/dev/null; then
+  report "gate-and-export composite uses vars/secrets in if/env — pass via inputs from caller workflow"
+fi
+
+if ! grep -q 'normalize-sarif.py' templates/github/actions/gate-and-export/action.yml; then
+  report "gate-and-export must call normalize-sarif.py"
+fi
+
+if ! grep -q 'defectdojo_url' templates/github/actions/gate-and-export/action.yml; then
+  report "gate-and-export must accept defectdojo_url input"
 fi
 
 for job in "$oss_scan_dir"/gitleaks.yml "$oss_scan_dir"/semgrep-sast.yml \
@@ -68,6 +93,10 @@ if ! grep -q 'security-gates-oss.yml' templates/profiles/oss-full.github.yml; th
   report "oss-full.github.yml must use security-gates-oss.yml"
 fi
 
+if ! grep -q 'security-gates-oss.yml' templates/profiles/oss-full-node.github.yml; then
+  report "oss-full-node.github.yml must use security-gates-oss.yml"
+fi
+
 for wf in security-gates-oss.yml oss/build-push.yml oss/sca-image.yml; do
   path="templates/github/workflows/$wf"
   while read -r ref; do
@@ -76,12 +105,14 @@ for wf in security-gates-oss.yml oss/build-push.yml oss/sca-image.yml; do
   done < <(grep -oE '\./\.github/workflows/[^"]+\.yml' "$path" 2>/dev/null | sort -u || true)
 done
 
-ADOPT_TEST="/tmp/oss-adopt-test-$$"
-mkdir -p "$ADOPT_TEST"
-if ! bash "$ROOT/scripts/adopt.sh" --profile oss-full --platform github --target "$ADOPT_TEST" --dry-run >/dev/null 2>&1; then
-  report "adopt.sh --profile oss-full --platform github --dry-run failed"
-fi
-rm -rf "$ADOPT_TEST"
+for profile in oss-full oss-full-node; do
+  ADOPT_TEST="/tmp/oss-adopt-test-${profile}-$$"
+  mkdir -p "$ADOPT_TEST"
+  if ! bash "$ROOT/scripts/adopt.sh" --profile "$profile" --platform github --target "$ADOPT_TEST" --dry-run >/dev/null 2>&1; then
+    report "adopt.sh --profile $profile --platform github --dry-run failed"
+  fi
+  rm -rf "$ADOPT_TEST"
+done
 
 if [[ $fail -ne 0 ]]; then
   echo ""
