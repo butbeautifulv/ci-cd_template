@@ -6,6 +6,8 @@ description: >-
   07-governance-and-docs.md or organizational rollout.
 ---
 
-Canonical instructions: [.agents/skills/devsecops-governance/SKILL.md](../../.agents/skills/devsecops-governance/SKILL.md)
+Canonical instructions: [cxado-skills](../../../../shared/skills/devsecops/devsecops-governance/SKILL.md)
+
+Standalone: [cxado-skills on GitHub](https://github.com/butbeautifulv/cxado-skills/blob/main/devsecops/devsecops-governance/SKILL.md)
 
 Load and follow the canonical file when this skill applies.

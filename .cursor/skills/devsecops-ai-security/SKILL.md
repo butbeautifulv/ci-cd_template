@@ -5,6 +5,8 @@ description: >-
   MCP security, AI BOM, model provenance. Use for AI1/ML1 phases, not standard CI/CD.
 ---
 
-Canonical instructions: [.agents/skills/devsecops-ai-security/SKILL.md](../../.agents/skills/devsecops-ai-security/SKILL.md)
+Canonical instructions: [cxado-skills](../../../../shared/skills/devsecops/devsecops-ai-security/SKILL.md)
+
+Standalone: [cxado-skills on GitHub](https://github.com/butbeautifulv/cxado-skills/blob/main/devsecops/devsecops-ai-security/SKILL.md)
 
 Load and follow the canonical file when this skill applies.

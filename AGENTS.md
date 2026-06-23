@@ -4,7 +4,7 @@
 
 Track progress in [`.cursor/plans/devsecops-execution.plan.md`](.cursor/plans/devsecops-execution.plan.md).
 
-Scaffold (P0–F3 docs + templates) is done. v1.1: references migrated to `docs/references/`, skills in `.agents/skills/`.
+Scaffold (P0–F3 docs + templates) is done. v1.1: references migrated to `docs/references/`. **v1.2:** Cursor dev skills canonical in [cxado-skills](https://github.com/butbeautifulv/cxado-skills) (`.agents/skills/` are redirect stubs).
 
 ## Rules
 
@@ -18,24 +18,24 @@ Scaffold (P0–F3 docs + templates) is done. v1.1: references migrated to `docs/
 
 CF → G0 → V0 → H-CORE → H-PRE → H-P0…H-F3 → AI* (optional) → R → MIG (references/skills)
 
-## Skills (`.agents/skills/`)
+## Skills (canonical: [cxado-skills](https://github.com/butbeautifulv/cxado-skills))
 
-| Skill | Path |
-|-------|------|
-| devsecops-template | `.agents/skills/devsecops-template/` |
-| devsecops-phase-impl | `.agents/skills/devsecops-phase-impl/` |
-| devsecops-reference-lookup | `.agents/skills/devsecops-reference-lookup/` |
-| devsecops-secure-sdlc | `.agents/skills/devsecops-secure-sdlc/` |
-| devsecops-daf | `.agents/skills/devsecops-daf/` |
-| devsecops-gost | `.agents/skills/devsecops-gost/` |
-| devsecops-jcsf | `.agents/skills/devsecops-jcsf/` |
-| devsecops-fintech-sdlc | `.agents/skills/devsecops-fintech-sdlc/` |
-| devsecops-tooling | `.agents/skills/devsecops-tooling/` |
-| devsecops-governance | `.agents/skills/devsecops-governance/` |
-| devsecops-mlsecops | `.agents/skills/devsecops-mlsecops/` |
-| devsecops-ai-security | `.agents/skills/devsecops-ai-security/` |
+| Skill | cxado-skills path |
+|-------|-------------------|
+| devsecops-template | `devsecops/devsecops-template/` |
+| devsecops-phase-impl | `devsecops/devsecops-phase-impl/` |
+| devsecops-reference-lookup | `devsecops/devsecops-reference-lookup/` |
+| devsecops-secure-sdlc | `devsecops/devsecops-secure-sdlc/` |
+| devsecops-daf | `devsecops/devsecops-daf/` |
+| devsecops-gost | `devsecops/devsecops-gost/` |
+| devsecops-jcsf | `devsecops/devsecops-jcsf/` |
+| devsecops-fintech-sdlc | `devsecops/devsecops-fintech-sdlc/` |
+| devsecops-tooling | `devsecops/devsecops-tooling/` |
+| devsecops-governance | `devsecops/devsecops-governance/` |
+| devsecops-mlsecops | `devsecops/devsecops-mlsecops/` |
+| devsecops-ai-security | `devsecops/devsecops-ai-security/` |
 
-Cursor discovery: thin stubs in `.cursor/skills/` → canonical `.agents/skills/`.
+Cursor discovery: thin stubs in `.cursor/skills/` → `shared/skills/` in [cxado](https://github.com/butbeautifulv/cxado) meta-repo, or `make skills-install` for `~/.cursor/skills/`. Local `.agents/skills/` are redirect stubs only.
 
 ## Key paths
 

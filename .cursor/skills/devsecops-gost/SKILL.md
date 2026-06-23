@@ -5,6 +5,8 @@ description: >-
   controls. Use for compliance audits, release gates, or regulatory traceability.
 ---
 
-Canonical instructions: [.agents/skills/devsecops-gost/SKILL.md](../../.agents/skills/devsecops-gost/SKILL.md)
+Canonical instructions: [cxado-skills](../../../../shared/skills/devsecops/devsecops-gost/SKILL.md)
+
+Standalone: [cxado-skills on GitHub](https://github.com/butbeautifulv/cxado-skills/blob/main/devsecops/devsecops-gost/SKILL.md)
 
 Load and follow the canonical file when this skill applies.

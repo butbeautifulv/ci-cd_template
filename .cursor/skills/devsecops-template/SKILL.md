@@ -6,6 +6,8 @@ description: >-
   P0–F3. Routes to specialized skills and docs/.
 ---
 
-Canonical instructions: [.agents/skills/devsecops-template/SKILL.md](../../.agents/skills/devsecops-template/SKILL.md)
+Canonical instructions: [cxado-skills](../../../../shared/skills/devsecops/devsecops-template/SKILL.md)
+
+Standalone: [cxado-skills on GitHub](https://github.com/butbeautifulv/cxado-skills/blob/main/devsecops/devsecops-template/SKILL.md)
 
 Load and follow the canonical file when this skill applies.
