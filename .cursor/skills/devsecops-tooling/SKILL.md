@@ -6,6 +6,8 @@ description: >-
   or picking GitLab vs GitHub defaults.
 ---
 
-Canonical instructions: [.agents/skills/devsecops-tooling/SKILL.md](../../.agents/skills/devsecops-tooling/SKILL.md)
+Canonical instructions: [cxado-skills](../../../../shared/skills/devsecops/devsecops-tooling/SKILL.md)
+
+Standalone: [cxado-skills on GitHub](https://github.com/butbeautifulv/cxado-skills/blob/main/devsecops/devsecops-tooling/SKILL.md)
 
 Load and follow the canonical file when this skill applies.

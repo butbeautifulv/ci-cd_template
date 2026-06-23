@@ -6,6 +6,8 @@ description: >-
   01-sdlc-process.md, or aligning pipeline with fintech PDF.
 ---
 
-Canonical instructions: [.agents/skills/devsecops-fintech-sdlc/SKILL.md](../../.agents/skills/devsecops-fintech-sdlc/SKILL.md)
+Canonical instructions: [cxado-skills](../../../../shared/skills/devsecops/devsecops-fintech-sdlc/SKILL.md)
+
+Standalone: [cxado-skills on GitHub](https://github.com/butbeautifulv/cxado-skills/blob/main/devsecops/devsecops-fintech-sdlc/SKILL.md)
 
 Load and follow the canonical file when this skill applies.

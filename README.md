@@ -6,7 +6,7 @@
 
 Это reference-репозиторий: архитектура, документация, шаблоны job-файлов и политик gates. Для внедрения в свой проект используйте [`scripts/adopt.sh`](scripts/adopt.sh) и [profiles](templates/profiles/).
 
-**Cursor:** отслеживайте выполнение в [`.cursor/plans/devsecops-execution.plan.md`](.cursor/plans/devsecops-execution.plan.md). Инструкции для агентов — [AGENTS.md](AGENTS.md).
+**Cursor:** отслеживайте выполнение в [`.cursor/plans/devsecops-execution.plan.md`](.cursor/plans/devsecops-execution.plan.md). Инструкции для агентов — [AGENTS.md](AGENTS.md). Dev skills canonical в [cxado-skills](https://github.com/butbeautifulv/cxado-skills); локальные `.agents/skills/` — redirect stubs.
 
 ## Быстрый старт
 
