@@ -31,6 +31,12 @@
 
 - **В repo:** [secure-sdlc-phases.md](secure-sdlc-phases.md), [sdlc-mapping.md](sdlc-mapping.md)
 
+## Shared references (cxado meta-repo)
+
+When using [cxado](https://github.com/butbeautifulv/cxado), JCSF/DAF vendor trees are symlinked at `refs/` → `shared/references` ([cxado-references](https://github.com/butbeautifulv/cxado-references)). Run `make refs-link` from cxado root.
+
+Project-local `.external/` (fstec, chatgpt_mds, common-templates) remains gitignored and is **not** in cxado-references.
+
 ## Supplements (ChatGPT reinterpretations)
 
 - **В repo:** [supplements/](supplements/) — structured MD views of tools map, fintech 12-stage process, JCSF practices overview
