@@ -1,2 +1,4 @@
 # Optional local vendor cache (xlsx/pdf for re-extract only; not required at runtime)
 .external/*
+# Symlink to cxado-references (created by cxado `make refs-link`)
+refs/
