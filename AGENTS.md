@@ -1,4 +1,4 @@
-# Agents — DevSecOps CI/CD Template
+# Agents — Fabrica (DevSecOps CI/CD reference)
 
 ## Execution plan
 

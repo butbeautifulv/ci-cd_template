@@ -1,7 +1,7 @@
 ---
 name: devsecops-template
 description: >-
-  Master skill for the ci-cd_template DevSecOps repository. Use when working
+  Master skill for the Fabrica DevSecOps repository. Use when working
   on docs, CI jobs, security gates, K8s templates, or implementing sub-phases
   P0–F3. Routes to specialized skills and docs/.
 ---
