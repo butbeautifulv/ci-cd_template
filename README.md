@@ -1,4 +1,4 @@
-# DevSecOps CI/CD Template
+# Fabrica — DevSecOps CI/CD reference
 
 > **Start here:** `./scripts/adopt.sh --profile shift-left|oss-full|ai-ml --platform gitlab|github --target /path/to/repo` — see [docs/quickstart.md](docs/quickstart.md)
 
