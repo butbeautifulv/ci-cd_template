@@ -4,3 +4,6 @@
 refs/
 # Symlinks to cxado-skills (created by cxado `make skills-link`)
 .agents/skills/
+# Symlinks to cxado-agent-rules (created by cxado `make rules-link`)
+.agents/rules/
+.codebase-memory/
