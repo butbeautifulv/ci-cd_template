@@ -2,3 +2,5 @@
 .external/*
 # Symlink to cxado-references (created by cxado `make refs-link`)
 refs/
+# Symlinks to cxado-skills (created by cxado `make skills-link`)
+.agents/skills/
