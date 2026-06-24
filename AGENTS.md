@@ -4,7 +4,7 @@
 
 Track progress in [`.cursor/plans/devsecops-execution.plan.md`](.cursor/plans/devsecops-execution.plan.md).
 
-Scaffold (P0–F3 docs + templates) is done. v1.1: references migrated to `docs/references/`. **v1.2:** Cursor dev skills canonical in [cxado-skills](https://github.com/butbeautifulv/cxado-skills) (`.agents/skills/` are redirect stubs).
+Scaffold (P0–F3 docs + templates) is done. v1.1: references migrated to `docs/references/`. **v1.3:** Cursor dev skills via cxado `make skills-link` → `shared/skills/` (`.agents/skills/` is generated; do not commit).
 
 ## Rules
 
@@ -35,7 +35,7 @@ CF → G0 → V0 → H-CORE → H-PRE → H-P0…H-F3 → AI* (optional) → R �
 | devsecops-mlsecops | `devsecops/devsecops-mlsecops/` |
 | devsecops-ai-security | `devsecops/devsecops-ai-security/` |
 
-Cursor discovery: thin stubs in `.cursor/skills/` → `shared/skills/` in [cxado](https://github.com/butbeautifulv/cxado) meta-repo, or `make skills-install` for `~/.cursor/skills/`. Local `.agents/skills/` are redirect stubs only.
+Cursor discovery: from [cxado](https://github.com/butbeautifulv/cxado) run `make bootstrap` (or `make skills-link`) for project-local `.agents/skills/` symlinks, or `make skills-install` for `~/.cursor/skills/`.
 
 ## Key paths
 
