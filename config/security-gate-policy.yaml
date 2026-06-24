@@ -66,6 +66,10 @@ linters:
   severity_block: [critical, high]
   enable_var: ENABLE_REAL_LINTERS
 
+forbidden_files:
+  mode: warn
+  severity_block: [critical, high]
+
 sbom:
   mode: block
   required_on_main: true

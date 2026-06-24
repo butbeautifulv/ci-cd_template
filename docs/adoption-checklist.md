@@ -34,6 +34,10 @@ GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`.
 
 - [ ] `REGISTRY` / `ghcr.io` credentials
 - [ ] `ENABLE_REAL_LINTERS=true` при готовности
+- [ ] Reusable workflows: `secrets: inherit` на каждом `jobs.*.uses:` (см. [egregore-adoption-case-study.md](references/supplements/egregore-adoption-case-study.md))
+- [ ] **Не использовать** `env.*` в блоке `with:` при вызове reusable workflow — только `github.*` / литералы
+- [ ] Python **uv**: после adopt подменить `jobs/linter-security.yml` (шаблон авто-выбирает uv при `uv.lock`) или `jobs/sast-python.yml`
+- [ ] CodeQL SARIF upload: предпочитать `github/codeql-action/upload-sarif@v4` (v3 deprecated 2026)
 - [ ] Pre-commit: `templates/pre-commit/.pre-commit-config.yaml`
 - [ ] Self-validation: `bash scripts/validate-yaml.sh`, `python3 scripts/validate-policy.py`, `bash scripts/validate-pin-sync.sh`, `bash scripts/validate-oss-pins.sh`, `bash scripts/validate-registry-config.sh`
 - [ ] Registry backend: GitLab (default) или Nexus/Harbor — [runbooks/nexus-docker-registry.md](runbooks/nexus-docker-registry.md)
@@ -45,7 +49,7 @@ GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`.
 | SAST / OSA / IaC | block C/H | yes |
 | SCA (image) | block C/H on main | yes |
 | Secrets / Dockerfile / Linters | warn | no (`allow_failure`) |
-| Forbidden files | warn | no |
+| Forbidden files (GitHub) | warn | no |
 
 Policy: [config/security-gate-policy.yaml](../config/security-gate-policy.yaml)
 

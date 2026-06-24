@@ -12,7 +12,7 @@
 | Profile | GitLab | GitHub | Phases | Gate enforcement |
 |---------|--------|--------|--------|------------------|
 | `minimal` | A2 only | lint/test/build | A2 | none |
-| `shift-left` | + B1–B6 + forbidden-files | + security-gates | A2, B* | **block** SAST/SCA/IaC C/H; **warn** secrets/dockerfile/linters |
+| `shift-left` | + B1–B6 + forbidden-files | + security-gates, **security-shift-left** | A2, B* | **block** SAST/SCA/IaC C/H; **warn** secrets/dockerfile/linters/forbidden-files |
 | `supply-chain` | + C1–C4 | + sbom/scan/sign | + C* | + SBOM required on main |
 | `full` | all jobs | + DAST/preprod/nightly | + D*, F* | + DAST/sec-func warn |
 | **`ai-ml`** | shift-left + AI/ML jobs | + skill/MCP/ML scans | AI1–AI2, ML1–ML2 | PII **block**; AI **warn** |
