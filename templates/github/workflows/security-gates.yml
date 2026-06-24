@@ -2,25 +2,50 @@ name: Security Gates
 
 on:
   workflow_call:
+    inputs:
+      security_policy:
+        description: Path to gate policy YAML
+        required: false
+        type: string
+        default: config/security-gate-policy.yaml
+      enable_real_linters:
+        description: Run Ruff in linter-security job
+        required: false
+        type: string
+        default: "false"
 
 permissions:
   contents: read
   security-events: write
   pull-requests: read
 
+env:
+  SECURITY_POLICY: ${{ inputs.security_policy }}
+  ENABLE_REAL_LINTERS: ${{ inputs.enable_real_linters }}
+
 jobs:
   secrets:
     uses: ./.github/workflows/jobs/secret-scan.yml
+    secrets: inherit
   sast:
     uses: ./.github/workflows/jobs/sast.yml
+    secrets: inherit
   osa:
     uses: ./.github/workflows/jobs/osa.yml
+    secrets: inherit
   iac:
     uses: ./.github/workflows/jobs/iac-scan.yml
+    secrets: inherit
   dockerfile:
     uses: ./.github/workflows/jobs/dockerfile-lint.yml
+    secrets: inherit
   linters:
     uses: ./.github/workflows/jobs/linter-security.yml
+    secrets: inherit
+  forbidden-files:
+    uses: ./.github/workflows/jobs/forbidden-files.yml
+    secrets: inherit
   sec-func-tests:
     if: github.ref == 'refs/heads/main'
     uses: ./.github/workflows/jobs/sec-func-tests.yml
+    secrets: inherit

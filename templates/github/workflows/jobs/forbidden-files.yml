@@ -1,0 +1,56 @@
+name: Forbidden Files
+
+on:
+  workflow_call:
+
+jobs:
+  forbidden-files:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check for suspicious committed files
+        run: |
+          set -euo pipefail
+          FOUND=0
+          while IFS= read -r pattern; do
+            [ -n "$pattern" ] || continue
+            if git ls-files "$pattern" 2>/dev/null | grep -q .; then
+              echo "::warning::Forbidden pattern committed: $pattern"
+              git ls-files "$pattern"
+              FOUND=1
+            fi
+          done <<'PATTERNS'
+          *.env
+          .env.*
+          *.pem
+          *.key
+          id_rsa
+          id_rsa.*
+          *.p12
+          *.pfx
+          credentials.json
+          PATTERNS
+          echo '{"runs":[{"results":[]}]}' > forbidden-files.sarif
+          if [ "$FOUND" -eq 1 ]; then
+            python - <<'PY'
+          import json
+          from pathlib import Path
+          Path("forbidden-files.sarif").write_text(json.dumps({
+            "version": "2.1.0",
+            "runs": [{
+              "tool": {"driver": {"name": "forbidden-files"}},
+              "results": [{
+                "level": "warning",
+                "message": {"text": "Suspicious file patterns committed — see job log"},
+              }]
+            }]
+          }))
+          PY
+          fi
+      - name: Gate check
+        if: always()
+        env:
+          SECURITY_POLICY: ${{ env.SECURITY_POLICY }}
+        run: |
+          POLICY="${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+          python scripts/gate-check.py --control forbidden_files --report forbidden-files.sarif --policy "$POLICY"
