@@ -7,31 +7,41 @@
 
 lint:
   stage: validate
-  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
+  image: ${OSS_PYTHON_IMAGE:-python:3.13-slim-bookworm}
   extends: .workflow_rules
   variables:
     ENABLE_REAL_LINTERS: "${ENABLE_REAL_LINTERS:-false}"
   script:
     - |
-      if [ "$ENABLE_REAL_LINTERS" = "true" ]; then
+      if [ "$ENABLE_REAL_LINTERS" != "true" ]; then
+        echo "Placeholder lint — set ENABLE_REAL_LINTERS=true for real linters"
+        exit 0
+      fi
+      if [ -f uv.lock ]; then
+        pip install -q uv
+        uv sync
+        uv run ruff check . || true
+      else
         pip install -q "ruff==${OSS_RUFF_VERSION:-0.11.8}"
         ruff check . || true
-      else
-        echo "Placeholder lint — set ENABLE_REAL_LINTERS=true for real linters"
       fi
   allow_failure: true
 
 unit-test:
   stage: test
-  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
+  image: ${OSS_PYTHON_IMAGE:-python:3.13-slim-bookworm}
   extends: .workflow_rules
   script:
     - |
-      if [ -f requirements.txt ] && [ -d tests ]; then
+      if [ -f uv.lock ] && [ -d tests ]; then
+        pip install -q uv
+        uv sync
+        uv run pytest tests/ -q || true
+      elif [ -f requirements.txt ] && [ -d tests ]; then
         pip install -q pytest -r requirements.txt
         pytest tests/ -q || true
       else
-        echo "Placeholder unit tests — add tests/ and requirements.txt"
+        echo "Placeholder unit tests — add tests/ and requirements.txt or uv.lock"
       fi
   allow_failure: true
 

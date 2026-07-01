@@ -3,6 +3,10 @@ name: IaC Scan
 on:
   workflow_call:
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   checkov:
     runs-on: ubuntu-latest
@@ -16,10 +20,14 @@ jobs:
           output_format: sarif
           output_file_path: reports/checkov.sarif
       - name: Gate check
+        if: always()
+        env:
+          SECURITY_POLICY: ${{ env.SECURITY_POLICY }}
         run: |
           [ -f reports/checkov.sarif ] || echo '{"runs":[{"results":[]}]}' > reports/checkov.sarif
-          python scripts/gate-check.py --control iac --report reports/checkov.sarif
-      - uses: github/codeql-action/upload-sarif@v3
+          POLICY="${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+          python scripts/gate-check.py --control iac --report reports/checkov.sarif --policy "$POLICY"
+      - uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: reports/checkov.sarif

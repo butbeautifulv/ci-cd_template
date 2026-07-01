@@ -18,8 +18,8 @@ alwaysApply: false
 
 ## Gates
 
-- Upload SARIF where supported
-- Run `python scripts/gate-check.py --control <name> --report <file>` after scan
+- Upload SARIF where supported (`upload-sarif@v4`)
+- Run `python scripts/gate-check.py --control <name> --report <file> --policy "$POLICY"`
 - Read mode from `config/security-gate-policy.yaml` (`mode: warn|block`)
 - Do not use blind `continue-on-error: true` — gate script decides
 
@@ -27,6 +27,17 @@ alwaysApply: false
 
 - `REGISTRY` / `SECURITY_POLICY` in entrypoint
 - `ENABLE_REAL_LINTERS=true` for opt-in real linters (A2)
+- Never `${{ env.* }}` in reusable workflow `with:` blocks — use literals or `github.*`
+
+## Docker (docker-expert)
+
+- Scan all `Dockerfile` and `Dockerfile.*` paths in hadolint jobs
+- Emit SARIF via `normalize-sarif.py`; see [docker-production-baseline.md](../../docs/runbooks/docker-production-baseline.md)
+
+## Kubernetes (kubernetes-specialist)
+
+- Helm charts: probes, dedicated ServiceAccount, resource limits, no `:latest` default
+- See [k8s-workload-baseline.md](../../docs/runbooks/k8s-workload-baseline.md); run `make validate-helm`
 
 ## Mirror rule
 

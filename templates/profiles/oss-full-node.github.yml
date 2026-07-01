@@ -33,8 +33,9 @@ env:
 jobs:
   validate:
     uses: ./.github/workflows/base-validate-node.yml
+    secrets: inherit
     with:
-      node_version: ${{ env.NODE_VERSION }}
+      node_version: "20"
 
   security-gates:
     needs: [validate]
@@ -49,6 +50,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     needs: [security-gates]
     uses: ./.github/workflows/oss/build-push.yml
+    secrets: inherit
     permissions:
       contents: read
       packages: write
@@ -57,11 +59,13 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     needs: build
     uses: ./.github/workflows/jobs/sbom-oss.yml
+    secrets: inherit
 
   sca-image:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     needs: build
     uses: ./.github/workflows/oss/sca-image.yml
+    secrets: inherit
     with:
       image: ${{ needs.build.outputs.image }}
 
@@ -77,6 +81,7 @@ jobs:
     if: github.ref == 'refs/heads/main' || github.ref == 'refs/heads/master'
     needs: [build]
     uses: ./.github/workflows/jobs/sec-func-tests.yml
+    secrets: inherit
 
 # Manual Compose DAST: templates/github/workflows/dast-compose-oss.yml
 # Optional CodeQL / dependency-review — add separate workflows as needed

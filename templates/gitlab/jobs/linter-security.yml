@@ -2,7 +2,7 @@
 
 linter-security:
   stage: security
-  image: python:3.11.11-slim-bookworm
+  image: python:3.13-slim-bookworm
   extends:
     - .workflow_rules_security
     - .security_job_defaults
@@ -15,8 +15,14 @@ linter-security:
         echo '{"runs":[{"results":[]}]}' > linter.sarif
         exit 0
       fi
-      pip install -q "ruff==${OSS_RUFF_VERSION:-0.11.8}"
-      ruff check . --output-format sarif -o linter.sarif || true
+      if [ -f uv.lock ]; then
+        pip install -q uv
+        uv sync
+        uv run ruff check . --output-format sarif -o linter.sarif || true
+      else
+        pip install -q "ruff==${OSS_RUFF_VERSION:-0.11.8}"
+        ruff check . --output-format sarif -o linter.sarif || true
+      fi
     - python3 scripts/gate-check.py --control linters --report linter.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:
     reports:

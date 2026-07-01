@@ -20,12 +20,17 @@ env:
 jobs:
   validate:
     uses: ./.github/workflows/base-validate.yml
+    secrets: inherit
     with:
-      enable_real_linters: ${{ env.ENABLE_REAL_LINTERS }}
+      enable_real_linters: "false"
 
   security-gates:
     needs: [validate]
     uses: ./.github/workflows/security-gates.yml
+    secrets: inherit
+    with:
+      security_policy: config/security-gate-policy-adopt.yaml
+      sast_job: sast-python
     permissions:
       contents: read
       security-events: write
@@ -41,21 +46,24 @@ jobs:
       - uses: actions/checkout@v4
       - id: meta
         run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
-      - run: echo "docker build -t ${{ env.REGISTRY }}:${{ github.sha }} ."
+      - run: echo "docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} ."
 
   sbom:
     if: github.ref == 'refs/heads/main'
     needs: build
     uses: ./.github/workflows/jobs/sbom.yml
+    secrets: inherit
 
   container-scan:
     if: github.ref == 'refs/heads/main'
     needs: build
     uses: ./.github/workflows/jobs/container-scan.yml
+    secrets: inherit
     with:
-      image: ${{ env.REGISTRY }}:${{ github.sha }}
+      image: ghcr.io/${{ github.repository }}:${{ github.sha }}
 
   sign:
     if: github.ref == 'refs/heads/main'
     needs: [container-scan]
     uses: ./.github/workflows/jobs/sign.yml
+    secrets: inherit

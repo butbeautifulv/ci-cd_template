@@ -37,11 +37,25 @@ CF → G0 → V0 → H-CORE → H-PRE → H-P0…H-F3 → AI* (optional) → R �
 
 Cursor discovery: from [cxado](https://github.com/butbeautifulv/cxado) run `make bootstrap` (or `make skills-link`) for project-local `.agents/skills/` symlinks, or `make skills-install` for `~/.cursor/skills/`.
 
+## Workspace skills → Fabrica runbooks
+
+Actionable guidance from cxado-linked `.agents/skills/` is duplicated in-repo (do not commit skill symlinks):
+
+| Workspace skill | Fabrica runbook / phase |
+|-----------------|-------------------------|
+| docker-expert | [docs/runbooks/docker-production-baseline.md](docs/runbooks/docker-production-baseline.md), B5 |
+| kubernetes-specialist | [docs/runbooks/k8s-workload-baseline.md](docs/runbooks/k8s-workload-baseline.md), E1 |
+| terraform-test | [docs/references/supplements/terraform-test-ci.md](docs/references/supplements/terraform-test-ci.md), B4 |
+| terraform-style-guide | `examples/sample-app/infra/secure/`, B4 |
+| grafana-dashboards | [docs/runbooks/ci-pipeline-observability.md](docs/runbooks/ci-pipeline-observability.md), E4 |
+
+Validate: `make validate`, `make validate-helm`.
+
 ## Key paths
 
 - Policy: `config/security-gate-policy.yaml`
 - Gate script: `scripts/gate-check.py`
-- Adopt: `scripts/adopt.sh --profile shift-left|ai-ml|oss-full --platform gitlab --target /path`
+- Adopt: `scripts/adopt.sh --profile shift-left|ai-ml|oss-full --platform gitlab|github --target /path [--policy adopt|strict] [--python-stack auto|uv|pip|node]`
 - Profiles: `templates/profiles/`
 - References: `docs/references/` (DAF, extracts, Secure SDLC)
 - AI/ML: `examples/sample-ml-app/`, profile `ai-ml`

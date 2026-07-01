@@ -20,6 +20,7 @@ env:
 jobs:
   validate:
     uses: ./.github/workflows/base-validate.yml
+    secrets: inherit
     with:
       enable_real_linters: "false"
 
@@ -27,6 +28,9 @@ jobs:
     needs: [validate]
     uses: ./.github/workflows/security-gates.yml
     secrets: inherit
+    with:
+      security_policy: config/security-gate-policy-adopt.yaml
+      sast_job: sast-python
     permissions:
       contents: read
       security-events: write

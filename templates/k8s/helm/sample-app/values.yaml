@@ -2,13 +2,33 @@ replicaCount: 1
 
 image:
   repository: sample-app
-  tag: latest
+  tag: ""  # set at deploy (e.g. CI commit SHA); defaults to Chart.appVersion
   pullPolicy: IfNotPresent
+
+serviceAccount:
+  create: true
+  name: ""
 
 service:
   type: ClusterIP
   port: 8080
 
-resources: {}
+probes:
+  liveness:
+    path: /
+    initialDelaySeconds: 10
+    periodSeconds: 30
+  readiness:
+    path: /
+    initialDelaySeconds: 5
+    periodSeconds: 10
+
+resources:
+  requests:
+    cpu: 50m
+    memory: 64Mi
+  limits:
+    cpu: 200m
+    memory: 256Mi
 
 namespace: default

@@ -40,9 +40,10 @@ env:
 jobs:
   validate:
     uses: ./.github/workflows/base-validate.yml
+    secrets: inherit
     with:
-      enable_real_linters: ${{ env.ENABLE_REAL_LINTERS }}
-      ruff_version: ${{ env.OSS_RUFF_VERSION }}
+      enable_real_linters: "true"
+      ruff_version: "0.11.8"
 
   security-gates:
     needs: [validate]
@@ -57,6 +58,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [security-gates]
     uses: ./.github/workflows/oss/build-push.yml
+    secrets: inherit
     permissions:
       contents: read
       packages: write
@@ -65,11 +67,13 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: build
     uses: ./.github/workflows/jobs/sbom-oss.yml
+    secrets: inherit
 
   sca-image:
     if: github.ref == 'refs/heads/main'
     needs: build
     uses: ./.github/workflows/oss/sca-image.yml
+    secrets: inherit
     with:
       image: ${{ needs.build.outputs.image }}
 
@@ -84,6 +88,7 @@ jobs:
   conftest:
     needs: [validate]
     uses: ./.github/workflows/jobs/oss/conftest-admission.yml
+    secrets: inherit
 
   sbom-upload:
     if: github.ref == 'refs/heads/main'
@@ -95,11 +100,13 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [build]
     uses: ./.github/workflows/jobs/sec-func-tests.yml
+    secrets: inherit
 
   deploy-preprod:
     if: github.ref == 'refs/heads/main'
     needs: [sign, build]
     uses: ./.github/workflows/oss/helm-deploy.yml
+    secrets: inherit
     with:
       environment: preprod
       namespace: preprod
@@ -109,6 +116,7 @@ jobs:
     if: github.ref == 'refs/heads/main'
     needs: [build]
     uses: ./.github/workflows/jobs/oss/iast-preprod.yml
+    secrets: inherit
 
 # Manual preprod scans (also runnable standalone):
 # DAST: templates/github/workflows/dast-oss.yml

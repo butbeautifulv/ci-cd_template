@@ -17,6 +17,7 @@ jobs:
     with:
       security_policy: config/security-gate-policy-adopt.yaml
       enable_real_linters: "true"
+      sast_job: sast-python
     permissions:
       contents: read
       security-events: write

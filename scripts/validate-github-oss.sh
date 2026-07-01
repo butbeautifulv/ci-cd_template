@@ -105,6 +105,15 @@ for wf in security-gates-oss.yml oss/build-push.yml oss/sca-image.yml; do
   done < <(grep -oE '\./\.github/workflows/[^"]+\.yml' "$path" 2>/dev/null | sort -u || true)
 done
 
+for profile in templates/profiles/*.github.yml; do
+  hit="$(awk '
+    /^[[:space:]]*with:[[:space:]]*$/ { in_with=1; next }
+    in_with && /^[[:space:]]{2}[a-zA-Z0-9_-]+:/ && !/^[[:space:]]{4,}/ { in_with=0 }
+    in_with && /\$\{\{[[:space:]]*env\./ { print FILENAME ":" NR ":" $0; exit }
+  ' "$profile" 2>/dev/null || true)"
+  [[ -z "$hit" ]] || report "env context in with: block — $hit"
+done
+
 for profile in oss-full oss-full-node; do
   ADOPT_TEST="/tmp/oss-adopt-test-${profile}-$$"
   mkdir -p "$ADOPT_TEST"

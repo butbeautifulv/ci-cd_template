@@ -46,6 +46,9 @@ jobs:
     needs: [lint, unit-test]
     uses: ./.github/workflows/security-gates.yml
     secrets: inherit
+    with:
+      security_policy: config/security-gate-policy-adopt.yaml
+      sast_job: sast-python
     permissions:
       contents: read
       security-events: write

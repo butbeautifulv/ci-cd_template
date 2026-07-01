@@ -8,22 +8,32 @@ on:
       - 'config/**'
       - 'scripts/**'
       - '.github/workflows/**'
+      - 'Makefile'
   pull_request:
     paths:
       - 'templates/**'
       - 'config/**'
       - 'scripts/**'
+      - 'Makefile'
 
 jobs:
   validate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - name: Validate YAML and policy
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+      - name: Validate templates
+        run: make validate-quick
+      - name: Validate Helm chart baseline
+        run: make validate-helm
+      - name: Validate OSS and registry
         run: |
-          bash scripts/validate-yaml.sh
-          bash scripts/validate-pin-sync.sh
           bash scripts/validate-github-oss.sh
+          bash scripts/validate-gitlab-oss.sh
+          bash scripts/validate-oss-pins.sh
+          bash scripts/validate-registry-config.sh
       - name: Gate-check self-test
         run: |
           echo '{"runs":[{"results":[{"level":"error","message":{"text":"test"}}]}]}' > /tmp/test.sarif

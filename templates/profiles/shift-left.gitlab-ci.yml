@@ -9,7 +9,7 @@ stages:
 
 variables:
   REGISTRY: "${CI_REGISTRY_IMAGE}"
-  SECURITY_POLICY: "config/security-gate-policy.yaml"
+  SECURITY_POLICY: "config/security-gate-policy-adopt.yaml"
   ENABLE_REAL_LINTERS: "false"
 
 include:
