@@ -19,10 +19,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        if: hashFiles('uv.lock') != ''
+        with:
+          enable-cache: true
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Lint
+          python-version: "3.13"
+      - name: Lint (uv)
+        if: hashFiles('uv.lock') != ''
+        run: |
+          if [ "${{ inputs.enable_real_linters }}" = "true" ]; then
+            uv sync
+            uv run ruff check . || true
+          else
+            echo "Placeholder lint — set enable_real_linters=true"
+          fi
+      - name: Lint (pip)
+        if: hashFiles('uv.lock') == ''
         run: |
           if [ "${{ inputs.enable_real_linters }}" = "true" ]; then
             pip install -q "ruff==${{ inputs.ruff_version }}"
@@ -35,10 +49,24 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v5
+        if: hashFiles('uv.lock') != ''
+        with:
+          enable-cache: true
       - uses: actions/setup-python@v5
         with:
-          python-version: "3.11"
-      - name: Unit tests
+          python-version: "3.13"
+      - name: Unit tests (uv)
+        if: hashFiles('uv.lock') != ''
+        run: |
+          if [ -d tests ]; then
+            uv sync
+            uv run pytest tests/ -q || true
+          else
+            echo "Placeholder unit tests — add tests/"
+          fi
+      - name: Unit tests (pip)
+        if: hashFiles('uv.lock') == ''
         run: |
           if [ -f requirements.txt ] && [ -d tests ]; then
             pip install -q pytest -r requirements.txt

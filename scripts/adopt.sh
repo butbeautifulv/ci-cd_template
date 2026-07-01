@@ -4,14 +4,20 @@ set -euo pipefail
 
 usage() {
   cat <<'EOF'
-Usage: adopt.sh --profile PROFILE --platform PLATFORM --target DIR [--dry-run]
+Usage: adopt.sh --profile PROFILE --platform PLATFORM --target DIR [options]
 
 Profiles: minimal | shift-left | supply-chain | full | ai-ml | oss-full | oss-full-node | oss-full-enterprise
 Platforms: gitlab | github
 
+Options:
+  --dry-run              Print copy plan without writing
+  --policy adopt|strict  Gate policy mode (default: adopt)
+  --python-stack STACK   auto | uv | pip | node (default: auto)
+
 Examples:
   ./scripts/adopt.sh --profile shift-left --platform gitlab --target ~/myapp
-  ./scripts/adopt.sh --profile full --platform github --target ~/myapp --dry-run
+  ./scripts/adopt.sh --profile shift-left --platform github --target ~/myapp --python-stack uv
+  ./scripts/adopt.sh --profile full --platform github --target ~/myapp --policy strict --dry-run
 EOF
   exit 1
 }
@@ -20,6 +26,8 @@ PROFILE=""
 PLATFORM=""
 TARGET=""
 DRY_RUN=0
+POLICY_MODE="adopt"
+PYTHON_STACK="auto"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 
 while [[ $# -gt 0 ]]; do
@@ -28,6 +36,8 @@ while [[ $# -gt 0 ]]; do
     --platform) PLATFORM="$2"; shift 2 ;;
     --target) TARGET="$2"; shift 2 ;;
     --dry-run) DRY_RUN=1; shift ;;
+    --policy) POLICY_MODE="$2"; shift 2 ;;
+    --python-stack) PYTHON_STACK="$2"; shift 2 ;;
     -h|--help) usage ;;
     *) echo "Unknown: $1"; usage ;;
   esac
@@ -35,6 +45,16 @@ done
 
 [[ -n "$PROFILE" && -n "$PLATFORM" && -n "$TARGET" ]] || usage
 [[ -d "$TARGET" ]] || { echo "Target not found: $TARGET"; exit 1; }
+
+case "$POLICY_MODE" in
+  adopt|strict) ;;
+  *) echo "Unknown --policy: $POLICY_MODE (use adopt or strict)"; exit 1 ;;
+esac
+
+case "$PYTHON_STACK" in
+  auto|uv|pip|node) ;;
+  *) echo "Unknown --python-stack: $PYTHON_STACK"; exit 1 ;;
+esac
 
 copy() {
   local src="$1" dest="$2"
@@ -47,10 +67,13 @@ copy() {
   fi
 }
 
-echo "=== DevSecOps adopt: profile=$PROFILE platform=$PLATFORM ==="
+echo "=== DevSecOps adopt: profile=$PROFILE platform=$PLATFORM policy=$POLICY_MODE python-stack=$PYTHON_STACK ==="
 
 # Policy always
 copy "$ROOT/config/security-gate-policy.yaml" "$TARGET/config/security-gate-policy.yaml"
+if [[ -f "$ROOT/config/security-gate-policy-adopt.yaml" ]]; then
+  copy "$ROOT/config/security-gate-policy-adopt.yaml" "$TARGET/config/security-gate-policy-adopt.yaml"
+fi
 copy "$ROOT/config/aspm-export.yaml" "$TARGET/config/aspm-export.yaml"
 copy "$ROOT/config/oss-tool-versions.yaml" "$TARGET/config/oss-tool-versions.yaml"
 copy "$ROOT/config/artifact-registry.yaml" "$TARGET/config/artifact-registry.yaml"
@@ -70,12 +93,6 @@ chmod +x "$TARGET/scripts/aspm-export.py" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-login.sh" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-auth-env.sh" 2>/dev/null || true
 chmod +x "$TARGET/scripts/registry-resolve-env.sh" 2>/dev/null || true
-
-if [[ "$PROFILE" == "oss-full" || "$PROFILE" == "oss-full-node" ]]; then
-  if [[ -f "$ROOT/config/security-gate-policy-adopt.yaml" ]]; then
-    copy "$ROOT/config/security-gate-policy-adopt.yaml" "$TARGET/config/security-gate-policy-adopt.yaml"
-  fi
-fi
 
 if [[ "$PROFILE" == "oss-full" ]]; then
   copy "$ROOT/scripts/run-binary-fuzz.sh" "$TARGET/scripts/run-binary-fuzz.sh"
@@ -135,6 +152,12 @@ else
   echo "Unknown platform: $PLATFORM"; exit 1
 fi
 
+if [[ $DRY_RUN -eq 0 ]]; then
+  bash "$ROOT/scripts/post-adopt.sh" "$TARGET" "$PYTHON_STACK" "$POLICY_MODE" "$DRY_RUN"
+else
+  bash "$ROOT/scripts/post-adopt.sh" "$TARGET" "$PYTHON_STACK" "$POLICY_MODE" "$DRY_RUN"
+fi
+
 case "$PROFILE" in
   minimal)    PHASES="A2" ;;
   shift-left) PHASES="A2 B1-B6" ;;
@@ -154,7 +177,8 @@ cat <<EOF
 [ ] Enable branch protection — docs/platforms/${PLATFORM}.md
 [ ] Set REGISTRY / ghcr.io secrets
 [ ] Phases included: $PHASES
-[ ] Gates: SAST/SCA/IaC block C/H; secrets/dockerfile/linters warn (shift-left)
+[ ] Policy mode: $POLICY_MODE | Python stack: $PYTHON_STACK
+[ ] Gates: SAST/SCA/IaC block C/H; secrets/dockerfile/linters warn (shift-left adopt policy)
 [ ] ai-ml profile: PII block (ml_data); AI scans warn
 [ ] oss-full GitLab CE: KUBECONFIG (file var), Container Registry enabled, privileged Docker runner (dind)
 [ ] oss-full GitLab CE: CI/CD → Schedules → nightly-sast-scheduled (cron)
@@ -162,7 +186,7 @@ cat <<EOF
 [ ] oss-full GitHub: enable GHCR (packages: write), copy ci-profile.yml → ci.yml on adopt
 [ ] ASPM: set DEFECTDOJO_URL + DEFECTDOJO_API_TOKEN for findings export
 [ ] Run: python3 scripts/gate-check.py --help
-[ ] Validate: bash scripts/validate-yaml.sh && bash scripts/validate-oss-pins.sh && bash scripts/validate-registry-config.sh && bash scripts/validate-github-oss.sh && bash scripts/validate-gitlab-oss.sh && python3 scripts/validate-policy.py
+[ ] Validate: make validate (or bash scripts/validate-yaml.sh && ...)
 [ ] See docs/adoption-checklist.md
 
 EOF

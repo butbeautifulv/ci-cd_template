@@ -16,14 +16,16 @@ jobs:
       contents: read
     steps:
       - uses: actions/checkout@v4
-      - uses: github/codeql-action/init@v3
+      - uses: github/codeql-action/init@v4
         with:
           languages: javascript, python
-      - uses: github/codeql-action/analyze@v3
+      - uses: github/codeql-action/analyze@v4
         with:
           category: "/language:javascript"
       - name: Gate check CodeQL
         if: always()
+        env:
+          SECURITY_POLICY: ${{ env.SECURITY_POLICY }}
         run: |
           REPORT="${{ github.workspace }}/codeql-results.sarif"
           for f in codeql-results.sarif results/javascript.sarif; do
@@ -31,7 +33,8 @@ jobs:
           done
           [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > codeql-results.sarif
           [ -f "$REPORT" ] || REPORT=codeql-results.sarif
-          python scripts/gate-check.py --control sast --report "$REPORT"
+          POLICY="${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+          python scripts/gate-check.py --control sast --report "$REPORT" --policy "$POLICY"
 
   semgrep:
     runs-on: ubuntu-latest
@@ -42,11 +45,15 @@ jobs:
           config: p/ci
       - name: Gate check
         if: always()
+        env:
+          SECURITY_POLICY: ${{ env.SECURITY_POLICY }}
         run: |
           REPORT=semgrep.sarif
           [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > "$REPORT"
-          python scripts/gate-check.py --control sast --report "$REPORT"
-      - uses: github/codeql-action/upload-sarif@v3
+          POLICY="${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+          python scripts/gate-check.py --control sast --report "$REPORT" --policy "$POLICY"
+      - uses: github/codeql-action/upload-sarif@v4
         if: always()
         with:
           sarif_file: semgrep.sarif
+          category: sast-semgrep

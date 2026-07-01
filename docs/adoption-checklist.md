@@ -20,9 +20,15 @@
 ./scripts/adopt.sh --profile shift-left --platform gitlab --target /path/to/repo
 # или
 ./scripts/adopt.sh --profile shift-left --platform github --target /path/to/repo
+# uv / Python 3.13 (auto из uv.lock):
+./scripts/adopt.sh --profile shift-left --platform github --target /path/to/repo --python-stack auto --policy adopt
+# production gates:
+./scripts/adopt.sh --profile full --platform github --target /path/to/repo --policy strict
 ```
 
-GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`.
+Опции: `--policy adopt|strict` (default `adopt`), `--python-stack auto|uv|pip|node` (default `auto`).
+
+GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`. `post-adopt.sh` выставляет `SECURITY_POLICY` и SAST job.
 
 ## 3. SCM (A1)
 
@@ -36,10 +42,12 @@ GitLab: `adopt.sh` переписывает `include:` → `.gitlab/jobs/`.
 - [ ] `ENABLE_REAL_LINTERS=true` при готовности
 - [ ] Reusable workflows: `secrets: inherit` на каждом `jobs.*.uses:` (см. [egregore-adoption-case-study.md](references/supplements/egregore-adoption-case-study.md))
 - [ ] **Не использовать** `env.*` в блоке `with:` при вызове reusable workflow — только `github.*` / литералы
-- [ ] Python **uv**: после adopt подменить `jobs/linter-security.yml` (шаблон авто-выбирает uv при `uv.lock`) или `jobs/sast-python.yml`
+- [ ] Python **uv**: `adopt.sh --python-stack auto` (или `uv`) — шаблоны авто-выбирают uv при `uv.lock`; pip-only: `--python-stack pip`
 - [ ] CodeQL SARIF upload: предпочитать `github/codeql-action/upload-sarif@v4` (v3 deprecated 2026)
 - [ ] Pre-commit: `templates/pre-commit/.pre-commit-config.yaml`
-- [ ] Self-validation: `bash scripts/validate-yaml.sh`, `python3 scripts/validate-policy.py`, `bash scripts/validate-pin-sync.sh`, `bash scripts/validate-oss-pins.sh`, `bash scripts/validate-registry-config.sh`
+- [ ] Self-validation: `make validate` and `make validate-helm` в каталоге fabrica
+- [ ] Runbooks: [docker-production-baseline.md](runbooks/docker-production-baseline.md), [k8s-workload-baseline.md](runbooks/k8s-workload-baseline.md), [ci-pipeline-observability.md](runbooks/ci-pipeline-observability.md)
+- [ ] Terraform test CI: [terraform-test-ci.md](references/supplements/terraform-test-ci.md)
 - [ ] Registry backend: GitLab (default) или Nexus/Harbor — [runbooks/nexus-docker-registry.md](runbooks/nexus-docker-registry.md)
 
 ## 5. Gates (shift-left)

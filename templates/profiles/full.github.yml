@@ -19,10 +19,15 @@ env:
 jobs:
   validate:
     uses: ./.github/workflows/base-validate.yml
+    secrets: inherit
 
   security-gates:
     needs: [validate]
     uses: ./.github/workflows/security-gates.yml
+    secrets: inherit
+    with:
+      security_policy: config/security-gate-policy-adopt.yaml
+      sast_job: sast-python
     permissions:
       contents: read
       security-events: write
@@ -38,53 +43,62 @@ jobs:
       - uses: actions/checkout@v4
       - id: meta
         run: echo "tag=${{ github.sha }}" >> $GITHUB_OUTPUT
-      - run: echo "docker build -t ${{ env.REGISTRY }}:${{ github.sha }} ."
+      - run: echo "docker build -t ghcr.io/${{ github.repository }}:${{ github.sha }} ."
 
   sbom:
     if: github.ref == 'refs/heads/main'
     needs: build
     uses: ./.github/workflows/jobs/sbom.yml
+    secrets: inherit
 
   container-scan:
     if: github.ref == 'refs/heads/main'
     needs: build
     uses: ./.github/workflows/jobs/container-scan.yml
+    secrets: inherit
     with:
-      image: ${{ env.REGISTRY }}:${{ github.sha }}
+      image: ghcr.io/${{ github.repository }}:${{ github.sha }}
 
   sign:
     if: github.ref == 'refs/heads/main'
     needs: [container-scan]
     uses: ./.github/workflows/jobs/sign.yml
+    secrets: inherit
 
   deploy-preprod:
     if: github.ref == 'refs/heads/main'
     needs: [sign]
     uses: ./.github/workflows/deploy-preprod.yml
+    secrets: inherit
 
   dast:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-preprod]
     uses: ./.github/workflows/dast.yml
+    secrets: inherit
 
   api-fuzz:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-preprod]
     uses: ./.github/workflows/api-fuzz.yml
+    secrets: inherit
 
   binary-fuzz:
     if: github.ref == 'refs/heads/main'
     needs: [validate]
     uses: ./.github/workflows/binary-fuzz.yml
+    secrets: inherit
 
   sec-func-tests:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-preprod]
     uses: ./.github/workflows/jobs/sec-func-tests.yml
+    secrets: inherit
 
   iast-preprod:
     if: github.ref == 'refs/heads/main'
     needs: [deploy-preprod]
     uses: ./.github/workflows/jobs/iast-preprod.yml
+    secrets: inherit
 
 # Nightly SAST: copy templates/github/workflows/nightly-sast.yml → .github/workflows/ (schedule)

@@ -3,17 +3,89 @@ name: Dockerfile Lint
 on:
   workflow_call:
 
+permissions:
+  contents: read
+  security-events: write
+
 jobs:
   hadolint:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: hadolint/hadolint-action@v3.1.0
-        with:
-          dockerfile: Dockerfile
-          failure-threshold: warning
+      - name: Hadolint (all Dockerfiles)
+        run: |
+          IMAGE="${OSS_HADOLINT_IMAGE:-hadolint/hadolint:v2.12.0-alpine}"
+          echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"hadolint"}},"results":[]}]}' > hadolint.sarif
+          echo '[]' > hadolint-report.json
+          FAILED=0
+          mapfile -t DOCKERFILES < <(find . \( -name 'Dockerfile' -o -name 'Dockerfile.*' \) ! -path './.git/*')
+          if [ "${#DOCKERFILES[@]}" -eq 0 ]; then
+            echo "No Dockerfiles found"
+          else
+            for f in "${DOCKERFILES[@]}"; do
+              echo "Linting $f"
+              docker run --rm -i "$IMAGE" < "$f" || FAILED=1
+            done
+            python3 - <<'PY'
+          import json
+          import os
+          import subprocess
+          from pathlib import Path
+          image = os.environ.get("OSS_HADOLINT_IMAGE", "hadolint/hadolint:v2.12.0-alpine")
+          root = Path.cwd()
+          items = []
+          for f in root.rglob("Dockerfile*"):
+              if ".git" in f.parts:
+                  continue
+              rel = f.relative_to(root).as_posix()
+              proc = subprocess.run(
+                  ["docker", "run", "--rm", "-v", f"{root}:/work", "-w", "/work", image, "-f", "json", f"/work/{rel}"],
+                  capture_output=True,
+                  text=True,
+              )
+              if not proc.stdout.strip():
+                  continue
+              try:
+                  data = json.loads(proc.stdout)
+                  if isinstance(data, list):
+                      items.extend(data)
+              except json.JSONDecodeError:
+                  pass
+          Path("hadolint-report.json").write_text(json.dumps(items))
+          PY
+          fi
+          if [ "$FAILED" -eq 1 ]; then
+            python3 - <<'PY'
+          import json
+          from pathlib import Path
+          Path("hadolint.sarif").write_text(json.dumps({
+            "version": "2.1.0",
+            "runs": [{
+              "tool": {"driver": {"name": "hadolint"}},
+              "results": [{
+                "level": "warning",
+                "message": {"text": "Hadolint findings — see job log"},
+                "locations": [{
+                  "physicalLocation": {
+                    "artifactLocation": {"uri": "Dockerfile", "uriBaseId": "%SRCROOT%"},
+                    "region": {"startLine": 1}
+                  }
+                }]
+              }]
+            }]
+          }))
+          PY
+          fi
+          python3 scripts/normalize-sarif.py hadolint.sarif hadolint
       - name: Gate check
         if: always()
+        env:
+          SECURITY_POLICY: ${{ env.SECURITY_POLICY }}
         run: |
-          echo '{"runs":[{"results":[]}]}' > hadolint.sarif
-          python scripts/gate-check.py --control dockerfile --report hadolint.sarif
+          POLICY="${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+          python scripts/gate-check.py --control dockerfile --report hadolint.sarif --policy "$POLICY"
+      - uses: github/codeql-action/upload-sarif@v4
+        if: always()
+        with:
+          sarif_file: hadolint.sarif
+          category: dockerfile

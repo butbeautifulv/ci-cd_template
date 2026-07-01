@@ -13,6 +13,11 @@ on:
         required: false
         type: string
         default: "false"
+      sast_job:
+        description: SAST reusable workflow (sast or sast-python)
+        required: false
+        type: string
+        default: sast-python
 
 permissions:
   contents: read
@@ -28,7 +33,12 @@ jobs:
     uses: ./.github/workflows/jobs/secret-scan.yml
     secrets: inherit
   sast:
+    if: inputs.sast_job == 'sast'
     uses: ./.github/workflows/jobs/sast.yml
+    secrets: inherit
+  sast-python:
+    if: inputs.sast_job == 'sast-python'
+    uses: ./.github/workflows/jobs/sast-python.yml
     secrets: inherit
   osa:
     uses: ./.github/workflows/jobs/osa.yml

@@ -14,3 +14,11 @@
 {{- end }}
 {{- end }}
 {{- end }}
+
+{{- define "sample-app.serviceAccountName" -}}
+{{- if .Values.serviceAccount.create }}
+{{- default (include "sample-app.fullname" .) .Values.serviceAccount.name }}
+{{- else }}
+{{- default "default" .Values.serviceAccount.name }}
+{{- end }}
+{{- end }}

@@ -16,11 +16,17 @@
 
 ## Trigger
 
-Only if `Dockerfile*` changed.
+Only if `Dockerfile*` changed (`Dockerfile`, `Dockerfile.*`, `**/Dockerfile`).
+
+GitHub: scans all matching files each run. GitLab: `rules:changes` on same paths.
 
 ## Gate
 
 warn → block after 2 sprints (policy changelog).
+
+## Runbook
+
+Production patterns: [docker-production-baseline.md](../runbooks/docker-production-baseline.md)
 
 ## Контрольная точка B
 
