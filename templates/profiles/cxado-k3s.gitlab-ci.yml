@@ -1,0 +1,58 @@
+# Profile: cxado-k3s — Fabrica oss-full-enterprise + Kaniko + P30 single-contour deploy
+# Consumer: cxado monorepo (.gitlab/ci/cxado-k3s.gitlab-ci.yml)
+
+stages:
+  - validate
+  - test
+  - security
+  - static-security-upload
+  - build
+  - image
+  - supply-chain
+  - image-security-upload
+  - deploy
+  - post-deploy
+  - smoke
+
+default:
+  tags:
+    - k8s
+    - corp
+    - cxado
+
+include:
+  - local: '/templates/gitlab/jobs/_security.common.yml'
+  - local: '/templates/gitlab/jobs/oss/versions.yml'
+  - local: '/templates/gitlab/jobs/oss/_docker.yml'
+  - local: '/templates/gitlab/jobs/registry/variables.yml'
+  - local: '/templates/gitlab/jobs/registry/login.yml'
+  - local: '/templates/gitlab/jobs/oss/_base-validate.yml'
+  - local: '/templates/gitlab/jobs/oss/gitleaks.yml'
+  - local: '/templates/gitlab/jobs/forbidden-files.yml'
+  - local: '/templates/gitlab/jobs/oss/semgrep-sast.yml'
+  - local: '/templates/gitlab/jobs/oss/trivy-osa.yml'
+  - local: '/templates/gitlab/jobs/oss/checkov-iac.yml'
+  - local: '/templates/gitlab/jobs/dockerfile-lint.yml'
+  - local: '/templates/gitlab/jobs/linter-security.yml'
+  - local: '/templates/gitlab/jobs/aspm/upload-static.yml'
+  - local: '/templates/gitlab/jobs/oss/build-push.yml'
+  - local: '/templates/gitlab/jobs/sbom.yml'
+  - local: '/templates/gitlab/jobs/oss/trivy-sca.yml'
+  - local: '/templates/gitlab/jobs/aspm/upload-image.yml'
+  - local: '/templates/gitlab/jobs/oss/helm-deploy-contour.yml'
+  - local: '/templates/gitlab/jobs/dast.yml'
+  - local: '/templates/gitlab/jobs/dast-compose.yml'
+  - local: '/templates/gitlab/jobs/sign.yml'
+  - local: '/templates/gitlab/jobs/conftest-admission.yml'
+
+variables:
+  REGISTRY_BACKEND: "nexus"
+  SECURITY_POLICY: "config/security-gate-policy-adopt.yaml"
+
+build-image:
+  rules:
+    - when: never
+
+deploy-contour:
+  rules:
+    - when: never
