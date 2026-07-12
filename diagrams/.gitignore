@@ -1,0 +1,11 @@
+*.svg
+*.png
+*.json
+stride_register.md
+security_requirements.yaml
+security_requirements.json
+threat_model.json
+.venv/
+__pycache__/
+*.egg-info/
+.pytest_cache/

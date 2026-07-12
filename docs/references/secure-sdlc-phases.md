@@ -16,6 +16,8 @@
 - Misuse Cases (сценарии неправильного использования)
 - Abuse Cases (сценарии злоупотребления)
 
+Reference diagrams (DFD, C4 FastAPI, pipeline/K8s overlay): [`diagrams/`](../../diagrams/) — render with `make diagrams` or `python main.py` in that directory.
+
 Template: P0, A1, design docs (`P-REQ-TM-*`).
 
 ---

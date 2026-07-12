@@ -19,7 +19,7 @@
 |----------|------------|----------------|
 | `P-EDU-AWR` | Обучение, осведомлённость | План обучения, e-learning |
 | `P-EDU-KB` | База знаний DSO | Wiki, playbooks |
-| `P-REQ-TM` | Threat modeling | Шаблон TM, taint analysis |
+| `P-REQ-TM` | Threat modeling | Шаблон TM, taint analysis — см. [`diagrams/`](../../diagrams/) и [`diagrams/templates/`](../../diagrams/templates/) |
 | `P-REQ-RD` | Требования ИБ к ПО | Security requirements |
 | `P-REQ-CR` | Контроль выполнения требований | Чеклисты в MR |
 | `P-REQ-STDR-App` | Стандарты приложений | Secure coding guide |
