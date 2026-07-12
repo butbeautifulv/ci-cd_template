@@ -1,0 +1,66 @@
+digraph DFD {
+  graph [
+    rankdir="LR",
+    fontname="DejaVu Sans",
+    fontnames="svg",
+    nodesep="0.5",
+    ranksep="0.8",
+    splines="polyline",
+    concentrate="false",
+    compound="true",
+    pack="true",
+    packmode="node",
+    labelloc="t",
+    fontsize="14",
+    label="Data Flow Diagram (DFD v3)\nTrust boundaries, typed data flows — FastAPI"
+  ];
+  node [fontname="DejaVu Sans", fontsize="12", margin="0.03,0.03"];
+  edge [
+    fontname="DejaVu Sans",
+    fontsize="11",
+    style="solid",
+    penwidth="0.9",
+    arrowhead="normal",
+    arrowsize="0.9"
+  ];
+
+  user [label="Пользователь\nSTRIDE: S, R", shape=rectangle];
+
+  subgraph cluster_app {
+    label="Application Trust Boundary";
+    style="dashed";
+    color="gray50";
+    margin="8";
+
+    auth_process [label="FastAPI / OAuth2 / JWT\n(аутентификация)\nSTRIDE: S, T, R, I, D, E", shape=ellipse];
+    data_processing [label="Pydantic validation\n+ business logic\nSTRIDE: S, T, R, I, D, E", shape=ellipse];
+    file_handler [label="Работа с файлами\nSTRIDE: S, T, R, I, D, E", shape=ellipse];
+    config_store [label="Конфигурация\n(pydantic-settings)\nSTRIDE: T, I, D", shape=cylinder];
+
+    { rank=same; auth_process; data_processing; file_handler }
+  }
+
+  subgraph cluster_external {
+    label="External Services";
+    style="dashed";
+    color="gray50";
+    margin="8";
+
+    user [label="Пользователь\nSTRIDE: S, R", shape=rectangle];
+    external_api [label="Внешнее API\nSTRIDE: S, R", shape=rectangle];
+    file_storage [label="Файловое хранилище\n(S3 SSE)\nSTRIDE: T, I, D", shape=cylinder];
+
+    { rank=same; user; external_api; file_storage }
+  }
+
+  user -> auth_process [label="учетные данные (PII)\nLINDDUN: L, D (Linkability, Disclosure)"];
+  config_store -> auth_process [label="настройки аутентификации (read-only)"];
+  auth_process -> data_processing [label="токен (JWT/OAuth2)"];
+  data_processing -> file_handler [label="данные для записи (JSON)"];
+  file_handler -> file_storage [label="S3 API / HTTPS/TLS 1.3", ltail="cluster_app", lhead="cluster_external"];
+  data_processing -> external_api [label="API запросы; HTTPS/TLS 1.3 (JSON)", ltail="cluster_app", lhead="cluster_external"];
+  external_api -> data_processing [label="API ответы; HTTPS/TLS 1.3 (JSON)", ltail="cluster_external", lhead="cluster_app"];
+
+  Legend [shape=note, fontsize="11",
+    label="Нотация:\n- STRIDE on nodes\n- LINDDUN on PII flow\n- Misuse: weak OAuth, credential stuffing\n- Abuse: token replay, SSRF via outbound API"];
+}

@@ -1,4 +1,4 @@
-.PHONY: validate validate-quick validate-helm adopt-dry-run
+.PHONY: validate validate-quick validate-helm adopt-dry-run diagrams
 
 PROFILE ?= shift-left
 PLATFORM ?= github
@@ -24,3 +24,8 @@ validate-helm:
 
 adopt-dry-run:
 	bash scripts/adopt.sh --profile $(PROFILE) --platform $(PLATFORM) --target $(TARGET) --dry-run
+
+diagrams:
+	cd diagrams && (test -x .venv/bin/python || python3 -m venv .venv) && \
+		.venv/bin/pip install -q -e . && \
+		.venv/bin/python main.py
