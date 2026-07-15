@@ -1,7 +1,5 @@
 # Optional local vendor cache (xlsx/pdf for re-extract only; not required at runtime)
 .external/*
-# Symlink to cxado-references (created by cxado `make refs-link`)
-refs/
 # Local IDE / agent tooling (symlinks from cxado bootstrap — not in git)
 .cursor/
 .agents/

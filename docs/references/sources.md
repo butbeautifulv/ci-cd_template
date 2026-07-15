@@ -33,7 +33,7 @@
 
 ## Shared references (cxado meta-repo)
 
-When using [cxado](https://github.com/butbeautifulv/cxado), JCSF/DAF vendor trees are symlinked at `refs/` → `shared/references` ([cxado-references](https://github.com/butbeautifulv/cxado-references)). Run `make refs-link` from cxado root.
+When using [cxado](https://github.com/butbeautifulv/cxado), JCSF/DAF vendor trees live at meta-repo root `refs/` ([cxado-references](https://github.com/butbeautifulv/cxado-references)). From fabrica: `../../refs/`.
 
 Project-local `.external/` (fstec, chatgpt_mds, common-templates) remains gitignored and is **not** in cxado-references.
 
