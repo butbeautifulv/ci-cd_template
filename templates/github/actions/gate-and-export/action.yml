@@ -31,17 +31,24 @@ inputs:
 runs:
   using: composite
   steps:
-    - name: Ensure report exists
+    - name: Gate check
       shell: bash
       run: |
         REPORT="${{ inputs.report }}"
         mkdir -p "$(dirname "$REPORT")"
-        python scripts/normalize-sarif.py "$REPORT" "${{ inputs.tool_name }}"
-    - name: Gate check
-      shell: bash
-      run: |
+        # Only normalize a report the scanner actually produced. Fabricating an
+        # empty-but-valid SARIF here whenever REPORT is missing (the old behavior)
+        # made a crashed/misconfigured/never-run scanner indistinguishable from a
+        # clean scan by the time gate-check.py saw it — a silent fail-open. Let
+        # gate-check.py see the real absence; it already fails closed on missing
+        # reports in block mode and warns (loudly) in warn mode.
+        if [ -f "$REPORT" ] && [ -s "$REPORT" ]; then
+          python scripts/normalize-sarif.py "$REPORT" "${{ inputs.tool_name }}"
+        else
+          echo "::warning::${{ inputs.tool_name }} produced no report at $REPORT — gate-check will evaluate this as missing, not clean"
+        fi
         python scripts/gate-check.py --control "${{ inputs.control }}" \
-          --report "${{ inputs.report }}" \
+          --report "$REPORT" \
           --policy "${{ inputs.policy }}"
     - name: Normalize SARIF for upload
       if: always()
@@ -59,7 +66,7 @@ runs:
         fi
     - name: Upload SARIF
       if: always()
-      uses: github/codeql-action/upload-sarif@v3
+      uses: github/codeql-action/upload-sarif@v4
       with:
         sarif_file: ${{ inputs.report }}
         category: ${{ inputs.category }}

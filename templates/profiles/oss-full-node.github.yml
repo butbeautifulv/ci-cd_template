@@ -22,7 +22,7 @@ env:
   CI_REGISTRY_IMAGE: ghcr.io/${{ github.repository }}
   REGISTRY_BACKEND: gitlab
   SECURITY_POLICY: config/security-gate-policy.yaml
-  OSS_SEMGREP_IMAGE: returntocorp/semgrep:1.117.0
+  OSS_SEMGREP_IMAGE: semgrep/semgrep:1.117.0
   OSS_SYFT_VERSION: v1.20.0
   OSS_TRIVY_IMAGE: aquasec/trivy:0.63.0
   OSS_GITLEAKS_IMAGE: ghcr.io/gitleaks/gitleaks:v8.22.1

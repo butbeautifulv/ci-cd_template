@@ -1,5 +1,50 @@
 # Changelog
 
+## [1.5.1] — Fail-closed gate check + dead/deprecated scanner actions
+
+Fixed against real-world CI experience from egregore/veil, which surfaced a class of
+bug this repo's templates hadn't been run against real GitHub Actions runners for.
+
+### Fixed
+
+- **`scripts/gate-check.py`** — a missing scan report (crashed/misconfigured/never-run
+  tool) was treated identically to a clean scan (0 findings, gate passes). Now fails
+  closed in `mode: block` and warns loudly (but still passes) in `mode: warn`.
+- **`templates/github/actions/gate-and-export/action.yml`** — the shared "Ensure
+  report exists" step fabricated an empty-but-valid SARIF whenever the real report
+  was missing, defeating the gate for every job that uses it (checkov, gitleaks,
+  semgrep, trivy, hadolint, ruff — 9 call sites). Now only normalizes a report the
+  scanner actually produced; a genuinely missing report reaches gate-check.py as such.
+- Same fabricated-empty-SARIF fallback removed from ~15 more job templates
+  (GitHub `jobs/iac-scan.yml`, `jobs/oss/checkov-iac.yml`, `security-gates-oss.yml`;
+  GitLab `jobs/oss/{checkov-iac,trivy-osa,gitleaks,semgrep-sast,trivy-sca}.yml`) —
+  self-contained checks that always produce a real result (`forbidden-files.yml`,
+  `sec-func-tests.yml`) were left as-is.
+- **`gitleaks/gitleaks-action@v2`** (`jobs/secret-scan.yml`) never left a report file
+  in the workspace — it only uploads a SARIF as a GitHub artifact, and only when it
+  finds a leak — so the gate check always evaluated a fabricated empty report. It's
+  also a commercial product requiring `GITLEAKS_LICENSE` for org-owned repos, and v2
+  (Node 20) is past GitHub's default-runtime deprecation cutover. Replaced with the
+  same pinned-container Gitleaks CLI approach already used correctly in
+  `jobs/oss/gitleaks.yml`.
+- **`returntocorp/semgrep-action@v1`** — both it and its `semgrep/semgrep-action`
+  parent are archived/deprecated on GitHub. Replaced with direct
+  `semgrep scan --config p/ci --sarif` inside a pinned `semgrep/semgrep` container
+  across `jobs/sast.yml`, `jobs/sast-python.yml`, `nightly-sast.yml`. All
+  `returntocorp/semgrep` Docker image references standardized to `semgrep/semgrep`.
+- **`jobs/sast.yml`** analyzed `javascript, python` in one CodeQL job but hardcoded
+  the upload category to `/language:javascript` — Python SAST findings were
+  structurally never gated. Switched to a `matrix: language: [javascript, python]`
+  (GitHub's own recommended pattern for multi-language CodeQL), each language now
+  gets its own category and its own gate check.
+- **`aquasecurity/trivy-action@0.28.0`** (`jobs/osa.yml`, `jobs/sca-image.yml`) —
+  not a real tag (trivy-action tags are `v`-prefixed); this action reference would
+  fail to resolve at runtime. Pinned to the real, current `v0.36.0`.
+- `jobs/ml-model-scan.yml` (GitHub + GitLab) is an unimplemented placeholder (no
+  model-format/adversarial scanner is wired up) — it now says so explicitly instead
+  of silently presenting a fabricated clean SARIF as if a scan ran.
+- `github/codeql-action/upload-sarif` pins standardized to `@v4` (were split v3/v4).
+
 ## [1.5.0] — GitHub OSS Full Pipeline
 
 ### Added

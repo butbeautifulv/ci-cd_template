@@ -2,7 +2,7 @@
 # OSS tool pins — source: config/oss-tool-versions.yaml
 
 variables:
-  OSS_SEMGREP_IMAGE: "returntocorp/semgrep:1.117.0"
+  OSS_SEMGREP_IMAGE: "semgrep/semgrep:1.117.0"
   OSS_SYFT_IMAGE: "anchore/syft:v1.20.0"
   OSS_TRIVY_IMAGE: "aquasec/trivy:0.63.0"
   OSS_GITLEAKS_IMAGE: "ghcr.io/gitleaks/gitleaks:v8.22.1"

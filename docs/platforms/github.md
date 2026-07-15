@@ -15,11 +15,11 @@
 
 | Контроль | Action |
 |----------|--------|
-| Secrets | `gitleaks/gitleaks-action` |
-| SAST | `github/codeql-action` + `returntocorp/semgrep-action` |
+| Secrets | Gitleaks CLI (pinned `ghcr.io/gitleaks/gitleaks` container, via Docker) |
+| SAST | `github/codeql-action` + Semgrep CLI (pinned `semgrep/semgrep` container) |
 | SCA | `actions/dependency-review-action`, `aquasecurity/trivy-action` (fs) |
 | IaC | `bridgecrewio/checkov-action` |
-| Dockerfile | `hadolint/hadolint-action` |
+| Dockerfile | Hadolint CLI (pinned `hadolint/hadolint` container, via Docker) |
 | Container | `aquasecurity/trivy-action` (image) |
 
 ## Branch protection
