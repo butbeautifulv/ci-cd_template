@@ -8,8 +8,6 @@ semgrep-sast:
     - .security_job_defaults
   script:
     - semgrep scan --config p/ci --sarif -o semgrep.sarif . || true
-    - |
-      [ -f semgrep.sarif ] || echo '{"runs":[{"results":[]}]}' > semgrep.sarif
     - python3 scripts/gate-check.py --control sast --report semgrep.sarif \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:

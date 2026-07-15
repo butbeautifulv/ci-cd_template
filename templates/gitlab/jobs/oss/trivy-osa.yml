@@ -20,8 +20,6 @@ trivy-osa:
     - .trivy_job
   script:
     - trivy fs . --scanners vuln --severity CRITICAL,HIGH --format sarif --output osa.sarif || true
-    - |
-      [ -f osa.sarif ] || echo '{"runs":[{"results":[]}]}' > osa.sarif
     - python3 scripts/gate-check.py --control osa --report osa.sarif \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:

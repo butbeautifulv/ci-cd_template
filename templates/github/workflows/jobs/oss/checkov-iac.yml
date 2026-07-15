@@ -22,10 +22,11 @@ jobs:
           mkdir -p reports
           checkov -d . --framework terraform,kubernetes,helm,dockerfile,docker_compose --soft-fail \
             --output sarif --output-file-path reports || true
-          REPORT=reports/results_sarif.sarif
-          [ -f "$REPORT" ] || REPORT=reports/checkov.sarif
-          [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > reports/checkov.sarif
-          [ -f reports/checkov.sarif ] || cp "$REPORT" reports/checkov.sarif
+          # checkov's output filename varies by version — normalize the path, but don't
+          # fabricate a fake clean report if checkov produced neither: gate-and-export's
+          # gate-check step treats a genuinely missing report as "tool didn't run", not "clean".
+          [ -f reports/results_sarif.sarif ] && cp reports/results_sarif.sarif reports/checkov.sarif
+          true
       - uses: ./.github/actions/gate-and-export
         if: always()
         with:

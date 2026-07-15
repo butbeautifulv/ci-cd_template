@@ -31,14 +31,15 @@ checkov-iac:
       checkov -d . --framework terraform,kubernetes,helm,dockerfile,docker_compose --soft-fail \
         --output sarif --output-file-path reports \
         --output json --output-file-path reports || true
-      REPORT=reports/results_sarif.sarif
-      [ -f "$REPORT" ] || REPORT=reports/checkov.sarif
-      [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > reports/checkov.sarif
-      [ -f reports/checkov.sarif ] || cp "$REPORT" reports/checkov.sarif
-      JSON=reports/results_json.json
-      [ -f "$JSON" ] || JSON=reports/checkov-report.json
-      [ -f "$JSON" ] || echo '[]' > reports/checkov-report.json
-      [ -f reports/checkov-report.json ] || cp "$JSON" reports/checkov-report.json
+      # checkov's output filename varies by version (results_sarif.sarif vs checkov.sarif) —
+      # normalize the path, but don't fabricate a fake clean report if checkov produced
+      # neither: gate-check.py treats a genuinely missing report as "tool didn't run", not "clean".
+      if [ -f reports/results_sarif.sarif ]; then
+        cp reports/results_sarif.sarif reports/checkov.sarif
+      fi
+      if [ -f reports/results_json.json ]; then
+        cp reports/results_json.json reports/checkov-report.json
+      fi
     - python3 scripts/gate-check.py --control iac --report reports/checkov.sarif \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:

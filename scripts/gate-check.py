@@ -110,6 +110,21 @@ def parse_junit(path: Path) -> list[str]:
     return levels
 
 
+def missing_report(path: Path, policy: dict) -> tuple[bool, str]:
+    """A scanner produced no report at all — distinct from a report with zero findings.
+
+    Treating "missing" the same as "clean" lets a crashed, misconfigured, or never-run
+    tool pass a blocking gate as if a real scan happened. Only fail closed in block mode;
+    warn mode still passes (warn->block is a deliberate phased rollout, see AGENTS.md),
+    but always says so loudly instead of silently reporting findings=0.
+    """
+    mode = policy.get("mode", "warn")
+    msg = f"missing report: {path} — tool produced no output; refusing to silently pass a blocking gate"
+    if mode == "block":
+        return False, msg
+    return True, f"warn — {msg}"
+
+
 def check_artifact(path: Path, policy: dict, label: str) -> tuple[bool, str]:
     mode = policy.get("mode", "warn")
     if not path.exists() or path.stat().st_size == 0:
@@ -212,22 +227,32 @@ def main() -> None:
     elif args.control == "ml_data":
         ok, msg = check_ml_data(args.report, policy)
     elif args.control == "dast":
-        levels = parse_zap_baseline(args.report) if args.report.exists() else []
-        ok, msg = evaluate(levels, policy)
+        if args.report.exists():
+            ok, msg = evaluate(parse_zap_baseline(args.report), policy)
+        else:
+            ok, msg = missing_report(args.report, policy)
     elif args.control == "iast":
-        levels = parse_zap_baseline(args.report) if args.report.exists() else []
-        ok, msg = evaluate(levels, policy)
+        if args.report.exists():
+            ok, msg = evaluate(parse_zap_baseline(args.report), policy)
+        else:
+            ok, msg = missing_report(args.report, policy)
     elif args.control == "fuzzing":
-        levels = parse_junit(args.report) if args.report.exists() else []
-        ok, msg = evaluate(levels, policy)
+        if args.report.exists():
+            ok, msg = evaluate(parse_junit(args.report), policy)
+        else:
+            ok, msg = missing_report(args.report, policy)
     elif args.control == "binary_fuzz":
-        levels = parse_junit(args.report) if args.report.exists() else []
-        ok, msg = evaluate(levels, policy)
+        if args.report.exists():
+            ok, msg = evaluate(parse_junit(args.report), policy)
+        else:
+            ok, msg = missing_report(args.report, policy)
     elif args.control == "sec_func_tests":
         ok, msg = check_sec_func_tests(args.report, policy)
     else:
-        levels = parse_report(args.report) if args.report.exists() else []
-        ok, msg = evaluate(levels, policy)
+        if args.report.exists():
+            ok, msg = evaluate(parse_report(args.report), policy)
+        else:
+            ok, msg = missing_report(args.report, policy)
 
     findings = 0
     if args.control == "sbom":
