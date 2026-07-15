@@ -18,12 +18,10 @@ trivy-sca:
       if [ "${IMAGE_TAG:-none}" = "none" ]; then
         echo "No image built — skip SCA image scan"
         echo '{"runs":[{"results":[]}]}' > sca.sarif
-        exit 0
+      else
+        trivy image --scanners vuln --severity CRITICAL,HIGH --format sarif \
+          --output sca.sarif "${REGISTRY}:${CI_COMMIT_SHA}" || true
       fi
-    - trivy image --scanners vuln --severity CRITICAL,HIGH --format sarif \
-        --output sca.sarif "${REGISTRY}:${CI_COMMIT_SHA}" || true
-    - |
-      [ -f sca.sarif ] || echo '{"runs":[{"results":[]}]}' > sca.sarif
     - python3 scripts/gate-check.py --control sca --report sca.sarif \
         --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
   artifacts:

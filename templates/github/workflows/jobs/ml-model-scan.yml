@@ -9,5 +9,8 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - run: echo '{"runs":[{"results":[]}]}' > ml-model.sarif
+      - name: Model adversarial scan (placeholder — no scanner wired up yet)
+        run: |
+          echo "::warning::ml-model-scan is a placeholder — no adversarial/model-format scanner (e.g. ART, Alibi Detect, modelscan) is wired up yet. This job does not actually scan model artifacts."
+          echo '{"runs":[{"results":[]}]}' > ml-model.sarif
       - run: python scripts/gate-check.py --control ml_model --report ml-model.sarif

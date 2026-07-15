@@ -9,7 +9,7 @@ policy:
   incident_ref: docs/references/supply-chain-teampcp-2026.md
 
 images:
-  semgrep: "returntocorp/semgrep:1.117.0"
+  semgrep: "semgrep/semgrep:1.117.0"
   syft: "anchore/syft:v1.20.0"
   trivy: "aquasec/trivy:0.63.0"
   gitleaks: "ghcr.io/gitleaks/gitleaks:v8.22.1"

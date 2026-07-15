@@ -8,14 +8,14 @@ on:
 jobs:
   semgrep:
     runs-on: ubuntu-latest
+    container:
+      image: semgrep/semgrep:1.117.0
     steps:
       - uses: actions/checkout@v4
-      - uses: returntocorp/semgrep-action@v1
-        with:
-          config: auto
+      - name: Semgrep full scan
+        run: semgrep scan --config auto --sarif -o semgrep.sarif .
       - name: Gate check
         if: always()
         run: |
-          REPORT=semgrep.sarif
-          [ -f "$REPORT" ] || echo '{"runs":[{"results":[]}]}' > "$REPORT"
-          python scripts/gate-check.py --control sast --report "$REPORT"
+          [ -s semgrep.sarif ] || { echo "::error::semgrep did not produce a non-empty semgrep.sarif — refusing to silently pass a SAST gate with no real report." >&2; exit 1; }
+          python scripts/gate-check.py --control sast --report semgrep.sarif
