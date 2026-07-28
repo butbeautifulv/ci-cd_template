@@ -12,7 +12,7 @@ forbidden-files:
     - |
       echo '{"runs":[{"results":[]}]}' > forbidden-files.sarif
       FOUND=0
-      PATTERNS='\.env$|\.pem$|\.key$|id_rsa|\.p12$|\.pfx$'
+      PATTERNS='\.env$|\.pem$|\.key$|id_rsa|\.p12$|\.pfx$|Dockerfile\.corp|scripts/k8s|ansible/k3s|cxado-k3s|deploy/\.secrets'
       while IFS= read -r f; do
         echo "WARN: suspicious file $f"
         FOUND=1

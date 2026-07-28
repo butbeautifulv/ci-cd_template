@@ -4,3 +4,8 @@
 .cursor/
 .agents/
 .codebase-memory/
+
+# Corp-only artifacts
+**/Dockerfile.corp*
+**/*Dockerfile.corp
+templates/profiles/cxado-k3s.gitlab-ci.yml

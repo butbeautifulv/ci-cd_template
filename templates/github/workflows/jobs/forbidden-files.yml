@@ -29,6 +29,13 @@ jobs:
           *.p12
           *.pfx
           credentials.json
+
+          deploy/.secrets/**
+          scripts/k8s/**
+          deploy/ansible/k3s/**
+          **/Dockerfile.corp*
+          **/*Dockerfile.corp
+          templates/profiles/cxado-k3s.gitlab-ci.yml
           PATTERNS
           echo '{"runs":[{"results":[]}]}' > forbidden-files.sarif
           if [ "$FOUND" -eq 1 ]; then
