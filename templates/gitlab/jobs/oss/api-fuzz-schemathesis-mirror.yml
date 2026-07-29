@@ -4,7 +4,7 @@
 api-fuzz-schemathesis:
   stage: api-security
   image:
-    name: nexus.svo.aero:8345/cxado-docker/schemathesis:3.39.2
+    name: $OSS_SCHEMATHESIS_IMAGE
     entrypoint: [""]
   variables:
     SCHEMATHESIS_PHASES: "examples,coverage,fuzzing"

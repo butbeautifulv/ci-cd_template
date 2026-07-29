@@ -73,6 +73,7 @@ Tag-driven service mirror (e.g. `map_objects-ci`) uses tags `devsecops,k3s,corp,
 - Profile: [`templates/profiles/oss-full-service-mirror.gitlab-ci.yml`](../../templates/profiles/oss-full-service-mirror.gitlab-ci.yml)
 - Sync into an existing mirror: `bash scripts/point-copy-mirror.sh --target DIR` (**not** `adopt.sh` into existing `.gitlab/jobs`)
 - Verify: `bash scripts/validate-mirror-corp.sh`
+- Nexus hosts (override in GitLab CI/CD variables): `NEXUS_DOCKER_PREFIX` (hosted, default `nexus.svo.aero:8345`), `NEXUS_DOCKER_GROUP` (group, default `nexus.svo.aero:8374`). Tool images use `$OSS_*_IMAGE` built from those prefixes — do not hardcode the host in `image:` lines.
 - DAST: `zap-api-scan` via `scripts/run-dast-zap-api-mirror.sh` (live OpenAPI), report `reports/zap-api.xml` → DefectDojo `ZAP Scan`
 - Fuzz: Schemathesis + live OpenAPI; Dojo via Generic Findings Import
 - Ephemeral deploy stubs (`ci-http-stub`, mongo) are lifespan fixtures — not scanner fake-green

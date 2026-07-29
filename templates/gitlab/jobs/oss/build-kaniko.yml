@@ -4,7 +4,7 @@
 build-image:
   stage: build
   image:
-    name: nexus.svo.aero:8345/cxado-docker/kaniko-mirror-helper:v1.23.2-py3.11.11
+    name: $OSS_KANIKO_IMAGE
     entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH

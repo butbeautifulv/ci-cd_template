@@ -6,7 +6,7 @@
 dast-zap:
   stage: api-security
   image:
-    name: ${OSS_ZAPROXY_IMAGE:-nexus.svo.aero:8345/cxado-docker/zaproxy:2.16.0}
+    name: $OSS_ZAPROXY_IMAGE
     entrypoint: [""]
   timeout: 2h
   variables:

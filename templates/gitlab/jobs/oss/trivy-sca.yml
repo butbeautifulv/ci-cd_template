@@ -22,7 +22,7 @@ trivy-sca:
   script:
     - |
       set -eu
-      TRIVY_IMG="${OSS_TRIVY_IMAGE:-nexus.svo.aero:8345/aquasec/trivy:0.67.2}"
+      TRIVY_IMG="${OSS_TRIVY_IMAGE:-${NEXUS_DOCKER_PREFIX:-nexus.svo.aero:8345}/aquasec/trivy:0.67.2}"
       export TRIVY_CACHE_DIR="${PWD}/.trivy-cache"
       mkdir -p "$TRIVY_CACHE_DIR"
       run_trivy() {
@@ -103,7 +103,7 @@ trivy-sca:
       AUTH_ENTRIES=""
       if [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
         NA=$(b64_auth "${NEXUS_USER}:${NEXUS_PASSWORD}")
-        AUTH_ENTRIES="${AUTH_ENTRIES}\"nexus.svo.aero:8345\":{\"auth\":\"${NA}\"},\"nexus.svo.aero:8374\":{\"auth\":\"${NA}\"},"
+        AUTH_ENTRIES="${AUTH_ENTRIES}\"${NEXUS_DOCKER_PREFIX:-nexus.svo.aero:8345}\":{\"auth\":\"${NA}\"},\"${NEXUS_DOCKER_GROUP:-nexus.svo.aero:8374}\":{\"auth\":\"${NA}\"},"
       fi
       REG_HOST="${CI_REGISTRY:-}"
       if [ -z "$REG_HOST" ] && [ -n "${REGISTRY:-}" ]; then

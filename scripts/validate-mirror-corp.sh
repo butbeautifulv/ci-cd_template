@@ -53,12 +53,24 @@ for f in "$FUZZ" scripts/run-schemathesis-mirror.sh scripts/run-dast-zap-api-mir
   fi
 done
 
-if grep -nE '^\s+(name|image):\s*\$\{(NEXUS_|OSS_)' "$PROFILE"; then
-  fail "mirror profile still uses \${NEXUS_}/\${OSS_} in image: lines"
+# Image refs must go through $OSS_* / $NEXUS_* variables (override hosts via CI vars).
+# Ban hardcoded host:port in image:/name: lines — defaults live only under variables:.
+if grep -nE '^\s+(name|image):\s*.*nexus\.svo\.aero' "$PROFILE" | grep -vE '^\s*[0-9]+:\s*#' >/dev/null 2>&1; then
+  grep -nE '^\s+(name|image):\s*.*nexus\.svo\.aero' "$PROFILE" || true
+  fail "hardcoded nexus.svo.aero in image: lines — use \$OSS_*_IMAGE / \$NEXUS_DOCKER_*"
 else
-  ok "mirror profile image: literals"
+  ok "profile image: lines use variables (no hardcoded nexus host)"
 fi
 
+grep -q 'NEXUS_DOCKER_PREFIX:' "$PROFILE" || fail "profile must declare NEXUS_DOCKER_PREFIX"
+grep -q 'NEXUS_DOCKER_GROUP:' "$PROFILE" || fail "profile must declare NEXUS_DOCKER_GROUP"
+ok "profile declares NEXUS_DOCKER_PREFIX/GROUP"
+
+# OSS image vars must be composed from Nexus prefixes (not public registries).
+if ! grep -qE 'OSS_KANIKO_IMAGE:.*NEXUS_DOCKER_PREFIX' "$PROFILE"; then
+  fail "OSS_KANIKO_IMAGE must reference \$NEXUS_DOCKER_PREFIX"
+fi
+ok "OSS_KANIKO_IMAGE composed from NEXUS_DOCKER_PREFIX"
 grep -q 'build-kaniko.yml' "$PROFILE" || fail "profile must include build-kaniko.yml"
 ok "profile includes build-kaniko"
 

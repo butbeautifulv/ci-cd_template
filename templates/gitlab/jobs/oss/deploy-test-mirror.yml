@@ -6,7 +6,7 @@
 deploy-test:
   stage: deploy-test
   image:
-    name: nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3
+    name: $OSS_KUBECTL_IMAGE
     entrypoint: [""]
   needs:
     - job: build-image
