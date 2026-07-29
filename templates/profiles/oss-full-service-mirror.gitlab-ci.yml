@@ -224,7 +224,7 @@ api-fuzz-schemathesis:
 
 deploy-test:
   image:
-    name: ${OSS_KUBECTL_IMAGE}
+    name: nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3
     entrypoint: [""]
   rules: *mirror_service_rules
   allow_failure: false
@@ -232,7 +232,7 @@ deploy-test:
 dast-zap:
   stage: api-security
   image:
-    name: ${OSS_ZAPROXY_IMAGE}
+    name: nexus.svo.aero:8345/cxado-docker/zaproxy:2.16.0
     entrypoint: [""]
   timeout: 2h
   variables:
@@ -243,7 +243,7 @@ dast-zap:
 
 cleanup-test:
   image:
-    name: ${OSS_KUBECTL_IMAGE}
+    name: nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3
     entrypoint: [""]
   rules: *mirror_service_rules
 
