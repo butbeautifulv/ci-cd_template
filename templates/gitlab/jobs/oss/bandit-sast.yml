@@ -1,0 +1,130 @@
+# B2b — Bandit SAST (Python); Nexus pip only — no pypi.org
+
+bandit-sast:
+  stage: security
+  image:
+    name: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
+  extends:
+    - .workflow_rules_security
+    - .security_job_defaults
+  before_script:
+    - !reference [.source_checkout, before_script]
+  script:
+    - |
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
+      if [ -n "${SCAN_TARGET:-}" ] && [ -d "$SCAN_TARGET" ]; then
+        :
+      elif [ "${SERVICE_PATH:-.}" = "." ] || [ -z "${SERVICE_PATH:-}" ]; then
+        SCAN_TARGET="$SCAN_ROOT"
+      else
+        SCAN_TARGET="${SCAN_ROOT}/${SERVICE_PATH}"
+      fi
+      if [ ! -d "$SCAN_TARGET" ] && [ -d "$SCAN_ROOT" ]; then
+        echo "[bandit] WARN: $SCAN_TARGET missing; using $SCAN_ROOT"
+        SCAN_TARGET="$SCAN_ROOT"
+      fi
+      if [ ! -d "$SCAN_TARGET" ]; then
+        echo "[bandit] ERROR: scan target missing: $SCAN_TARGET"
+        exit 1
+      fi
+      if [ -z "${PIP_INDEX_URL:-}" ]; then
+        echo "[bandit] ERROR: PIP_INDEX_URL unset — Nexus PyPI required (no pypi.org)"
+        exit 1
+      fi
+      # Corp Nexus PyPI is auth-gated (401 → pip "versions: none" without creds).
+      PIP_INDEX_AUTH=$(sh scripts/pip-index-auth.sh)
+      echo "[bandit] pip_index_host=$(printf '%s' "$PIP_INDEX_AUTH" | sed -E 's#https://[^@]+@#https://***@#')"
+      TRUSTED="${PIP_TRUSTED_HOST:-nexus.svo.aero}"
+      BANDIT_PIN="bandit==${OSS_BANDIT_VERSION:-1.8.3}"
+
+      run_bandit_host() {
+        if ! command -v python3 >/dev/null 2>&1; then
+          return 1
+        fi
+        python3 -m ensurepip --upgrade >/dev/null 2>&1 || true
+        if ! python3 -m pip --version >/dev/null 2>&1; then
+          return 1
+        fi
+        if ! PIP_NO_INPUT=1 PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install -q \
+          --index-url "${PIP_INDEX_AUTH}" --trusted-host "${TRUSTED}" "$BANDIT_PIN" 2>/tmp/bandit-pip.err; then
+          echo "[bandit] WARN: $BANDIT_PIN missing — trying unpinned bandit"
+          tail -5 /tmp/bandit-pip.err || true
+          PIP_NO_INPUT=1 PIP_DISABLE_PIP_VERSION_CHECK=1 python3 -m pip install -q \
+            --index-url "${PIP_INDEX_AUTH}" --trusted-host "${TRUSTED}" bandit || return 1
+        fi
+        if bandit -r "$SCAN_TARGET" -f sarif -o bandit.sarif 2>/tmp/bandit.err; then
+          :
+        else
+          rc=$?
+          if [ ! -f bandit.sarif ]; then
+            echo "[bandit] WARN: SARIF failed (rc=$rc) — trying JSON"
+            bandit -r "$SCAN_TARGET" -f json -o bandit.json || true
+            if [ -f bandit.json ]; then
+              python3 scripts/synthesize-bandit-sarif.py bandit.json bandit.sarif
+            fi
+          fi
+        fi
+        return 0
+      }
+
+      run_bandit_docker() {
+        if ! command -v docker >/dev/null 2>&1 || [ -z "${OSS_PYTHON_IMAGE:-}" ]; then
+          return 1
+        fi
+        echo "[bandit] host pip missing — docker run ${OSS_PYTHON_IMAGE}"
+        docker run --rm \
+          -e PIP_INDEX_URL -e PIP_TRUSTED_HOST -e NEXUS_USER -e NEXUS_PASSWORD \
+          -e PIP_NO_INPUT=1 -e PIP_DISABLE_PIP_VERSION_CHECK=1 \
+          -e OSS_BANDIT_VERSION \
+          -v "$PWD:/work" -w /work \
+          "${OSS_PYTHON_IMAGE}" \
+          sh -c "
+            set -e
+            SCAN_TARGET='$SCAN_TARGET'
+            PIN='bandit==${OSS_BANDIT_VERSION:-1.8.3}'
+            TRUSTED='${TRUSTED}'
+            INDEX=\$(sh scripts/pip-index-auth.sh)
+            if ! pip install -q --index-url \"\$INDEX\" --trusted-host \"\$TRUSTED\" \"\$PIN\"; then
+              pip install -q --index-url \"\$INDEX\" --trusted-host \"\$TRUSTED\" bandit
+            fi
+            # Older Nexus bandit may lack SARIF — prefer json then synthesize.
+            if ! bandit -r \"\$SCAN_TARGET\" -f sarif -o bandit.sarif 2>/tmp/bandit.err; then
+              bandit -r \"\$SCAN_TARGET\" -f json -o bandit.json || true
+              if [ -f bandit.json ]; then
+                python3 scripts/synthesize-bandit-sarif.py bandit.json bandit.sarif
+              fi
+            fi
+            rm -rf /work/.ruff_cache /work/.bandit
+          "
+        if [ ! -f bandit.sarif ] && [ -f bandit.json ] && command -v python3 >/dev/null 2>&1; then
+          python3 scripts/synthesize-bandit-sarif.py bandit.json bandit.sarif
+        fi
+        return 0
+      }
+
+      if ! run_bandit_host; then
+        if ! run_bandit_docker; then
+          echo "[bandit] ERROR: bandit unavailable (need pip on host or docker+OSS_PYTHON_IMAGE)"
+          exit 1
+        fi
+      fi
+      if [ ! -f bandit.sarif ]; then
+        echo "[bandit] ERROR: bandit.sarif was not produced"
+        exit 1
+      fi
+      echo "[bandit] bandit.sarif_bytes=$(wc -c < bandit.sarif | tr -d ' ')"
+      if command -v python3 >/dev/null 2>&1; then
+        python3 scripts/gate-check.py --control bandit --report bandit.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_PYTHON_IMAGE:-}" ]; then
+        docker run --rm -v "$PWD:/work" -w /work "${OSS_PYTHON_IMAGE}" \
+          python3 scripts/gate-check.py --control bandit --report bandit.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif echo "${SECURITY_POLICY:-}" | grep -q adopt; then
+        echo "[bandit] WARN: gate-check skipped; bandit.sarif produced"
+      else
+        echo "[bandit] ERROR: python3 unavailable for gate-check"
+        exit 1
+      fi
+  artifacts:
+    paths:
+      - bandit.sarif
+    expire_in: 30 days

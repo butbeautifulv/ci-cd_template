@@ -1,0 +1,40 @@
+# Mirror build — Kaniko ONLY (no docker CLI / no dind).
+# Image must be in k3s containerd (if-not-present). Shell executor cannot run this job.
+
+build-image:
+  stage: build
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/kaniko-mirror-helper:v1.23.2-py3.11.11
+    entrypoint: [""]
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+  variables:
+    # Busybox tools for checkout/build scripts inside Kaniko debug image.
+    PATH: "/busybox:/kaniko:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin"
+  before_script:
+    - |
+      set -eu
+      export PATH="/busybox:/kaniko:${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}"
+      if [ ! -x /kaniko/executor ]; then
+        echo "[build] ERROR: /kaniko/executor missing — refuse shell/non-Kaniko executor"
+        exit 1
+      fi
+      echo "[build] kaniko-ok $(/kaniko/executor version 2>/dev/null | head -n 1 || true)"
+      # Evidence for source checkout branching (python vs sh archive).
+      if command -v python3 >/dev/null 2>&1; then
+        echo "[build] python3-ok $(python3 -V 2>/dev/null | head -n 1 || true)"
+      else
+        echo "[build] python3-missing"
+      fi
+    - !reference [.source_checkout, before_script]
+  script:
+    - export PATH="/busybox:/kaniko:${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin}"
+    - sh scripts/kaniko-mirror-build.sh
+  artifacts:
+    when: always
+    reports:
+      dotenv: build.env
+    paths:
+      - build.env
+    expire_in: 1 day
+  allow_failure: false

@@ -1,0 +1,18 @@
+# Remove ephemeral ci-test-<pipeline_id> namespace after DAST/fuzz complete.
+# Runs always (when: always) so namespace is cleaned up even on failure.
+# allow_failure: true — cleanup must not block pipeline status.
+
+cleanup-test:
+  stage: cleanup
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3
+    entrypoint: [""]
+  needs:
+    - job: dast-zap
+      optional: true
+    - job: api-fuzz-schemathesis
+      optional: true
+  script:
+    - sh scripts/cleanup-test-k8s.sh
+  when: always
+  allow_failure: true
