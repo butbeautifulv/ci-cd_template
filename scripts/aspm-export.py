@@ -7,8 +7,10 @@ import json
 import mimetypes
 import os
 import re
+import ssl
 import sys
 import uuid
+import xml.etree.ElementTree as ET
 from pathlib import Path
 from urllib.error import HTTPError, URLError
 from urllib.request import Request, urlopen
@@ -20,7 +22,7 @@ except ImportError:
 
 
 def expand_env(value: str) -> str:
-    """Expand ${VAR:-default} patterns using os.environ."""
+    """Expand ${VAR} and ${VAR:-default} patterns (nested defaults supported)."""
 
     def repl(match: re.Match[str]) -> str:
         body = match.group(1)
@@ -29,7 +31,24 @@ def expand_env(value: str) -> str:
             return os.environ.get(name, default)
         return os.environ.get(body, "")
 
-    return re.sub(r"\$\{([^}]+)\}", repl, value)
+    prev = None
+    out = value
+    # Nested forms like ${A:-${B:-x}} need repeated passes (inner first after outer default).
+    for _ in range(8):
+        if out == prev:
+            break
+        prev = out
+        out = re.sub(r"\$\{([^{}]+)\}", repl, out)
+    return out
+
+
+def ssl_context_for_dojo() -> ssl.SSLContext | None:
+    if os.environ.get("DEFECTDOJO_INSECURE", "").lower() in ("1", "true", "yes"):
+        ctx = ssl.create_default_context()
+        ctx.check_hostname = False
+        ctx.verify_mode = ssl.CERT_NONE
+        return ctx
+    return None
 
 
 def load_config(path: Path) -> dict:
@@ -74,6 +93,14 @@ def is_enabled(cfg: dict) -> bool:
     return bool(os.environ.get(env_name, "").strip())
 
 
+def _checkov_item_has_findings(item: dict) -> bool:
+    results = item.get("results")
+    if isinstance(results, dict) and "failed_checks" in results:
+        failed = results.get("failed_checks") or []
+        return bool(failed) if isinstance(failed, list) else bool(failed)
+    return False
+
+
 def report_has_findings(path: Path) -> bool:
     if not path.exists() or path.stat().st_size == 0:
         return False
@@ -81,6 +108,21 @@ def report_has_findings(path: Path) -> bool:
         data = json.loads(path.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return True
+    # Checkov multi-framework JSON is a list of per-framework objects.
+    if isinstance(data, list):
+        return any(_checkov_item_has_findings(x) for x in data if isinstance(x, dict))
+    if not isinstance(data, dict):
+        return False
+    # OpenSCAP / infra summary (top-level counters).
+    if "failed_checks" in data or "failed_checks_xccdf" in data:
+        return int(data.get("failed_checks", 0) or 0) > 0 or int(
+            data.get("failed_checks_xccdf", 0) or 0
+        ) > 0
+    # Checkov single-object JSON: results.failed_checks (empty → no findings).
+    results = data.get("results")
+    if isinstance(results, dict) and "failed_checks" in results:
+        failed = results.get("failed_checks") or []
+        return bool(failed) if isinstance(failed, list) else bool(failed)
     if "runs" in data:
         for run in data.get("runs", []):
             if run.get("results"):
@@ -93,7 +135,158 @@ def report_has_findings(path: Path) -> bool:
         return False
     if data.get("vulnerabilities") or data.get("Results"):
         return True
+    if data.get("findings"):
+        return bool(data["findings"])
     return path.stat().st_size > 50
+
+
+def sanitize_sarif_for_dojo(path: Path) -> Path:
+    """Rewrite SARIF so DefectDojo importer does not 500.
+
+    Root cause (repro 2026-07-29): Ruff emits results with ``"ruleId": null``
+    (e.g. notebook SyntaxError). DefectDojo SARIF parser crashes on null ruleId
+    → HTTP 500. Gitleaks/semgrep never emit null ruleIds and upload fine.
+
+    Fix: assign synthetic rule id ``missing-rule-id`` and ensure driver.rules
+    contains it. Also relativize ``file://`` URIs when they contain ``/checkout/``.
+    """
+    data = json.loads(path.read_text(encoding="utf-8"))
+    if not isinstance(data, dict) or "runs" not in data:
+        return path
+
+    synth_id = "missing-rule-id"
+    synth_rule = {
+        "id": synth_id,
+        "name": synth_id,
+        "shortDescription": {"text": "Finding had null/empty ruleId in source SARIF"},
+        "fullDescription": {
+            "text": "Normalized for DefectDojo — original scanner omitted ruleId (often syntax errors)."
+        },
+        "defaultConfiguration": {"level": "error"},
+    }
+    null_fixed = 0
+    uri_fixed = 0
+
+    for run in data.get("runs") or []:
+        if not isinstance(run, dict):
+            continue
+        driver = ((run.get("tool") or {}).get("driver")) or {}
+        rules = list(driver.get("rules") or [])
+        rule_ids = {r.get("id") for r in rules if isinstance(r, dict)}
+        need_synth = False
+
+        for res in run.get("results") or []:
+            if not isinstance(res, dict):
+                continue
+            rid = res.get("ruleId")
+            if rid is None or (isinstance(rid, str) and not rid.strip()):
+                res["ruleId"] = synth_id
+                null_fixed += 1
+                need_synth = True
+            for loc in res.get("locations") or []:
+                if not isinstance(loc, dict):
+                    continue
+                art = ((loc.get("physicalLocation") or {}).get("artifactLocation")) or {}
+                uri = art.get("uri")
+                if isinstance(uri, str) and uri.startswith("file://") and "/checkout/" in uri:
+                    art["uri"] = uri.split("/checkout/", 1)[1]
+                    uri_fixed += 1
+
+        if need_synth and synth_id not in rule_ids:
+            rules.append(synth_rule)
+            driver["rules"] = rules
+            tool = run.setdefault("tool", {})
+            tool["driver"] = driver
+
+    if null_fixed == 0 and uri_fixed == 0:
+        return path
+
+    out = path.parent / f"{path.stem}.dojo.sarif"
+    out.write_text(json.dumps(data, ensure_ascii=False), encoding="utf-8")
+    print(
+        f"[aspm] sanitized SARIF for Dojo: null_ruleId_fixed={null_fixed} "
+        f"file_uri_relativized={uri_fixed} → {out}",
+        file=sys.stderr,
+    )
+    return out
+
+
+def infra_summary_to_generic(path: Path) -> Path:
+    """Convert summary_infra.json to DefectDojo Generic Findings Import JSON."""
+    data = json.loads(path.read_text(encoding="utf-8"))
+    findings = []
+    failed = int(data.get("failed_checks", 0) or 0)
+    if failed > 0:
+        findings.append(
+            {
+                "title": f"OpenSCAP OVAL failed_checks={failed}",
+                "severity": "High" if failed > 100 else "Medium",
+                "description": (
+                    f"codename={data.get('codename')} status={data.get('status')} "
+                    f"total={data.get('total_checks')} oval_source={data.get('oval_source')}"
+                ),
+                "file_path": "infra/scap/report",
+            }
+        )
+    xccdf = data.get("failed_checks_xccdf")
+    if xccdf is not None and int(xccdf) > 0:
+        findings.append(
+            {
+                "title": f"OpenSCAP XCCDF failed_checks_xccdf={int(xccdf)}",
+                "severity": "High",
+                "description": f"total_xccdf={data.get('total_checks_xccdf')}",
+                "file_path": "infra/scap/report",
+            }
+        )
+    out = path.with_suffix(".generic.json")
+    out.write_text(json.dumps({"findings": findings}, indent=2) + "\n", encoding="utf-8")
+    return out
+
+
+def junit_to_generic(path: Path) -> Path:
+    """Convert Schemathesis/JUnit XML to DefectDojo Generic Findings Import.
+
+    Corp DefectDojo has no \"JUnit Test\" scan_type. Map failures/errors to findings;
+    all-pass runs emit one Info finding so the Test always materializes in Dojo.
+    """
+    root = ET.parse(path).getroot()
+    suites = [root] if root.tag == "testsuite" else list(root.findall(".//testsuite"))
+    findings: list[dict] = []
+    total = 0
+    for suite in suites:
+        for case in suite.findall("testcase"):
+            total += 1
+            name = case.attrib.get("name") or "unnamed"
+            classname = case.attrib.get("classname") or ""
+            err = case.find("error")
+            fail = case.find("failure")
+            node = err if err is not None else fail
+            if node is None:
+                continue
+            sev = "Critical" if err is not None else "High"
+            msg = (node.attrib.get("message") or "").strip()
+            body = (node.text or "").strip()
+            desc = "\n".join(x for x in (classname, msg, body) if x)
+            findings.append(
+                {
+                    "title": f"schemathesis: {name}",
+                    "severity": sev,
+                    "description": desc[:4000] or name,
+                    "file_path": classname or "api-fuzz",
+                }
+            )
+    if not findings:
+        findings.append(
+            {
+                "title": f"schemathesis: {total} tests passed",
+                "severity": "Info",
+                "description": f"JUnit report {path.name}: tests={total} failures=0 errors=0",
+                "file_path": "api-fuzz",
+            }
+        )
+    out = path.with_name(path.stem + ".generic.json")
+    out.write_text(json.dumps({"findings": findings}, indent=2) + "\n", encoding="utf-8")
+    return out
 
 
 def build_multipart(fields: dict[str, str], file_field: str, file_path: Path) -> tuple[bytes, str]:
@@ -136,7 +329,11 @@ def export_defectdojo(cfg: dict, control: str, report: Path, dry_run: bool) -> t
     fields = {
         "scan_type": ctrl.get("scan_type", "SARIF"),
         "test_title": ctrl.get("test_title", control),
-        "product_name": expand_env(str(dd.get("product_name", "app"))),
+        "product_name": expand_env(str(dd.get("product_name", "")))
+        or os.environ.get("DEFECTDOJO_PRODUCT_NAME")
+        or os.environ.get("CI_PROJECT_NAME")
+        or "app",
+        "product_type_name": expand_env(str(dd.get("product_type_name", "${DEFECTDOJO_PRODUCT_TYPE:-Research}"))),
         "engagement_name": expand_env(str(dd.get("engagement_name", "CI/CD"))),
         "commit_hash": expand_env(str(dd.get("commit_hash", ""))),
         "branch_tag": expand_env(str(dd.get("branch_tag", ""))),
@@ -161,8 +358,9 @@ def export_defectdojo(cfg: dict, control: str, report: Path, dry_run: bool) -> t
             "Content-Type": content_type,
         },
     )
+    ctx = ssl_context_for_dojo()
     try:
-        with urlopen(req, timeout=120) as resp:
+        with urlopen(req, timeout=120, context=ctx) as resp:
             payload = resp.read().decode("utf-8", errors="replace")
             return True, f"uploaded ({resp.status}): {payload[:200]}"
     except HTTPError as e:
@@ -205,7 +403,28 @@ def main() -> None:
         sys.exit(0)
 
     if backend == "defectdojo":
-        ok, msg = export_defectdojo(cfg, args.control, args.report, args.dry_run)
+        report = args.report
+        ctrl = (cfg.get("controls") or {}).get(args.control) or {}
+        scan_type = str(ctrl.get("scan_type", "SARIF"))
+        # Validate + sanitize SARIF locally before POST.
+        # DefectDojo 500 on null ruleId (ruff) — fix here, do not soft-fail the job.
+        if scan_type == "SARIF" or report.suffix.lower() == ".sarif":
+            try:
+                data = json.loads(report.read_text(encoding="utf-8"))
+            except Exception as e:
+                print(f"[aspm] ERROR: report is not valid JSON ({report}): {e}", file=sys.stderr)
+                sys.exit(1)
+            if not isinstance(data, dict) or "runs" not in data:
+                print(f"[aspm] ERROR: SARIF missing 'runs' key: {report}", file=sys.stderr)
+                sys.exit(1)
+            report = sanitize_sarif_for_dojo(report)
+        if args.control == "infra" and report.name.endswith("summary_infra.json"):
+            report = infra_summary_to_generic(report)
+            print(f"[aspm] converted infra summary → {report}")
+        if args.control in ("fuzzing", "binary_fuzz") and report.suffix.lower() == ".xml":
+            report = junit_to_generic(report)
+            print(f"[aspm] converted junit → {report}")
+        ok, msg = export_defectdojo(cfg, args.control, report, args.dry_run)
     else:
         print(f"[aspm] unknown backend: {backend}", file=sys.stderr)
         sys.exit(2)

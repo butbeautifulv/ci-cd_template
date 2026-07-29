@@ -19,6 +19,8 @@
 | **`oss-full`** | 100% OSS (full B–F scope) + Helm | OSS gates + GHCR + conftest/DAST/IAST/fuzz/nightly | B–F incl. F1 ZAP full | GitLab CE / GitHub; docker-only scanners |
 | **`oss-full-node`** | Node/TS validate + OSS gates | npm/Vitest + flat security-gates | B–C + Compose DAST | Next.js/React; no Ruff/Helm default |
 | **`oss-full-enterprise`** | common-templates stages | upload waves + contour Helm | B–C + DAST opt-in | Kaniko+Helm library consumers |
+| **`oss-full-service-mirror`** | tag-only mirror stages | static+image ASPM waves + cleanup | B–C focused | reusable for multiple services |
+| **`oss-full-hwa-mirror`** | tag-only mirror stages | static+image ASPM waves + cleanup | B–C focused | mirror project for `hwa_service` |
 
 `ENABLE_REAL_LINTERS=false` by default — except **`oss-full`** (`true`).
 

@@ -2,16 +2,65 @@
 
 gitleaks-scan:
   stage: security
+  image:
+    name: ${OSS_GITLEAKS_IMAGE:-ghcr.io/gitleaks/gitleaks:v8.22.1}
+    entrypoint: [""]
   extends:
     - .workflow_rules_security
     - .security_job_defaults
-    - .oss_docker_job
+  variables:
+    KUBERNETES_MEMORY_REQUEST: "${KUBERNETES_MEMORY_REQUEST:-128Mi}"
+    KUBERNETES_MEMORY_LIMIT: "${KUBERNETES_MEMORY_LIMIT:-512Mi}"
+  before_script:
+    - !reference [.source_checkout, before_script]
   script:
     - |
-      docker run --rm -v "$PWD:/repo" -w /repo "${OSS_GITLEAKS_IMAGE:-ghcr.io/gitleaks/gitleaks:v8.22.1}" \
-        detect --source . --report-format sarif --report-path gitleaks.sarif --no-git || true
-    - python3 scripts/gate-check.py --control secrets --report gitleaks.sarif \
-        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
+      if [ -n "${SCAN_TARGET:-}" ] && [ -d "$SCAN_TARGET" ]; then
+        :
+      elif [ "${SERVICE_PATH:-.}" = "." ] || [ -z "${SERVICE_PATH:-}" ]; then
+        SCAN_TARGET="$SCAN_ROOT"
+      else
+        SCAN_TARGET="${SCAN_ROOT}/${SERVICE_PATH}"
+      fi
+      if [ ! -d "$SCAN_TARGET" ] && [ -d "$SCAN_ROOT" ]; then
+        echo "[secrets] WARN: $SCAN_TARGET missing; using $SCAN_ROOT"
+        SCAN_TARGET="$SCAN_ROOT"
+      fi
+      if [ ! -d "$SCAN_TARGET" ]; then
+        echo "[secrets] ERROR: scan target missing: $SCAN_TARGET"
+        exit 1
+      fi
+      run_gitleaks() {
+        gitleaks detect --source "$SCAN_TARGET" --report-format sarif --report-path gitleaks.sarif --no-git || true
+      }
+      if command -v gitleaks >/dev/null 2>&1; then
+        run_gitleaks
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_GITLEAKS_IMAGE:-}" ]; then
+        # Shell runners often ignore job image:; run Nexus gitleaks via docker (no apk/apt).
+        echo "[secrets] gitleaks binary missing — docker run ${OSS_GITLEAKS_IMAGE}"
+        docker run --rm -v "$PWD:/work" -w /work --entrypoint gitleaks "${OSS_GITLEAKS_IMAGE}" \
+          detect --source "$SCAN_TARGET" --report-format sarif --report-path gitleaks.sarif --no-git || true
+      else
+        echo "[secrets] ERROR: gitleaks unavailable (need OSS_GITLEAKS_IMAGE in job image or docker; no apk/apt)"
+        exit 1
+      fi
+      if [ ! -f gitleaks.sarif ]; then
+        echo "[secrets] ERROR: gitleaks.sarif was not produced"
+        exit 1
+      fi
+      if command -v python3 >/dev/null 2>&1; then
+        python3 scripts/gate-check.py --control secrets --report gitleaks.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_PYTHON_IMAGE:-}" ]; then
+        echo "[secrets] python3 missing — gate-check via Nexus python image"
+        docker run --rm -v "$PWD:/work" -w /work "${OSS_PYTHON_IMAGE}" \
+          python3 scripts/gate-check.py --control secrets --report gitleaks.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif [ -s gitleaks.sarif ] && echo "${SECURITY_POLICY:-}" | grep -q adopt; then
+        echo "[secrets] WARN: gate-check skipped (no python/docker in corp gitleaks image); gitleaks.sarif produced"
+      else
+        echo "[secrets] ERROR: python3 unavailable and no docker for OSS_PYTHON_IMAGE gate-check (no apk/apt)"
+        exit 1
+      fi
   artifacts:
     paths:
       - gitleaks.sarif

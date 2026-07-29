@@ -1,0 +1,288 @@
+# Profile: oss-full-service-mirror — API/schedule/release-tag CI (no hotfix tag spam).
+# Corp offline: ALL tool images / pip must come from Nexus — no ghcr/dockerhub/pypi.org fallbacks.
+#
+# Hard-fail: job errors fail the pipeline (no allow_failure soft-green).
+# Build: Kaniko ONLY (nexus.svo.aero:8345/cxado-docker/kaniko-mirror-helper:v1.23.2-py3.11.11).
+# Preload images into k3s containerd (if-not-present). Shell executor must not claim build jobs.
+
+stages:
+  - validate
+  - security
+  - static-security-upload
+  - build
+  - image-security-upload
+  - deploy-test
+  - api-security
+  - post-deploy
+  - cleanup
+
+default:
+  tags:
+    - devsecops
+    - k3s
+    - corp
+    - p30
+
+variables:
+  REGISTRY: "${CI_REGISTRY_IMAGE}"
+  GIT_CLEAN_FLAGS: "-ffdx -e .trivy-cache -e .trivy-cache/**"
+  SECURITY_POLICY: "config/security-gate-policy-adopt.yaml"
+  ENABLE_REAL_LINTERS: "true"
+  SERVICE_PATH: "."
+  SERVICE_TAG_REGEX: "^(hwa_service|data_lake_service|user_service)/v[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
+  SCAN_ROOT: "checkout"
+  MIRROR_SERVICES: "config/mirror-services.yaml"
+  DOCKERFILE_GLOBS: "$SCAN_ROOT/Docker/**/Dockerfile* $SCAN_ROOT/**/Dockerfile* $SCAN_ROOT/Dockerfile*"
+  NEXUS_DOCKER_PREFIX: "nexus.svo.aero:8345"
+  NEXUS_DOCKER_GROUP: "nexus.svo.aero:8374"
+  NEXUS_CXADO_DOCKER: "nexus.svo.aero:8345/cxado-docker"
+  OSS_GITLEAKS_IMAGE: "nexus.svo.aero:8374/gitleaks/gitleaks:v8.22.1"
+  OSS_TRIVY_IMAGE: "nexus.svo.aero:8345/aquasec/trivy:0.67.2"
+  OSS_SEMGREP_IMAGE: "nexus.svo.aero:8345/returntocorp/semgrep:1.117.0"
+  OSS_PYTHON_IMAGE: "nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm"
+  OSS_HADOLINT_IMAGE: "nexus.svo.aero:8345/hadolint/hadolint:v2.12.0-alpine"
+  OSS_CHECKOV_IMAGE: "nexus.svo.aero:8345/bridgecrew/checkov:3.2.449"
+  OSS_SYFT_IMAGE: "nexus.svo.aero:8345/anchore/syft:v1.20.0"
+  OSS_DOCKER_CLI_IMAGE: "nexus.svo.aero:8345/library/docker:29.3.1-cli"
+  OSS_DOCKER_DIND_IMAGE: "nexus.svo.aero:8345/library/docker:29.3.1-dind"
+  OSS_KANIKO_IMAGE: "nexus.svo.aero:8345/cxado-docker/kaniko-mirror-helper:v1.23.2-py3.11.11"
+  OSS_SCHEMATHESIS_IMAGE: "nexus.svo.aero:8374/schemathesis/schemathesis:3.39.2"
+  OSS_ZAPROXY_IMAGE: "nexus.svo.aero:8345/cxado-docker/zaproxy:2.16.0"
+  OSS_KUBECTL_IMAGE: "nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3"
+  TRIVY_DB_REPOSITORY: "nexus.svo.aero:8374/aquasecurity/trivy-db"
+  TRIVY_JAVA_DB_REPOSITORY: "nexus.svo.aero:8374/aquasecurity/trivy-java-db"
+  TRIVY_INSECURE: "true"
+  DEFECTDOJO_INSECURE: "true"
+  DEFECTDOJO_FAIL_ON_ERROR: "true"
+  SEMGREP_RULES: "config/semgrep/vendor"
+  SEMGREP_SEND_METRICS: "off"
+  OSS_BANDIT_VERSION: "1.8.3"
+  BUILD_BASE_IMAGE: "registry.svo.aero:443/dpm/airport_digital_ecosystem/map_objects/infra/python_prod_3.11"
+  # Runnable stage (base+src). Not production/Nuitka — needed for ephemeral DAST deploy.
+  BUILD_DOCKER_TARGET: "source"
+  KUBERNETES_MEMORY_REQUEST: "${KUBERNETES_MEMORY_REQUEST:-64Mi}"
+  KUBERNETES_MEMORY_LIMIT: "${KUBERNETES_MEMORY_LIMIT:-512Mi}"
+  KUBERNETES_HELPER_MEMORY_REQUEST: "${KUBERNETES_HELPER_MEMORY_REQUEST:-32Mi}"
+  KUBERNETES_HELPER_MEMORY_LIMIT: "${KUBERNETES_HELPER_MEMORY_LIMIT:-128Mi}"
+
+# Override shared soft default — mirror jobs must fail the pipeline on error.
+.security_job_defaults:
+  allow_failure: false
+  artifacts:
+    expire_in: 30 days
+
+.mirror_service_rules: &mirror_service_rules
+  - if: '$CI_COMMIT_TAG =~ /hotfix/i'
+    when: never
+  - if: '$CI_COMMIT_TAG'
+  - if: '$SERVICE_NAME'
+  - when: never
+
+workflow:
+  rules:
+    - if: '$SAST_DISABLED == "true" || $SAST_DISABLED == "1" || $SECURITY_DISABLED == "true" || $SECURITY_DISABLED == "1"'
+      when: never
+    - if: '$CI_COMMIT_TAG =~ /hotfix/i'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+      when: always
+    - if: '$MIRROR_SYNC == "1"'
+      when: always
+    - if: '$SERVICE_NAME'
+      when: always
+    - if: '$CI_PIPELINE_SOURCE == "api" || $CI_PIPELINE_SOURCE == "web" || $CI_PIPELINE_SOURCE == "trigger" || $CI_PIPELINE_SOURCE == "pipeline"'
+      when: always
+    - when: never
+
+include:
+  - local: '/templates/gitlab/jobs/_security.common.yml'
+  - local: '/templates/gitlab/jobs/oss/versions.yml'
+  - local: '/templates/gitlab/jobs/oss/source-checkout.yml'
+  - local: '/templates/gitlab/jobs/oss/sync-sources.yml'
+  - local: '/templates/gitlab/jobs/oss/_docker.yml'
+  - local: '/templates/gitlab/jobs/registry/variables.yml'
+  - local: '/templates/gitlab/jobs/registry/login.yml'
+  - local: '/templates/gitlab/jobs/oss/gitleaks.yml'
+  - local: '/templates/gitlab/jobs/forbidden-files.yml'
+  - local: '/templates/gitlab/jobs/oss/semgrep-sast.yml'
+  - local: '/templates/gitlab/jobs/oss/bandit-sast.yml'
+  - local: '/templates/gitlab/jobs/oss/trivy-osa.yml'
+  - local: '/templates/gitlab/jobs/oss/checkov-iac.yml'
+  - local: '/templates/gitlab/jobs/dockerfile-lint.yml'
+  - local: '/templates/gitlab/jobs/linter-security.yml'
+  - local: '/templates/gitlab/jobs/aspm/upload-static.yml'
+  - local: '/templates/gitlab/jobs/oss/build-kaniko.yml'
+  - local: '/templates/gitlab/jobs/sbom.yml'
+  - local: '/templates/gitlab/jobs/oss/trivy-sca.yml'
+  - local: '/templates/gitlab/jobs/aspm/upload-image.yml'
+  - local: '/templates/gitlab/jobs/sign.yml'
+  - local: '/templates/gitlab/jobs/oss/deploy-test-mirror.yml'
+  - local: '/templates/gitlab/jobs/oss/dast-zap-mirror.yml'
+  - local: '/templates/gitlab/jobs/oss/api-fuzz-schemathesis-mirror.yml'
+  - local: '/templates/gitlab/jobs/oss/cleanup-test-mirror.yml'
+  # cleanup-runner defined below (no .oss_docker_job)
+
+gitleaks-scan:
+  image:
+    name: nexus.svo.aero:8374/gitleaks/gitleaks:v8.22.1
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  allow_failure: false
+
+forbidden-files:
+  image:
+    name: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  rules: *mirror_service_rules
+  allow_failure: false
+
+semgrep-sast:
+  image:
+    name: nexus.svo.aero:8345/returntocorp/semgrep:1.117.0
+    entrypoint: [""]
+  variables:
+    KUBERNETES_MEMORY_REQUEST: "512Mi"
+    KUBERNETES_MEMORY_LIMIT: "2Gi"
+  rules: *mirror_service_rules
+  allow_failure: false
+
+bandit-sast:
+  image:
+    name: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  variables:
+    KUBERNETES_MEMORY_REQUEST: "128Mi"
+    KUBERNETES_MEMORY_LIMIT: "512Mi"
+  rules: *mirror_service_rules
+  allow_failure: false
+
+trivy-osa:
+  image:
+    name: nexus.svo.aero:8345/aquasec/trivy:0.67.2
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  allow_failure: false
+
+checkov-iac:
+  image:
+    name: nexus.svo.aero:8345/bridgecrew/checkov:3.2.449
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  allow_failure: false
+
+dockerfile-lint:
+  image:
+    name: nexus.svo.aero:8345/hadolint/hadolint:v2.12.0-alpine
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  allow_failure: false
+
+linter-security:
+  image:
+    name: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  variables:
+    KUBERNETES_MEMORY_REQUEST: "128Mi"
+    KUBERNETES_MEMORY_LIMIT: "512Mi"
+  rules: *mirror_service_rules
+  allow_failure: false
+
+build-image:
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/kaniko-mirror-helper:v1.23.2-py3.11.11
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  needs: []
+  allow_failure: false
+  # No docker/dind — Kaniko only (image preloaded in k3s containerd).
+
+sbom-generate:
+  image:
+    name: nexus.svo.aero:8345/aquasec/trivy:0.67.2
+    entrypoint: [""]
+  rules:
+    - when: never
+  allow_failure: false
+
+trivy-sca:
+  image:
+    name: nexus.svo.aero:8345/aquasec/trivy:0.67.2
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  needs:
+    - job: build-image
+      artifacts: true
+      optional: false
+  allow_failure: false
+
+api-fuzz-schemathesis:
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/schemathesis:3.39.2
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  # Skip-with-log exits 0; real fuzz failures must fail the job.
+  allow_failure: false
+
+deploy-test:
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3
+    entrypoint: [""]
+  rules: *mirror_service_rules
+  allow_failure: false
+
+dast-zap:
+  stage: api-security
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/zaproxy:2.16.0
+    entrypoint: [""]
+  timeout: 2h
+  variables:
+    KUBERNETES_MEMORY_REQUEST: "512Mi"
+    KUBERNETES_MEMORY_LIMIT: "2Gi"
+  rules: *mirror_service_rules
+  allow_failure: false
+
+cleanup-test:
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3
+    entrypoint: [""]
+  rules: *mirror_service_rules
+
+upload-dast-to-dojo:
+  rules: *mirror_service_rules
+  allow_failure: false
+
+upload-fuzz-to-dojo:
+  rules: *mirror_service_rules
+  allow_failure: false
+
+sign-image:
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /hotfix/i'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: manual
+    - if: '$SERVICE_NAME'
+      when: manual
+    - when: never
+  allow_failure: false
+
+cleanup-runner:
+  stage: post-deploy
+  image: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  when: always
+  # Cleanup must not block pipeline status if rm fails.
+  allow_failure: true
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /hotfix/i'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+      when: always
+    - if: '$SERVICE_NAME'
+      when: always
+    - when: never
+  script:
+    - |
+      set +e
+      echo "[cleanup] start"
+      rm -rf .cache reports/tmp tmp checkout/.git 2>/dev/null || true
+      echo "[cleanup] done"

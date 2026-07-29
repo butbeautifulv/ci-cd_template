@@ -1,0 +1,30 @@
+# Poll source SHAs and trigger per-service API pipelines (no git tags).
+# Schedule + manual only. Does not run scanners itself.
+
+sync-sources:
+  stage: validate
+  image: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "schedule"'
+    - if: '$CI_PIPELINE_SOURCE == "web" && $MIRROR_SYNC == "1"'
+    - if: '$CI_PIPELINE_SOURCE == "api" && $MIRROR_SYNC == "1"'
+    - when: never
+  variables:
+    MIRROR_SERVICES: "config/mirror-services.yaml"
+    MIRROR_SYNC_STATE: ".mirror-sync-state.json"
+    # Job token may lack create-pipeline; prefer SOURCE_GIT_TOKEN / GITLAB_PAT CI var.
+  script:
+    - |
+      set -eu
+      export SOURCE_SSL_NO_VERIFY="${SOURCE_SSL_NO_VERIFY:-1}"
+      export MIRROR_PROJECT_ID="${MIRROR_PROJECT_ID:-$CI_PROJECT_ID}"
+      if [ -z "${GITLAB_PAT:-}" ] && [ -n "${SOURCE_GIT_TOKEN:-}" ]; then
+        export GITLAB_PAT="$SOURCE_GIT_TOKEN"
+      fi
+      python3 scripts/mirror-sync-sources.py
+  artifacts:
+    when: always
+    paths:
+      - .mirror-sync-state.json
+    expire_in: 90 days
+  allow_failure: true

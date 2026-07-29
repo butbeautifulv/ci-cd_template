@@ -1,17 +1,22 @@
 # ASPM upload wave — supply-chain findings (post-build)
+# Corp: literal Nexus python; no pypi.org; product from resolve-mirror-service.
 
 .aspm_upload_image:
   stage: image-security-upload
-  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
+  image: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
   extends:
     - .defectdojo_skip_rules
     - .security_job_defaults
-  before_script:
-    - pip install -q --index-url "${PIP_INDEX_URL:-https://pypi.org/simple}" --trusted-host "${PIP_TRUSTED_HOST:-pypi.org}" pyyaml
   script:
     - |
       REPORT="${ASPM_REPORT:?}"
       CONTROL="${ASPM_CONTROL:?}"
+      if [ -f scripts/resolve-mirror-service.sh ] && { [ -n "${CI_COMMIT_TAG:-}" ] || [ -n "${SERVICE_NAME:-}" ]; }; then
+        # shellcheck disable=SC1091
+        . scripts/resolve-mirror-service.sh || true
+      fi
+      echo "[aspm] product=${DEFECTDOJO_PRODUCT_NAME:-unset} control=$CONTROL report=$REPORT"
+      echo "[aspm] BUILD_FALLBACK=${BUILD_FALLBACK:-unset}"
       if [ ! -f "$REPORT" ]; then
         echo "[aspm] skip — artifact $REPORT not found"
         exit 0
@@ -20,7 +25,20 @@
         echo "[aspm] skip — artifact $REPORT is empty"
         exit 0
       fi
-      python3 scripts/aspm-export.py --control "$CONTROL" --report "$REPORT" --skip-empty
+      if command -v python3 >/dev/null 2>&1; then
+        python3 scripts/aspm-export.py --control "$CONTROL" --report "$REPORT" --skip-empty
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_PYTHON_IMAGE:-}" ]; then
+        docker run --rm \
+          -e DEFECTDOJO_URL -e DEFECTDOJO_API_TOKEN -e DEFECTDOJO_PRODUCT_NAME \
+          -e DEFECTDOJO_ENGAGEMENT -e DEFECTDOJO_FAIL_ON_ERROR -e DEFECTDOJO_INSECURE \
+          -e CI_PROJECT_NAME -e CI_COMMIT_SHA -e CI_COMMIT_REF_NAME -e CI_PIPELINE_ID \
+          -v "$PWD:/work" -w /work \
+          "${OSS_PYTHON_IMAGE}" \
+          python3 scripts/aspm-export.py --control "$CONTROL" --report "$REPORT" --skip-empty
+      else
+        echo "[aspm] ERROR: python3/docker unavailable"
+        exit 1
+      fi
 
 upload-sca-to-dojo:
   extends: .aspm_upload_image
@@ -38,6 +56,6 @@ upload-sbom-to-dojo:
     ASPM_CONTROL: sbom
     ASPM_REPORT: sbom.cdx.json
   needs:
-    - job: sbom-generate
+    - job: trivy-sca
       artifacts: true
       optional: true

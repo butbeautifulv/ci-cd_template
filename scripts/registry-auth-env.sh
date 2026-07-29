@@ -1,6 +1,7 @@
-#!/usr/bin/env bash
-# Export registry credentials for Trivy/cosign image pull auth (source from CI before_script).
-set -euo pipefail
+#!/usr/bin/env sh
+# Export registry credentials for Trivy/cosign image pull auth (. from CI before_script).
+# POSIX — may be sourced from ash.
+set -eu
 
 backend="${REGISTRY_BACKEND:-gitlab}"
 
@@ -23,7 +24,7 @@ case "$backend" in
     ;;
 esac
 
-if [[ -z "${TRIVY_USERNAME:-}" || -z "${TRIVY_PASSWORD:-}" ]]; then
+if [ -z "${TRIVY_USERNAME:-}" ] || [ -z "${TRIVY_PASSWORD:-}" ]; then
   echo "ERROR: registry credentials not set for backend=$backend" >&2
   return 1 2>/dev/null || exit 1
 fi

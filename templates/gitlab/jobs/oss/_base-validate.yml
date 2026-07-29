@@ -7,7 +7,7 @@
 
 lint:
   stage: validate
-  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
+  image: ${OSS_PYTHON_IMAGE}
   extends: .workflow_rules
   variables:
     ENABLE_REAL_LINTERS: "${ENABLE_REAL_LINTERS:-false}"
@@ -23,7 +23,7 @@ lint:
 
 unit-test:
   stage: test
-  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
+  image: ${OSS_PYTHON_IMAGE}
   extends: .workflow_rules
   script:
     - |

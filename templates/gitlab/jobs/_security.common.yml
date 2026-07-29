@@ -6,6 +6,8 @@
       when: never
 
 .security_job_defaults:
+  # Soft by default for adoption noise. Enforcing jobs override allow_failure: false
+  # (see docs/runbooks/ci-soft-fail-contract.md). Do not pair with mode:block without override.
   allow_failure: true
   artifacts:
     expire_in: 30 days

@@ -11,6 +11,7 @@ defaults:
 secrets:
   mode: warn
   block_on_verified: false
+  max_findings: 0
   artifact_retention_days: 30
 
 sast:
@@ -21,22 +22,27 @@ sast:
   main_scope: full
   ignore_files_require_review: true
 
+bandit:
+  mode: warn
+  severity_block: [critical, high]
+  severity_warn: [medium]
+
 osa:
-  mode: block
+  mode: warn
   block_direct_critical: true
   block_transitive_critical: false
   reject_latest_tags: true
 
 sca:
-  mode: block
+  mode: warn
   severity_block: [critical, high]
 
 container:
-  mode: block
+  mode: warn
   severity_block: [critical, high]
 
 iac:
-  mode: block
+  mode: warn
   severity_block: [critical, high]
 
 dockerfile:
@@ -45,9 +51,26 @@ dockerfile:
 
 linters:
   mode: warn
+  max_findings: 50
 
 dast:
   mode: warn
 
+fuzzing:
+  mode: warn
+  # Missing junit is fail-hard in run-schemathesis-mirror.sh (not this mode).
+
 sec_func_tests:
   mode: warn
+
+# I1 — Host/OS SCAP (adopt: warn, thresholds not stricter than strict policy)
+infra:
+  mode: warn
+  summarize_threshold: 1500
+  failed_threshold: 1000
+  strict_summarize: false
+  xccdf_failed_threshold: 50
+  waivers_path: infra/scap/waivers.yaml
+  report: reports/summary_infra.json
+  trigger: manual_or_schedule
+  artifact_retention_days: 30

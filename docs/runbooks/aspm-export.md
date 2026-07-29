@@ -17,17 +17,34 @@ DAF practice: `P-DEFECT-CNS` — consolidation of SAST/DAST/SCA findings.
 2. Product will be auto-created if `auto_create_context: true` (default)
 3. Engagement name default: `CI/CD` (override via `DEFECTDOJO_ENGAGEMENT`)
 
+### Mirror multi-service naming
+
+- **Product** = service name from the release tag (`hwa_service`, `data_lake_service`, `user_service`), set by [`scripts/resolve-mirror-service.sh`](../../scripts/resolve-mirror-service.sh) from [`config/mirror-services.yaml`](../../config/mirror-services.yaml).
+- **Engagement** stays shared: `CI/CD` (do not create one engagement per service).
+- Historical uploads under product `map_objects-ci` remain; new pipelines must log `[aspm] product=<service>` — not the mirror project name.
+
 ## GitLab CI variables
 
 | Variable | Required | Description |
 |----------|----------|-------------|
-| `DEFECTDOJO_URL` | yes | Base URL, e.g. `https://defectdojo.corp.example` |
+| `DEFECTDOJO_URL` | yes | Base URL reachable from the **runner** (see below) |
 | `DEFECTDOJO_API_TOKEN` | yes | API token (masked, protected) |
-| `DEFECTDOJO_PRODUCT_NAME` | no | Default `$CI_PROJECT_NAME` |
-| `DEFECTDOJO_ENGAGEMENT` | no | Default `CI/CD` |
-| `DEFECTDOJO_FAIL_ON_ERROR` | no | `true` to fail job on upload error (default `false`) |
+| `DEFECTDOJO_PRODUCT_NAME` | no | Default `$CI_PROJECT_NAME` (exporter falls back if unset). **Mirror multi-service:** set to service name from tag via `scripts/resolve-mirror-service.sh` (e.g. `hwa_service`), not the mirror project name |
+| `DEFECTDOJO_PRODUCT_TYPE` | no | Product type for auto-create (default `Research`) |
+| `DEFECTDOJO_ENGAGEMENT` | no | Default `CI/CD` (keep shared across services; product distinguishes them) |
+| `DEFECTDOJO_FAIL_ON_ERROR` | no | `true` to fail job on upload error (default `false`; mirror profile sets `true`) |
+| `DEFECTDOJO_INSECURE` | no | `true` to skip TLS verify (NodePort self-signed / corp MITM) |
 
 Without `DEFECTDOJO_URL` — export is **noop** (exit 0).
+
+### Which URL for which runner
+
+| Runner location | `DEFECTDOJO_URL` |
+|-----------------|------------------|
+| K8s pod with cluster DNS | `http://defectdojo.cxado-aspm.svc.cluster.local:8080` |
+| Shell / host outside cluster (P30 mirror) | `https://<P30_NODE_IP>:30808` (TLS gateway; set `DEFECTDOJO_INSECURE=true`) |
+
+Do **not** use in-cluster DNS from shell runners — soft-green skips or network errors, empty DD UI.
 
 ## Import vs reimport
 

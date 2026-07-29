@@ -1,0 +1,163 @@
+# Clone/fetch real application source into SCAN_ROOT (mirror workspace is CI templates only).
+# Corp offline: NEVER apt/apk — public package mirrors are blocked.
+# Portable POSIX sh (trivy/gitleaks images often lack bash arrays).
+
+.source_checkout:
+  before_script:
+    - |
+      set -eu
+      # Ensure python3 is discoverable even if runner/image PATH differs.
+      export PATH="/usr/local/bin:/usr/bin:${PATH:-}"
+      # Avoid relying on PATH: some job runners can hide python3 from `command -v`.
+      PY3_BIN=""
+      if [ -x /usr/local/bin/python3 ]; then
+        PY3_BIN="/usr/local/bin/python3"
+      elif [ -x /usr/bin/python3 ]; then
+        PY3_BIN="/usr/bin/python3"
+      elif command -v python3 >/dev/null 2>&1; then
+        PY3_BIN="$(command -v python3)"
+      fi
+      # Tag or API vars → SOURCE_* + DEFECTDOJO_PRODUCT_NAME (multi-service mirror).
+      if [ -f scripts/resolve-mirror-service.sh ] && { [ -n "${CI_COMMIT_TAG:-}" ] || [ -n "${SERVICE_NAME:-}" ]; }; then
+        # shellcheck disable=SC1091
+        . scripts/resolve-mirror-service.sh
+      fi
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
+      SERVICE_PATH="${SERVICE_PATH:-.}"
+      SOURCE_REPO_URL="${SOURCE_REPO_URL:?SOURCE_REPO_URL is required (set via resolve-mirror-service or CI var)}"
+      if [ -z "${SOURCE_REF:-}" ]; then
+        SOURCE_REF="${CI_COMMIT_TAG:-}"
+      fi
+      if [ -z "${SOURCE_REF:-}" ]; then
+        echo "[source] ERROR: SOURCE_REF required (API var, tag, or source_ref_fallback via resolve)"
+        exit 1
+      fi
+      SOURCE_PROJECT_ID="${SOURCE_PROJECT_ID:?SOURCE_PROJECT_ID is required}"
+      GITLAB_API="${CI_API_V4_URL:-${GITLAB_URL:-https://gitlab.svo.aero}/api/v4}"
+      GITLAB_API="${GITLAB_API%/}"
+      case "$GITLAB_API" in
+        */api/v4) ;;
+        *) GITLAB_API="${GITLAB_API}/api/v4" ;;
+      esac
+      # Corp GitLab often presents a MITM cert; archive fetch must not hang on verify.
+      export SOURCE_SSL_NO_VERIFY="${SOURCE_SSL_NO_VERIFY:-1}"
+
+      # Mirror tags: service/vX.Y.Z-hotfixN — source repos use vX.Y.Z or X.Y.Z.
+      BASE_REF=$(printf '%s' "$SOURCE_REF" | sed -E 's/-(hotfix[0-9]+|pilot[A-Za-z0-9]+)$//')
+      REF_LIST="$SOURCE_REF"
+      if [ "$BASE_REF" != "$SOURCE_REF" ]; then
+        REF_LIST="$REF_LIST $BASE_REF"
+      fi
+      # Version after service/ prefix (with and without leading v).
+      VER_PART="${BASE_REF#*/}"
+      if [ -n "$VER_PART" ] && [ "$VER_PART" != "$BASE_REF" ]; then
+        REF_LIST="$REF_LIST $VER_PART"
+        case "$VER_PART" in
+          v*) REF_LIST="$REF_LIST ${VER_PART#v}" ;;
+        esac
+      fi
+      if [ -n "${SOURCE_REF_FALLBACK:-}" ] && [ "${SOURCE_REF_FALLBACK}" != "${SOURCE_REF}" ]; then
+        REF_LIST="$REF_LIST $SOURCE_REF_FALLBACK"
+      fi
+      echo "[source] REF_LIST=$REF_LIST"
+
+      rm -rf "$SCAN_ROOT"
+      CLONED=0
+      SOURCE_REF_RESOLVED=""
+
+      fetch_via_git() {
+        REF="$1"
+        AUTH_URL="$SOURCE_REPO_URL"
+        if [ -n "${SOURCE_GIT_TOKEN:-}" ]; then
+          case "$SOURCE_REPO_URL" in
+            https://*)
+              AUTH_URL="https://oauth2:${SOURCE_GIT_TOKEN}@${SOURCE_REPO_URL#https://}"
+              ;;
+          esac
+        fi
+        echo "[source] git clone ref=$REF into $SCAN_ROOT"
+        git clone --depth 1 --branch "$REF" "$AUTH_URL" "$SCAN_ROOT"
+      }
+
+      fetch_via_python_archive() {
+        REF="$1"
+        echo "[source] archive API ref=$REF project=$SOURCE_PROJECT_ID"
+        SOURCE_GIT_TOKEN="${SOURCE_GIT_TOKEN:?SOURCE_GIT_TOKEN required for archive fetch}"
+        PY3_BIN="${PY3_BIN:?PY3_BIN not set (python3 missing)}"
+        if [ ! -f scripts/fetch-source-archive.py ]; then
+          echo "[source] ERROR: missing scripts/fetch-source-archive.py"
+          return 1
+        fi
+        "$PY3_BIN" scripts/fetch-source-archive.py \
+          "$GITLAB_API" "$SOURCE_PROJECT_ID" "$REF" "$SCAN_ROOT" "$SOURCE_GIT_TOKEN"
+      }
+
+      fetch_via_sh_archive() {
+        REF="$1"
+        echo "[source] archive.sh ref=$REF project=$SOURCE_PROJECT_ID"
+        SOURCE_GIT_TOKEN="${SOURCE_GIT_TOKEN:?SOURCE_GIT_TOKEN required for archive fetch}"
+        if [ ! -f scripts/fetch-source-archive.sh ]; then
+          return 1
+        fi
+        sh scripts/fetch-source-archive.sh \
+          "$GITLAB_API" "$SOURCE_PROJECT_ID" "$REF" "$SCAN_ROOT" "$SOURCE_GIT_TOKEN"
+      }
+
+      if ! command -v git >/dev/null 2>&1 \
+        && [ -z "${PY3_BIN:-}" ] \
+        && [ ! -f scripts/fetch-source-archive.sh ]; then
+        echo "[source] ERROR: neither git nor python3 nor fetch-source-archive.sh (refusing apt/apk in corp)"
+        exit 1
+      fi
+
+      for REF in $REF_LIST; do
+        rm -rf "$SCAN_ROOT"
+        if command -v git >/dev/null 2>&1 && fetch_via_git "$REF"; then
+          CLONED=1
+          SOURCE_REF_RESOLVED="$REF"
+          break
+        fi
+        rm -rf "$SCAN_ROOT"
+        if [ -n "${PY3_BIN:-}" ] && fetch_via_python_archive "$REF"; then
+          CLONED=1
+          SOURCE_REF_RESOLVED="$REF"
+          break
+        fi
+        rm -rf "$SCAN_ROOT"
+        if fetch_via_sh_archive "$REF"; then
+          CLONED=1
+          SOURCE_REF_RESOLVED="$REF"
+          break
+        fi
+      done
+
+      if [ "$CLONED" -ne 1 ]; then
+        echo "[source] ERROR: failed to fetch $SOURCE_REPO_URL at refs: $REF_LIST"
+        echo "[source] HINT: set SOURCE_GIT_TOKEN and SOURCE_PROJECT_ID; ensure tag exists on source"
+        exit 1
+      fi
+
+      echo "[source] pwd=$(pwd)"
+      echo "[source] resolved_ref=${SOURCE_REF_RESOLVED}"
+      if command -v git >/dev/null 2>&1 && [ -d "$SCAN_ROOT/.git" ]; then
+        echo "[source] HEAD=$(git -C "$SCAN_ROOT" rev-parse HEAD)"
+      fi
+      if [ "$SERVICE_PATH" = "." ] || [ -z "$SERVICE_PATH" ]; then
+        SCAN_TARGET="$SCAN_ROOT"
+      else
+        SCAN_TARGET="$SCAN_ROOT/$SERVICE_PATH"
+      fi
+      if [ ! -d "$SCAN_TARGET" ] && [ -d "$SCAN_ROOT" ]; then
+        echo "[source] WARN: $SCAN_TARGET missing; falling back to $SCAN_ROOT (per-service repo layout)"
+        SCAN_TARGET="$SCAN_ROOT"
+      fi
+      if [ ! -d "$SCAN_TARGET" ]; then
+        echo "[source] ERROR: missing scan target $SCAN_TARGET after checkout"
+        ls -la "$SCAN_ROOT" | head -50
+        exit 1
+      fi
+      echo "[source] SCAN_TARGET=$SCAN_TARGET"
+      echo "[source] listing $SCAN_TARGET (evidence):"
+      ls "$SCAN_TARGET" | head -30
+      export SCAN_TARGET
+      export SCAN_ROOT

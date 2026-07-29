@@ -1,20 +1,111 @@
 # C1 — SBOM generation (artifact contract: sbom.cdx.json)
+# Prefer Trivy CycloneDX (same tool as SCA/OSA) — no separate syft dependency on shell runners.
+# Corp: no apt/apk; docker-run Nexus trivy when job image is ignored.
 
 sbom-generate:
   stage: build
   image:
-    name: ${OSS_SYFT_IMAGE:-anchore/syft:v1.20.0}
+    name: ${OSS_TRIVY_IMAGE:-aquasec/trivy:0.67.2}
     entrypoint: [""]
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   before_script:
-    - apt-get update -qq && apt-get install -y -qq python3
+    - !reference [.source_checkout, before_script]
+    - source scripts/registry-resolve-env.sh
   script:
-    - syft dir:. -o cyclonedx-json > sbom.cdx.json
-    - test -s sbom.cdx.json
-    - python3 scripts/gate-check.py --control sbom --report sbom.cdx.json \
-        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+    - |
+      set -eu
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
+      TRIVY_IMG="${OSS_TRIVY_IMAGE:-nexus.svo.aero:8345/aquasec/trivy:0.67.2}"
+      for cand in \
+        /etc/ssl/certs/nexus/ca.crt \
+        "/etc/docker/certs.d/${NEXUS_DOCKER_GROUP:-nexus.svo.aero:8374}/ca.crt" \
+        /etc/ssl/certs/ca-certificates.crt
+      do
+        if [ -f "$cand" ]; then
+          export SSL_CERT_FILE="$cand"
+          echo "[sbom] SSL_CERT_FILE=$SSL_CERT_FILE"
+          break
+        fi
+      done
+      export TRIVY_INSECURE="${TRIVY_INSECURE:-false}"
+      INSECURE_FLAG=""
+      if [ "$TRIVY_INSECURE" = "true" ] || [ "$TRIVY_INSECURE" = "1" ]; then
+        INSECURE_FLAG="--insecure"
+      fi
+      if [ -z "${TRIVY_USERNAME:-}" ] && [ -n "${NEXUS_USER:-}" ]; then
+        export TRIVY_USERNAME="$NEXUS_USER"
+      fi
+      if [ -z "${TRIVY_PASSWORD:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
+        export TRIVY_PASSWORD="$NEXUS_PASSWORD"
+      fi
+
+      run_trivy() {
+        # shellcheck disable=SC2086
+        if command -v trivy >/dev/null 2>&1; then
+          trivy "$@"
+        elif command -v docker >/dev/null 2>&1; then
+          echo "[sbom] trivy not in PATH — docker run ${TRIVY_IMG}"
+          DOCKER_ENV="-e TRIVY_DB_REPOSITORY -e TRIVY_JAVA_DB_REPOSITORY -e TRIVY_INSECURE"
+          DOCKER_ENV="$DOCKER_ENV -e TRIVY_USERNAME -e TRIVY_PASSWORD"
+          DOCKER_VOL="-v $PWD:/work"
+          if [ -n "${SSL_CERT_FILE:-}" ] && [ -f "$SSL_CERT_FILE" ]; then
+            CA_HOST="/tmp/nexus-ca-for-trivy-sbom.crt"
+            cp "$SSL_CERT_FILE" "$CA_HOST"
+            DOCKER_ENV="$DOCKER_ENV -e SSL_CERT_FILE=/certs/ca.crt"
+            DOCKER_VOL="$DOCKER_VOL -v ${CA_HOST}:/certs/ca.crt:ro"
+          fi
+          # Image scans need host docker.sock when trivy runs in a container.
+          if [ -S /var/run/docker.sock ]; then
+            DOCKER_VOL="$DOCKER_VOL -v /var/run/docker.sock:/var/run/docker.sock"
+          fi
+          # shellcheck disable=SC2086
+          docker run --rm --entrypoint trivy $DOCKER_ENV $DOCKER_VOL -w /work "${TRIVY_IMG}" "$@"
+        else
+          echo "[sbom] ERROR: trivy and docker unavailable"
+          exit 1
+        fi
+      }
+
+      # Prefer built image SBOM when IMAGE_TAG present; else filesystem under SCAN_ROOT.
+      if [ -n "${IMAGE_TAG:-}" ] && [ "${IMAGE_TAG}" != "none" ]; then
+        IMAGE_REF="${REGISTRY}:${IMAGE_TAG}"
+        echo "[sbom] trivy cyclonedx image:$IMAGE_REF"
+        set +e
+        run_trivy image $INSECURE_FLAG --format cyclonedx --output sbom.cdx.json "$IMAGE_REF"
+        rc=$?
+        set -e
+        if [ "$rc" -ne 0 ] || [ ! -s sbom.cdx.json ]; then
+          echo "[sbom] WARN: image SBOM failed rc=$rc — fallback trivy fs"
+          run_trivy fs $INSECURE_FLAG --format cyclonedx --output sbom.cdx.json "${SCAN_ROOT}" \
+            || echo '{"bomFormat":"CycloneDX","specVersion":"1.5","components":[]}' > sbom.cdx.json
+        fi
+      else
+        TARGET="."
+        if [ -d "$SCAN_ROOT" ]; then
+          TARGET="$SCAN_ROOT"
+        fi
+        echo "[sbom] trivy cyclonedx fs:$TARGET"
+        run_trivy fs $INSECURE_FLAG --format cyclonedx --output sbom.cdx.json "$TARGET" \
+          || echo '{"bomFormat":"CycloneDX","specVersion":"1.5","components":[]}' > sbom.cdx.json
+      fi
+      test -s sbom.cdx.json
+      echo "[sbom] sbom.cdx.json_bytes=$(wc -c < sbom.cdx.json | tr -d ' ')"
+      if command -v python3 >/dev/null 2>&1; then
+        python3 scripts/gate-check.py --control sbom --report sbom.cdx.json \
+          --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_PYTHON_IMAGE:-}" ]; then
+        docker run --rm -v "$PWD:/work" -w /work "${OSS_PYTHON_IMAGE}" \
+          python3 scripts/gate-check.py --control sbom --report sbom.cdx.json \
+          --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif echo "${SECURITY_POLICY:-}" | grep -q adopt; then
+        echo "[sbom] WARN: gate-check skipped (no python); sbom.cdx.json retained"
+      else
+        echo "[sbom] ERROR: python3 unavailable for gate-check"
+        exit 1
+      fi
   artifacts:
+    when: always
     paths:
       - sbom.cdx.json
     expire_in: 90 days

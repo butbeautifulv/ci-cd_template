@@ -1,0 +1,127 @@
+# Fabrica custom Semgrep rules — weak / broken cryptography (refs/1.1 / 1.6).
+# Wired next to p/ci in Semgrep SAST jobs. Prefer SHA-256+ / modern AEAD.
+rules:
+  - id: fabrica.weak-crypto.md5-python
+    languages: [python]
+    severity: ERROR
+    message: >-
+      MD5 is cryptographically broken. Use hashlib.sha256() or stronger
+      (or HMAC with a strong hash) for integrity and fingerprints.
+    pattern-either:
+      - pattern: hashlib.md5(...)
+      - pattern: hashlib.new("md5", ...)
+      - pattern: hashlib.new('md5', ...)
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: HIGH
+      subcategory: [vuln]
+      references:
+        - https://owasp.org/www-community/vulnerabilities/Insecure_Hash
+
+  - id: fabrica.weak-crypto.sha1-python
+    languages: [python]
+    severity: ERROR
+    message: >-
+      SHA-1 is deprecated for security use. Prefer hashlib.sha256() or SHA-3.
+    pattern-either:
+      - pattern: hashlib.sha1(...)
+      - pattern: hashlib.new("sha1", ...)
+      - pattern: hashlib.new('sha1', ...)
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.weak-crypto.des-python
+    languages: [python]
+    severity: ERROR
+    message: >-
+      DES / TripleDES are obsolete. Use AES-GCM or ChaCha20-Poly1305.
+    pattern-either:
+      - pattern: DES.new(...)
+      - pattern: DES3.new(...)
+      - pattern: Crypto.Cipher.DES.new(...)
+      - pattern: Crypto.Cipher.DES3.new(...)
+      - pattern: Cryptodome.Cipher.DES.new(...)
+      - pattern: Cryptodome.Cipher.DES3.new(...)
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.weak-crypto.md5-java
+    languages: [java]
+    severity: ERROR
+    message: >-
+      MD5 is cryptographically broken. Use SHA-256 or SHA-3 via MessageDigest.
+    pattern-either:
+      - pattern: MessageDigest.getInstance("MD5")
+      - pattern: MessageDigest.getInstance("md5")
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.weak-crypto.sha1-java
+    languages: [java]
+    severity: ERROR
+    message: >-
+      SHA-1 is deprecated for security use. Prefer SHA-256 or SHA-3.
+    pattern-either:
+      - pattern: MessageDigest.getInstance("SHA-1")
+      - pattern: MessageDigest.getInstance("SHA1")
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.weak-crypto.des-java
+    languages: [java]
+    severity: ERROR
+    message: >-
+      DES is obsolete. Use AES with an authenticated mode (e.g. GCM).
+    pattern-either:
+      - pattern: Cipher.getInstance("DES")
+      - pattern: Cipher.getInstance("DES/...")
+      - pattern: Cipher.getInstance("DESede")
+      - pattern: Cipher.getInstance("DESede/...")
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.weak-crypto.md5-go
+    languages: [go]
+    severity: ERROR
+    message: >-
+      MD5 is cryptographically broken. Use crypto/sha256 instead of crypto/md5.
+    pattern-either:
+      - pattern: md5.New()
+      - pattern: md5.Sum($X)
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: MEDIUM
+      subcategory: [vuln]
+      technology: [go]
+
+  - id: fabrica.weak-crypto.sha1-go
+    languages: [go]
+    severity: ERROR
+    message: >-
+      SHA-1 is deprecated for security use. Prefer crypto/sha256.
+    pattern-either:
+      - pattern: sha1.New()
+      - pattern: sha1.Sum($X)
+    metadata:
+      category: security
+      cwe: ["CWE-327"]
+      confidence: MEDIUM
+      subcategory: [vuln]
+      technology: [go]

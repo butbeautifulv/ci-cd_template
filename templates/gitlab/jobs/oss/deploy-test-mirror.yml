@@ -1,0 +1,27 @@
+# Deploy ephemeral test pod + service in k8s ci-test-<pipeline_id> namespace.
+# Outputs deploy.env: API_BASE_URL, DAST_OPENAPI_URL (and OPENAPI_PATH if fetched live).
+# Skips when BUILD_FALLBACK=1 (base image, no real app to test).
+# Corp offline: kubectl from Nexus, no apt/apk.
+
+deploy-test:
+  stage: deploy-test
+  image:
+    name: nexus.svo.aero:8345/cxado-docker/kubectl-deploy:1.36.3
+    entrypoint: [""]
+  needs:
+    - job: build-image
+      artifacts: true
+  before_script:
+    - !reference [.source_checkout, before_script]
+  script:
+    - sh scripts/deploy-test-k8s.sh
+  artifacts:
+    reports:
+      dotenv: deploy.env
+    paths:
+      - deploy.env
+      - checkout/openapi.json
+      - reports/live-openapi.json
+    when: always
+    expire_in: 1 hour
+  allow_failure: false

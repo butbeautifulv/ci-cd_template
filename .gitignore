@@ -4,8 +4,11 @@
 .cursor/
 .agents/
 .codebase-memory/
-
-# Corp-only artifacts
-**/Dockerfile.corp*
-**/*Dockerfile.corp
-templates/profiles/cxado-k3s.gitlab-ci.yml
+.claude/
+# Local graphify / Python noise
+graphify-out/
+__pycache__/
+*.py[cod]
+*$py.class
+# Local deploy scratch (secrets live in cxado meta deploy/.secrets — never here)
+/deploy/

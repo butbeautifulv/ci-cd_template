@@ -26,7 +26,8 @@ Content-Type: `multipart/form-data` with fields + `file` upload.
 | iac | `reports/checkov.sarif` | SARIF | iac-checkov |
 | dockerfile | `hadolint.sarif` | SARIF | dockerfile-hadolint |
 | linters | `linter.sarif` | SARIF | linters |
-| dast | `reports/zap-baseline.json` | ZAP Scan | dast-zap |
+| dast | `reports/zap-api.xml` | ZAP Scan | dast-zap |
+| fuzzing | `reports/schemathesis-junit.xml` → Generic JSON | Generic Findings Import | api-fuzz-schemathesis |
 
 Configured in [`config/aspm-export.yaml`](../../config/aspm-export.yaml).
 

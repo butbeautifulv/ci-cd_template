@@ -1,0 +1,37 @@
+# Runner cleanup guardrail — always execute to free build resources.
+# Shared shell hosts: do NOT docker image prune -af / blanket rm all containers.
+
+cleanup-runner:
+  stage: post-deploy
+  image: ${OSS_DOCKER_CLI_IMAGE}
+  extends:
+    - .oss_docker_job
+  when: always
+  allow_failure: true
+  rules:
+    - if: $CI_COMMIT_TAG
+      when: always
+    - when: never
+  script:
+    - |
+      set +e
+      echo "[cleanup] start"
+      # Prefer job-scoped labels / our registry prefix when REGISTRY is set.
+      if [ -n "${REGISTRY:-}" ] && command -v docker >/dev/null 2>&1; then
+        echo "[cleanup] prune dangling + images matching ${REGISTRY}"
+        docker image prune -f
+        docker images --format '{{.Repository}}:{{.Tag}} {{.ID}}' | while read -r ref id; do
+          case "$ref" in
+            ${REGISTRY}:*|${REGISTRY}/*)
+              docker rmi -f "$id" 2>/dev/null || true
+              ;;
+          esac
+        done
+      elif command -v docker >/dev/null 2>&1; then
+        echo "[cleanup] REGISTRY unset — dangling prune only (no host-wide -af)"
+        docker image prune -f
+      else
+        echo "[cleanup] docker unavailable — skip image prune"
+      fi
+      rm -rf .cache reports tmp || true
+      echo "[cleanup] done"

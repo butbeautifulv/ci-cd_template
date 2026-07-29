@@ -1,0 +1,56 @@
+# Corp mirror — OWASP ZAP API scan DAST (OpenAPI-driven, full operation coverage).
+# Uses Nexus-hosted ZAP image; no apt/apk.
+# Fails when BUILD_FALLBACK=1 / DEPLOY_SKIPPED / API_BASE_URL unset / empty report /
+# coverage regression. DefectDojo "ZAP Scan" requires XML (-x), not JSON (-J).
+
+dast-zap:
+  stage: api-security
+  image:
+    name: ${OSS_ZAPROXY_IMAGE:-nexus.svo.aero:8345/cxado-docker/zaproxy:2.16.0}
+    entrypoint: [""]
+  timeout: 2h
+  variables:
+    ASPM_CONTROL: dast
+    ASPM_REPORT: reports/zap-api.xml
+    KUBERNETES_MEMORY_REQUEST: "512Mi"
+    KUBERNETES_MEMORY_LIMIT: "2Gi"
+  needs:
+    - job: deploy-test
+      artifacts: true
+  script:
+    - sh scripts/run-dast-zap-api-mirror.sh
+  after_script:
+    - |
+      set -eu
+      if [ -f scripts/resolve-mirror-service.sh ] && { [ -n "${CI_COMMIT_TAG:-}" ] || [ -n "${SERVICE_NAME:-}" ]; }; then
+        # shellcheck disable=SC1091
+        . scripts/resolve-mirror-service.sh || true
+      fi
+      if [ -f reports/zap-api.xml ] && [ -s reports/zap-api.xml ]; then
+        if command -v python3 >/dev/null 2>&1; then
+          echo "[dast] ASPM product=${DEFECTDOJO_PRODUCT_NAME:-unset}"
+          # No --skip-empty: always create/update Dojo Test for the scan run.
+          python3 scripts/aspm-export.py \
+            --control dast \
+            --report reports/zap-api.xml \
+            --config "${ASPM_CONFIG:-config/aspm-export.yaml}"
+        else
+          echo "[dast] ERROR: python3 missing — cannot ASPM upload"
+          if [ "${DEFECTDOJO_FAIL_ON_ERROR:-false}" = "true" ]; then
+            exit 1
+          fi
+        fi
+      else
+        echo "[dast] ERROR: no ZAP XML report for ASPM"
+        if [ "${DEFECTDOJO_FAIL_ON_ERROR:-false}" = "true" ]; then
+          exit 1
+        fi
+      fi
+  artifacts:
+    when: always
+    paths:
+      - reports/zap-api.xml
+      - reports/zap-api.json
+      - reports/live-openapi.json
+    expire_in: 30 days
+  allow_failure: false
