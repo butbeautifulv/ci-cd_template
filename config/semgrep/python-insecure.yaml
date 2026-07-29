@@ -1,0 +1,63 @@
+# Fabrica custom Semgrep — common Python insecure defaults (offline; no p/ci).
+rules:
+  - id: fabrica.python.requests-verify-false
+    languages: [python]
+    severity: ERROR
+    message: >-
+      TLS verification disabled (verify=False). Do not disable certificate
+      verification in production HTTP clients.
+    pattern-either:
+      - pattern: requests.$METHOD(..., verify=False, ...)
+      - pattern: requests.request(..., verify=False, ...)
+    metadata:
+      category: security
+      cwe: ["CWE-295"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.python.httpx-verify-false
+    languages: [python]
+    severity: ERROR
+    message: >-
+      httpx TLS verification disabled (verify=False). Prefer the default
+      verified TLS context.
+    pattern-either:
+      - pattern: httpx.$METHOD(..., verify=False, ...)
+      - pattern: httpx.Client(..., verify=False, ...)
+      - pattern: httpx.AsyncClient(..., verify=False, ...)
+    metadata:
+      category: security
+      cwe: ["CWE-295"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.python.subprocess-shell-true
+    languages: [python]
+    severity: ERROR
+    message: >-
+      subprocess invoked with shell=True. Prefer argument lists to avoid
+      command injection (CWE-78).
+    pattern-either:
+      - pattern: subprocess.$FUNC(..., shell=True, ...)
+      - pattern: subprocess.Popen(..., shell=True, ...)
+    metadata:
+      category: security
+      cwe: ["CWE-78"]
+      confidence: HIGH
+      subcategory: [vuln]
+
+  - id: fabrica.python.debug-true
+    languages: [python]
+    severity: WARNING
+    message: >-
+      Application started with debug=True. Disable debug in production to
+      avoid exposing internals.
+    pattern-either:
+      - pattern: uvicorn.run(..., debug=True, ...)
+      - pattern: app.run(..., debug=True, ...)
+      - pattern: FastAPI(..., debug=True, ...)
+    metadata:
+      category: security
+      cwe: ["CWE-489"]
+      confidence: MEDIUM
+      subcategory: [audit]
