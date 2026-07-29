@@ -66,6 +66,19 @@ Job files: `.gitlab/jobs/` (pins via `.gitlab/jobs/oss/versions.yml` from manife
 
 Register a runner with `privileged = true` for dind. See [GitLab Docker executor docs](https://docs.gitlab.com/runner/executors/docker.html#use-docker-in-docker).
 
+### Corp mirror profile (`oss-full-service-mirror`)
+
+Tag-driven service mirror (e.g. `map_objects-ci`) uses tags `devsecops,k3s,corp,p30` and may land on **shell** or **kubernetes** executors. See [`docs/runbooks/corp-gitlab-runner.md`](../runbooks/corp-gitlab-runner.md).
+
+- Profile: [`templates/profiles/oss-full-service-mirror.gitlab-ci.yml`](../../templates/profiles/oss-full-service-mirror.gitlab-ci.yml)
+- Sync into an existing mirror: `bash scripts/point-copy-mirror.sh --target DIR` (**not** `adopt.sh` into existing `.gitlab/jobs`)
+- Verify: `bash scripts/validate-mirror-corp.sh`
+- DAST: `zap-api-scan` via `scripts/run-dast-zap-api-mirror.sh` (live OpenAPI), report `reports/zap-api.xml` → DefectDojo `ZAP Scan`
+- Fuzz: Schemathesis + live OpenAPI; Dojo via Generic Findings Import
+- Ephemeral deploy stubs (`ci-http-stub`, mongo) are lifespan fixtures — not scanner fake-green
+- Soft-fail adoption exception: [`ci-soft-fail-contract.md`](../runbooks/ci-soft-fail-contract.md)
+- Action log: [`mirror-security-pipeline-action-log.md`](../runbooks/mirror-security-pipeline-action-log.md)
+
 ## Required CI/CD variables
 
 | Variable | Type | Purpose |

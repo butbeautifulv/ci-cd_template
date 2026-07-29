@@ -10,6 +10,7 @@ validate:
 	bash scripts/validate-github-workflows.sh
 	bash scripts/validate-github-oss.sh
 	bash scripts/validate-gitlab-oss.sh
+	bash scripts/validate-mirror-corp.sh
 	python3 scripts/validate-policy.py
 	bash scripts/validate-oss-pins.sh
 	bash scripts/validate-registry-config.sh

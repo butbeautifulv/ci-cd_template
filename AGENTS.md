@@ -16,7 +16,7 @@ Scaffold (P0–F3 docs + templates) is done. v1.1: references migrated to `docs/
 
 ## Phase order
 
-CF → G0 → V0 → H-CORE → H-PRE → H-P0…H-F3 → AI* (optional) → R → MIG (references/skills)
+CF → G0 → V0 → H-CORE → H-PRE → H-P0…H-F3 → **I1–I5 (infra SaC)** → AI* (optional) → R → MIG (references/skills)
 
 ## Skills (canonical: [cxado-skills](https://github.com/butbeautifulv/cxado-skills))
 
@@ -49,19 +49,33 @@ Actionable guidance from cxado-linked `.agents/skills/` is duplicated in-repo (d
 | terraform-style-guide | `examples/sample-app/infra/secure/`, B4 |
 | grafana-dashboards | [docs/runbooks/ci-pipeline-observability.md](docs/runbooks/ci-pipeline-observability.md), E4 |
 
-Validate: `make validate`, `make validate-helm`.
+Validate: `make validate`, `make validate-helm`. Infra SaC smoke: `bash scripts/validate-infra-smoke.sh`. Corp mirror: `bash scripts/validate-mirror-corp.sh`.
+
+## Gate invocation canon
+
+- Security gates / OSCAP: run as executables — `python3 scripts/gate-check.py`, `bash scripts/oscap-*.sh`.
+- Do **not** `source` / `.` gate scripts (exit-code and state pollution).
+- `source` is OK only for env helpers (e.g. `registry-auth-env.sh`).
+- Soft-fail rules: [docs/runbooks/ci-soft-fail-contract.md](docs/runbooks/ci-soft-fail-contract.md). Thresholds: [docs/runbooks/gate-thresholds.md](docs/runbooks/gate-thresholds.md).
 
 ## Key paths
 
-- Policy: `config/security-gate-policy.yaml`
+- Policy: `config/security-gate-policy.yaml` (corp adopt: `config/security-gate-policy-adopt.yaml`)
 - Gate script: `scripts/gate-check.py`
+- Infra SCAP: `scripts/summarize_infra.py`, `scripts/oscap-*-scan.sh`, control `infra:`
 - Adopt: `scripts/adopt.sh --profile shift-left|ai-ml|oss-full --platform gitlab|github --target /path [--policy adopt|strict] [--python-stack auto|uv|pip|node]`
+- **Corp mirror:** profile `templates/profiles/oss-full-service-mirror.gitlab-ci.yml`; sync via `scripts/point-copy-mirror.sh` (not `adopt.sh` into existing `.gitlab/jobs`); verify `bash scripts/validate-mirror-corp.sh`
+- Corp DAST: `scripts/run-dast-zap-api-mirror.sh` (`zap-api-scan` + live OpenAPI) — not generic `dast.yml` baseline
+- Ephemeral `ci-http-stub` / mongo in deploy-test = **lifespan fixtures**, not scanner fake-green stubs
 - Profiles: `templates/profiles/`
 - References: `docs/references/` (DAF, extracts, Secure SDLC)
 - AI/ML: `examples/sample-ml-app/`, profile `ai-ml`
 - Example app: `examples/sample-app/`
+- Infra fixtures: `examples/sample-infra-scap/`
 
 ## Cursor rules
 
 - `.cursor/rules/phase-impl.mdc` — always apply
 - `.cursor/rules/templates-ci.mdc` — when editing `templates/**`
+
+**Note:** Rule «≤5 files / one PR» is relaxed only for land-snapshot merges of a proven corp-mirror stack; day-to-day phases stay micro.
