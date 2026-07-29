@@ -1,0 +1,9 @@
+# Profile: oss-full-hwa-mirror — compatibility wrapper.
+# Use oss-full-service-mirror for new services.
+
+include:
+  - local: '/templates/profiles/oss-full-service-mirror.gitlab-ci.yml'
+
+variables:
+  SERVICE_PATH: "hwa_service"
+  SERVICE_TAG_REGEX: "^hwa_service/v[0-9]+\\.[0-9]+\\.[0-9]+(-[0-9A-Za-z.-]+)?$"
