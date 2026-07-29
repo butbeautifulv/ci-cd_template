@@ -1,11 +1,12 @@
 # Shared Docker registry login — GitLab or external (Nexus/Harbor/Artifactory)
+# Use `.` (POSIX); `source` is bash-only and breaks ash/docker:cli.
 
 .registry_login:
   before_script:
-    - source scripts/registry-resolve-env.sh
-    - bash scripts/registry-login.sh
+    - . scripts/registry-resolve-env.sh
+    - sh scripts/registry-login.sh
 
 .registry_auth_env:
   before_script:
-    - source scripts/registry-resolve-env.sh
-    - source scripts/registry-auth-env.sh
+    - . scripts/registry-resolve-env.sh
+    - . scripts/registry-auth-env.sh

@@ -1,15 +1,71 @@
-# B2 — SAST (OSS Semgrep)
+# B2 — SAST (OSS Semgrep — local rules only; Nexus image)
 
 semgrep-sast:
   stage: security
-  image: ${OSS_SEMGREP_IMAGE}
+  image:
+    name: ${OSS_SEMGREP_IMAGE:-semgrep/semgrep:1.117.0}
+    entrypoint: [""]
   extends:
     - .workflow_rules_security
     - .security_job_defaults
+  before_script:
+    - !reference [.source_checkout, before_script]
   script:
-    - semgrep scan --config p/ci --sarif -o semgrep.sarif . || true
-    - python3 scripts/gate-check.py --control sast --report semgrep.sarif \
-        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+    - |
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
+      if [ -n "${SCAN_TARGET:-}" ] && [ -d "$SCAN_TARGET" ]; then
+        :
+      elif [ "${SERVICE_PATH:-.}" = "." ] || [ -z "${SERVICE_PATH:-}" ]; then
+        SCAN_TARGET="$SCAN_ROOT"
+      else
+        SCAN_TARGET="${SCAN_ROOT}/${SERVICE_PATH}"
+      fi
+      if [ ! -d "$SCAN_TARGET" ] && [ -d "$SCAN_ROOT" ]; then
+        echo "[sast] WARN: $SCAN_TARGET missing; using $SCAN_ROOT"
+        SCAN_TARGET="$SCAN_ROOT"
+      fi
+      if [ ! -d "$SCAN_TARGET" ]; then
+        echo "[sast] ERROR: scan target missing: $SCAN_TARGET"
+        exit 1
+      fi
+      # Offline: vendored semgrep-rules (no p/ci / semgrep.dev).
+      export SEMGREP_SEND_METRICS="${SEMGREP_SEND_METRICS:-off}"
+      SEMGREP_RULES="${SEMGREP_RULES:-config/semgrep/vendor}"
+      if [ ! -e "$SEMGREP_RULES" ]; then
+        echo "[sast] ERROR: missing rules path $SEMGREP_RULES"
+        exit 1
+      fi
+      echo "[sast] SEMGREP_RULES=$SEMGREP_RULES SEMGREP_SEND_METRICS=$SEMGREP_SEND_METRICS"
+      run_semgrep() {
+        semgrep scan --metrics=off --config "$SEMGREP_RULES" --sarif -o semgrep.sarif "$SCAN_TARGET" || true
+      }
+      if command -v semgrep >/dev/null 2>&1; then
+        run_semgrep
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_SEMGREP_IMAGE:-}" ]; then
+        echo "[sast] semgrep binary missing — docker run ${OSS_SEMGREP_IMAGE}"
+        docker run --rm \
+          -e SEMGREP_SEND_METRICS=off \
+          -v "$PWD:/work" -w /work --entrypoint semgrep "${OSS_SEMGREP_IMAGE}" \
+          scan --metrics=off --config "$SEMGREP_RULES" --sarif -o semgrep.sarif "$SCAN_TARGET" || true
+      else
+        echo "[sast] ERROR: semgrep unavailable (need OSS_SEMGREP_IMAGE in job image or docker; no apk/apt)"
+        exit 1
+      fi
+      if [ ! -f semgrep.sarif ]; then
+        echo "[sast] ERROR: semgrep.sarif was not produced"
+        exit 1
+      fi
+      if command -v python3 >/dev/null 2>&1; then
+        python3 scripts/gate-check.py --control sast --report semgrep.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_PYTHON_IMAGE:-}" ]; then
+        docker run --rm -v "$PWD:/work" -w /work "${OSS_PYTHON_IMAGE}" \
+          python3 scripts/gate-check.py --control sast --report semgrep.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif [ -s semgrep.sarif ] && echo "${SECURITY_POLICY:-}" | grep -q adopt; then
+        echo "[sast] WARN: gate-check skipped (no python/docker); semgrep.sarif produced"
+      else
+        echo "[sast] ERROR: python3 unavailable, cannot run gate-check"
+        exit 1
+      fi
   artifacts:
     paths:
       - semgrep.sarif

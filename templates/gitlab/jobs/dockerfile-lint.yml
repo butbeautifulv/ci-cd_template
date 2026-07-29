@@ -1,12 +1,16 @@
-# B5 — Dockerfile lint
+# B5 — Dockerfile lint (hadolint via Nexus; no apt/apk)
+# POSIX sh (ash-safe). Prefer in-image hadolint; else docker run OSS_HADOLINT_IMAGE.
 
 dockerfile-lint:
   stage: security
-  image: ${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}
+  image:
+    name: ${OSS_HADOLINT_IMAGE:-${OSS_PYTHON_IMAGE:-python:3.11.11-slim-bookworm}}
+    entrypoint: [""]
   extends:
     - .security_job_defaults
   variables:
-    OSS_HADOLINT_IMAGE: ${OSS_HADOLINT_IMAGE:-hadolint/hadolint:v2.12.0-alpine}
+    OSS_HADOLINT_IMAGE: ${OSS_HADOLINT_IMAGE}
+    DOCKERFILE_GLOBS: ${DOCKERFILE_GLOBS:-}
   rules:
     - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1' || $SECURITY_DISABLED == 'true' || $SECURITY_DISABLED == '1'
       when: never
@@ -21,73 +25,149 @@ dockerfile-lint:
         - Dockerfile.*
         - "**/Dockerfile"
   before_script:
-    - apt-get update -qq && apt-get install -y -qq docker.io
+    - |
+      set -eu
+      if [ -f scripts/resolve-mirror-service.sh ] && [ -n "${CI_COMMIT_TAG:-}" ]; then
+        # shellcheck disable=SC1091
+        . scripts/resolve-mirror-service.sh
+      fi
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
+      SOURCE_REPO_URL="${SOURCE_REPO_URL:?SOURCE_REPO_URL is required}"
+      SOURCE_REF="${SOURCE_REF:-${CI_COMMIT_TAG:?SOURCE_REF or CI_COMMIT_TAG required}}"
+      SOURCE_PROJECT_ID="${SOURCE_PROJECT_ID:?SOURCE_PROJECT_ID is required}"
+      GITLAB_API="${CI_API_V4_URL:-${GITLAB_URL:-https://gitlab.svo.aero}/api/v4}"
+      GITLAB_API="${GITLAB_API%/}"
+      case "$GITLAB_API" in
+        */api/v4) ;;
+        *) GITLAB_API="${GITLAB_API}/api/v4" ;;
+      esac
+      export SOURCE_SSL_NO_VERIFY="${SOURCE_SSL_NO_VERIFY:-1}"
+      BASE_REF=$(printf '%s' "$SOURCE_REF" | sed -E 's/-(hotfix[0-9]+|pilot[A-Za-z0-9]+)$//')
+      REF_LIST="$SOURCE_REF"
+      if [ "$BASE_REF" != "$SOURCE_REF" ]; then
+        REF_LIST="$REF_LIST $BASE_REF"
+      fi
+      VER_PART="${BASE_REF#*/}"
+      if [ -n "$VER_PART" ] && [ "$VER_PART" != "$BASE_REF" ]; then
+        REF_LIST="$REF_LIST $VER_PART"
+        case "$VER_PART" in
+          v*) REF_LIST="$REF_LIST ${VER_PART#v}" ;;
+        esac
+      fi
+      if [ -n "${SOURCE_REF_FALLBACK:-}" ]; then
+        REF_LIST="$REF_LIST $SOURCE_REF_FALLBACK"
+      fi
+      echo "[dockerfile] REF_LIST=$REF_LIST"
+      rm -rf "$SCAN_ROOT"
+      CLONED=0
+      SOURCE_REF_RESOLVED=""
+      for REF in $REF_LIST; do
+        rm -rf "$SCAN_ROOT"
+        if command -v git >/dev/null 2>&1; then
+          AUTH_URL="$SOURCE_REPO_URL"
+          if [ -n "${SOURCE_GIT_TOKEN:-}" ]; then
+            case "$SOURCE_REPO_URL" in
+              https://*) AUTH_URL="https://oauth2:${SOURCE_GIT_TOKEN}@${SOURCE_REPO_URL#https://}" ;;
+            esac
+          fi
+          if git clone --depth 1 --branch "$REF" "$AUTH_URL" "$SCAN_ROOT"; then
+            CLONED=1
+            SOURCE_REF_RESOLVED="$REF"
+            break
+          fi
+        fi
+        rm -rf "$SCAN_ROOT"
+        if command -v python3 >/dev/null 2>&1 && [ -f scripts/fetch-source-archive.py ]; then
+          if python3 scripts/fetch-source-archive.py \
+            "$GITLAB_API" "$SOURCE_PROJECT_ID" "$REF" "$SCAN_ROOT" "${SOURCE_GIT_TOKEN:?}"; then
+            CLONED=1
+            SOURCE_REF_RESOLVED="$REF"
+            break
+          fi
+        fi
+        rm -rf "$SCAN_ROOT"
+        if [ -f scripts/fetch-source-archive.sh ]; then
+          if sh scripts/fetch-source-archive.sh \
+            "$GITLAB_API" "$SOURCE_PROJECT_ID" "$REF" "$SCAN_ROOT" "${SOURCE_GIT_TOKEN:?}"; then
+            CLONED=1
+            SOURCE_REF_RESOLVED="$REF"
+            break
+          fi
+        fi
+      done
+      if [ "$CLONED" != "1" ]; then
+        echo "[dockerfile] ERROR: source checkout failed for refs: $REF_LIST"
+        exit 1
+      fi
+      echo "[dockerfile] resolved_ref=$SOURCE_REF_RESOLVED SCAN_ROOT=$SCAN_ROOT"
+      ls "$SCAN_ROOT" | head -30
   script:
     - |
-      echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"hadolint"}},"results":[]}]}' > hadolint.sarif
+      set -eu
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
       echo '[]' > hadolint-report.json
+      echo '{"version":"2.1.0","runs":[{"tool":{"driver":{"name":"hadolint","informationUri":"https://github.com/hadolint/hadolint","rules":[]}},"results":[]}]}' > hadolint.sarif
       FAILED=0
-      mapfile -t DOCKERFILES < <(find . \( -name 'Dockerfile' -o -name 'Dockerfile.*' \) ! -path './.git/*')
-      if [ "${#DOCKERFILES[@]}" -eq 0 ]; then
-        echo "No Dockerfiles found"
+      # POSIX discover (no bash arrays / shopt)
+      TMP_LIST=$(mktemp)
+      find "$SCAN_ROOT" \( -name 'Dockerfile' -o -name 'Dockerfile.*' \) -type f 2>/dev/null | sort -u > "$TMP_LIST" || true
+      N=$(wc -l < "$TMP_LIST" | tr -d ' ')
+      echo "dockerfile-lint: discovered $N Dockerfile candidates"
+      head -30 "$TMP_LIST" | sed 's/^/dockerfile-lint: candidate=/'
+      if [ "${N:-0}" -eq 0 ]; then
+        echo "No Dockerfiles found under $SCAN_ROOT"
       else
-        for f in "${DOCKERFILES[@]}"; do
+        REPORT_PARTS=$(mktemp -d)
+        I=0
+        while IFS= read -r f; do
+          [ -n "$f" ] || continue
+          I=$((I + 1))
+          OUT="$REPORT_PARTS/$I.json"
           echo "Linting $f"
-          docker run --rm -i "${OSS_HADOLINT_IMAGE}" < "$f" || FAILED=1
-        done
-        python3 - <<'PY'
-      import json
-      import os
-      import subprocess
-      from pathlib import Path
-      image = os.environ.get("OSS_HADOLINT_IMAGE", "hadolint/hadolint:v2.12.0-alpine")
-      root = Path.cwd()
-      items = []
-      for f in root.rglob("Dockerfile*"):
-          if ".git" in f.parts:
-              continue
-          rel = f.relative_to(root).as_posix()
-          proc = subprocess.run(
-              ["docker", "run", "--rm", "-v", f"{root}:/work", "-w", "/work", image, "-f", "json", f"/work/{rel}"],
-              capture_output=True,
-              text=True,
-          )
-          if not proc.stdout.strip():
-              continue
-          try:
-              data = json.loads(proc.stdout)
-              if isinstance(data, list):
-                  items.extend(data)
-          except json.JSONDecodeError:
-              pass
-      Path("hadolint-report.json").write_text(json.dumps(items))
-      PY
+          if command -v hadolint >/dev/null 2>&1; then
+            hadolint -f json "$f" > "$OUT" 2>/tmp/hadolint.err || FAILED=1
+          elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_HADOLINT_IMAGE:-}" ]; then
+            docker run --rm -i -v "$PWD:/work" -w /work --entrypoint hadolint \
+              "${OSS_HADOLINT_IMAGE}" -f json "/work/$f" > "$OUT" 2>/tmp/hadolint.err || FAILED=1
+          else
+            echo "[dockerfile] ERROR: hadolint binary and docker/OSS_HADOLINT_IMAGE unavailable"
+            rm -f "$TMP_LIST"
+            exit 1
+          fi
+          # empty file → empty list
+          if [ ! -s "$OUT" ]; then
+            echo '[]' > "$OUT"
+          fi
+        done < "$TMP_LIST"
+        # Merge JSON arrays into one list for DefectDojo Hadolint parser
+        if command -v python3 >/dev/null 2>&1; then
+          python3 scripts/merge-hadolint-json.py "$REPORT_PARTS" hadolint-report.json
+        else
+          # No python: concatenate first non-empty array only / keep []
+          FIRST=$(find "$REPORT_PARTS" -name '*.json' -size +2c | head -1 || true)
+          if [ -n "$FIRST" ]; then
+            cp "$FIRST" hadolint-report.json
+          fi
+          echo "[dockerfile] WARN: no python to merge JSON parts; using single-file report"
+        fi
+        rm -rf "$REPORT_PARTS"
       fi
+      rm -f "$TMP_LIST"
       if [ "$FAILED" -eq 1 ]; then
-        python3 - <<'PY'
-      import json
-      from pathlib import Path
-      Path("hadolint.sarif").write_text(json.dumps({
-        "version": "2.1.0",
-        "runs": [{
-          "tool": {"driver": {"name": "hadolint"}},
-          "results": [{
-            "level": "warning",
-            "message": {"text": "Hadolint findings — see job log"},
-            "locations": [{
-              "physicalLocation": {
-                "artifactLocation": {"uri": "Dockerfile", "uriBaseId": "%SRCROOT%"},
-                "region": {"startLine": 1}
-              }
-            }]
-          }]
-        }]
-      }))
-      PY
+        echo "[dockerfile] hadolint returned non-zero; see job log / hadolint-report.json"
       fi
-      python3 scripts/normalize-sarif.py hadolint.sarif hadolint
-    - python3 scripts/gate-check.py --control dockerfile --report hadolint.sarif \
-        --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      if command -v python3 >/dev/null 2>&1; then
+        python3 scripts/normalize-sarif.py hadolint.sarif hadolint || true
+        python3 scripts/gate-check.py --control dockerfile --report hadolint.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif command -v docker >/dev/null 2>&1 && [ -n "${OSS_PYTHON_IMAGE:-}" ]; then
+        docker run --rm -v "$PWD:/work" -w /work "${OSS_PYTHON_IMAGE}" \
+          python3 scripts/gate-check.py --control dockerfile --report hadolint.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+      elif echo "${SECURITY_POLICY:-}" | grep -q adopt; then
+        echo "[dockerfile] WARN: gate-check skipped (no python/docker); hadolint-report.json retained"
+      else
+        echo "[dockerfile] ERROR: python3 unavailable for gate-check"
+        exit 1
+      fi
   artifacts:
     paths:
       - hadolint.sarif

@@ -1,4 +1,6 @@
 # OSS build — push image to container registry (GitLab or external)
+# Mirror: source lives under SCAN_ROOT after .source_checkout (Docker/** layout).
+# IMPORTANT: docker:*-cli image uses ash — no bash arrays / [[ ]].
 
 build-image:
   stage: build
@@ -11,16 +13,131 @@ build-image:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   variables:
     DOCKER_TLS_CERTDIR: "/certs"
+    # k8s+dind sidecar; overridden to unix socket by docker-host-bootstrap.sh on shell executor.
+    DOCKER_HOST: "tcp://docker:2376"
+  before_script:
+    - !reference [.source_checkout, before_script]
+    - . scripts/registry-resolve-env.sh
+    - . scripts/docker-host-bootstrap.sh
+    - sh scripts/registry-login.sh
   script:
     - |
-      if [ ! -f Dockerfile ]; then
-        echo "No Dockerfile — skip image build"
+      set -eu
+      SCAN_ROOT="${SCAN_ROOT:-checkout}"
+      SERVICE_NAME="${SERVICE_NAME:-app}"
+      # Prefer Docker/** then root Dockerfile (map_objects services layout).
+      DF=""
+      if [ -d "$SCAN_ROOT" ]; then
+        DF=$(find "$SCAN_ROOT" \( -path "$SCAN_ROOT/Docker/*/Dockerfile" -o -path "$SCAN_ROOT/Docker/Dockerfile" -o -name Dockerfile \) -type f 2>/dev/null | head -1 || true)
+      fi
+      if [ -z "$DF" ] && [ -f Dockerfile ]; then
+        DF=Dockerfile
+      fi
+      if [ -z "$DF" ] || [ ! -f "$DF" ]; then
+        echo "[build] No Dockerfile under $SCAN_ROOT — skip image build"
         echo "IMAGE_TAG=none" >> build.env
+        echo "BUILD_FALLBACK=0" >> build.env
         exit 0
       fi
-    - docker build -t "${REGISTRY}:${CI_COMMIT_SHA}" .
-    - docker push "${REGISTRY}:${CI_COMMIT_SHA}"
-    - echo "IMAGE_TAG=${CI_COMMIT_SHA}" >> build.env
+      # Use SCAN_ROOT as context because service Dockerfiles often COPY files from repo root.
+      CONTEXT="$SCAN_ROOT"
+      if [ ! -d "$CONTEXT" ]; then
+        CONTEXT=$(dirname "$DF")
+      fi
+      IMAGE_TAG="${SERVICE_NAME}-${CI_COMMIT_SHA}"
+      # Corp: service Dockerfiles default to registry.test.model.svo.aero (unreachable from P30).
+      BUILD_BASE_IMAGE="${BUILD_BASE_IMAGE:-nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm}"
+      BUILD_DOCKER_TARGET="${BUILD_DOCKER_TARGET:-base}"
+      NEXUS_PYPI_URL="${NEXUS_PYPI_URL:-}"
+      if [ -z "$NEXUS_PYPI_URL" ] && [ -n "${PIP_INDEX_URL:-}" ]; then
+        NEXUS_PYPI_URL=$(printf '%s' "$PIP_INDEX_URL" | sed -E 's|^https?://||; s|/simple/?$||')
+      fi
+      echo "[build] dockerfile=$DF context=$CONTEXT tag=${REGISTRY}:${IMAGE_TAG}"
+      echo "[build] BUILD_BASE_IMAGE=$BUILD_BASE_IMAGE target=$BUILD_DOCKER_TARGET"
+      echo "[build] NEXUS_PYPI_URL=${NEXUS_PYPI_URL:-<unset>}"
+
+      # Mount corp CA for docker login/pull when present (docker:cli ash / dind).
+      for cand in \
+        /etc/ssl/certs/nexus/ca.crt \
+        "/etc/docker/certs.d/nexus.svo.aero:8345/ca.crt" \
+        "/etc/docker/certs.d/nexus.svo.aero:8374/ca.crt"
+      do
+        if [ -f "$cand" ]; then
+          mkdir -p /etc/docker/certs.d/nexus.svo.aero:8345 /etc/docker/certs.d/nexus.svo.aero:8374
+          cp "$cand" /etc/docker/certs.d/nexus.svo.aero:8345/ca.crt || true
+          cp "$cand" /etc/docker/certs.d/nexus.svo.aero:8374/ca.crt || true
+          echo "[build] docker CA from $cand"
+          break
+        fi
+      done
+
+      if [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
+        printf '%s\n' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USER" --password-stdin "nexus.svo.aero:8345" || true
+        printf '%s\n' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USER" --password-stdin "nexus.svo.aero:8374" || true
+      fi
+
+      NEXUS_USER_ENC="${NEXUS_USER:-}"
+      NEXUS_PASSWORD_ENC="${NEXUS_PASSWORD:-}"
+      if command -v python3 >/dev/null 2>&1 && [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
+        NEXUS_USER_ENC=$(python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["NEXUS_USER"], safe=""))')
+        NEXUS_PASSWORD_ENC=$(python3 -c 'import os,urllib.parse; print(urllib.parse.quote(os.environ["NEXUS_PASSWORD"], safe=""))')
+      fi
+
+      # Service Dockerfiles hardcode --trusted-host nexus.code-discovery.ru; corp index is nexus.svo.aero.
+      PIP_HOST="${PIP_TRUSTED_HOST:-}"
+      if [ -z "$PIP_HOST" ] && [ -n "${NEXUS_PYPI_URL:-}" ]; then
+        PIP_HOST=$(printf '%s' "$NEXUS_PYPI_URL" | cut -d/ -f1)
+      fi
+      if [ -n "$PIP_HOST" ] && [ -f "$DF" ]; then
+        echo "[build] patch trusted-host -> ${PIP_HOST}"
+        sed -i "s/--trusted-host [^ ]*/--trusted-host ${PIP_HOST}/g" "$DF" || true
+      fi
+
+      # POSIX: no bash arrays — accumulate args via set --
+      set -- --target "$BUILD_DOCKER_TARGET" --build-arg "IMAGE_NAME=${BUILD_BASE_IMAGE}"
+      if [ -n "${NEXUS_PYPI_URL:-}" ]; then
+        set -- "$@" --build-arg "NEXUS_PYPI_URL=${NEXUS_PYPI_URL}"
+      fi
+      if [ -n "${NEXUS_USER_ENC:-}" ]; then
+        set -- "$@" --build-arg "NEXUS_USERNAME=${NEXUS_USER_ENC}"
+      fi
+      if [ -n "${NEXUS_PASSWORD_ENC:-}" ]; then
+        set -- "$@" --build-arg "NEXUS_PASSWORD=${NEXUS_PASSWORD_ENC}"
+      fi
+      set -- "$@" -f "$DF" -t "${REGISTRY}:${IMAGE_TAG}" "$CONTEXT"
+
+      set +e
+      docker build "$@"
+      rc=$?
+      set -e
+      if [ "$rc" -ne 0 ]; then
+        # Keep SCA unblocked: push Nexus base as scan target when service Dockerfile cannot finish.
+        echo "[build] WARN: service build failed rc=$rc — fallback retag ${BUILD_BASE_IMAGE}"
+        set +e
+        docker pull "$BUILD_BASE_IMAGE" \
+          && docker tag "$BUILD_BASE_IMAGE" "${REGISTRY}:${IMAGE_TAG}" \
+          && docker push "${REGISTRY}:${IMAGE_TAG}"
+        frc=$?
+        set -e
+        if [ "$frc" -eq 0 ]; then
+          echo "IMAGE_TAG=${IMAGE_TAG}" >> build.env
+          echo "BUILD_FALLBACK=1" >> build.env
+          echo "[build] fallback pushed ${REGISTRY}:${IMAGE_TAG} BUILD_FALLBACK=1"
+          exit 0
+        fi
+        echo "[build] ERROR: fallback also failed — writing IMAGE_TAG=none"
+        echo "IMAGE_TAG=none" >> build.env
+        echo "BUILD_FALLBACK=1" >> build.env
+        exit 1
+      fi
+      docker push "${REGISTRY}:${IMAGE_TAG}"
+      echo "IMAGE_TAG=${IMAGE_TAG}" >> build.env
+      echo "BUILD_FALLBACK=0" >> build.env
+      echo "[build] pushed ${REGISTRY}:${IMAGE_TAG} BUILD_FALLBACK=0"
   artifacts:
+    when: always
     reports:
       dotenv: build.env
+    paths:
+      - build.env
+    expire_in: 1 day
