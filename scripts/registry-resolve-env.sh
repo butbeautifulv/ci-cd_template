@@ -1,18 +1,19 @@
-#!/usr/bin/env bash
+#!/usr/bin/env sh
 # Resolve REGISTRY image prefix from backend + CI variables.
-set -euo pipefail
+# POSIX only — may be `.`-sourced from ash (docker:cli).
+set -eu
 
 backend="${REGISTRY_BACKEND:-gitlab}"
 
 case "$backend" in
   gitlab)
-    if [[ -z "${REGISTRY:-}" ]]; then
+    if [ -z "${REGISTRY:-}" ]; then
       export REGISTRY="${CI_REGISTRY_IMAGE:-}"
     fi
     ;;
   nexus|harbor|artifactory|generic)
-    if [[ -z "${REGISTRY:-}" ]]; then
-      if [[ -z "${REGISTRY_HOST:-}" || -z "${REGISTRY_REPOSITORY:-}" ]]; then
+    if [ -z "${REGISTRY:-}" ]; then
+      if [ -z "${REGISTRY_HOST:-}" ] || [ -z "${REGISTRY_REPOSITORY:-}" ]; then
         echo "ERROR: REGISTRY_HOST and REGISTRY_REPOSITORY required for backend=$backend" >&2
         exit 1
       fi
@@ -26,11 +27,12 @@ case "$backend" in
     ;;
 esac
 
-if [[ -z "${REGISTRY:-}" ]]; then
+if [ -z "${REGISTRY:-}" ]; then
   echo "ERROR: REGISTRY is empty after resolve (backend=$backend)" >&2
   return 1 2>/dev/null || exit 1
 fi
 
-if [[ "${BASH_SOURCE[0]}" == "${0}" ]]; then
-  echo "REGISTRY=$REGISTRY"
-fi
+# Print only when executed directly, not sourced.
+case "${0##*/}" in
+  registry-resolve-env.sh) echo "REGISTRY=$REGISTRY" ;;
+esac
