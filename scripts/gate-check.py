@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import re
 import sys
 import xml.etree.ElementTree as ET
@@ -161,6 +162,44 @@ def check_sec_func_tests(path: Path, policy: dict) -> tuple[bool, str]:
     return evaluate(levels, policy)
 
 
+def check_infra(path: Path, policy: dict) -> tuple[bool, str]:
+    """Count-based OVAL/XCCDF gate from summary_infra.json (not SARIF severity)."""
+    mode = policy.get("mode", "warn")
+    if not path.exists() or path.stat().st_size == 0:
+        return missing_report(path, policy)
+
+    try:
+        data = json.loads(path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as e:
+        msg = f"invalid summary_infra.json: {e}"
+        if mode == "block":
+            return False, msg
+        return True, f"warn — {msg}"
+
+    failed = int(data.get("failed_checks", 0))
+    env_override = os.environ.get("INFRA_FAILED_THRESHOLD")
+    threshold = int(env_override if env_override is not None else policy.get("failed_threshold", 0))
+
+    xccdf_failed = data.get("failed_checks_xccdf")
+    xccdf_threshold = int(policy.get("xccdf_failed_threshold", 50))
+
+    parts = [f"failed_checks={failed}", f"failed_threshold={threshold}"]
+    over = failed > threshold
+    if xccdf_failed is not None:
+        xccdf_failed = int(xccdf_failed)
+        parts.append(f"failed_checks_xccdf={xccdf_failed}")
+        parts.append(f"xccdf_failed_threshold={xccdf_threshold}")
+        over = over or xccdf_failed > xccdf_threshold
+
+    detail = ", ".join(parts)
+    if over:
+        msg = f"infra threshold exceeded ({detail})"
+        if mode == "block":
+            return False, msg
+        return True, f"warn only — {msg}"
+    return True, f"ok ({detail})"
+
+
 def parse_report(path: Path) -> list[str]:
     if not path.exists():
         return []
@@ -199,6 +238,19 @@ def evaluate(levels: list[str], policy: dict) -> tuple[bool, str]:
 
     if warning and mode == "block":
         return True, f"warnings only: {warning}"
+
+    # Count cap (SaC): max_findings > 0 fails when total finding levels exceed
+    raw_max = policy.get("max_findings")
+    if raw_max is not None and str(raw_max) != "":
+        try:
+            max_findings = int(raw_max)
+        except (TypeError, ValueError):
+            max_findings = 0
+        if max_findings > 0 and len(levels) > max_findings:
+            msg = f"max_findings exceeded: count={len(levels)} max={max_findings}"
+            if mode == "block":
+                return False, msg
+            return True, f"warn only — {msg}"
 
     return True, "ok"
 
@@ -248,6 +300,8 @@ def main() -> None:
             ok, msg = missing_report(args.report, policy)
     elif args.control == "sec_func_tests":
         ok, msg = check_sec_func_tests(args.report, policy)
+    elif args.control == "infra":
+        ok, msg = check_infra(args.report, policy)
     else:
         if args.report.exists():
             ok, msg = evaluate(parse_report(args.report), policy)
@@ -257,6 +311,11 @@ def main() -> None:
     findings = 0
     if args.control == "sbom":
         findings = 1 if args.report.exists() else 0
+    elif args.control == "infra" and args.report.exists():
+        try:
+            findings = int(json.loads(args.report.read_text(encoding="utf-8")).get("failed_checks", 0))
+        except (json.JSONDecodeError, OSError, TypeError, ValueError):
+            findings = 0
     elif args.control == "dast" and args.report.exists():
         findings = len(parse_zap_baseline(args.report))
     elif args.control == "iast" and args.report.exists():
@@ -265,7 +324,7 @@ def main() -> None:
         findings = len(parse_junit(args.report))
     elif args.control == "binary_fuzz" and args.report.exists():
         findings = len(parse_junit(args.report))
-    elif args.control not in ("sbom", "dast", "iast", "fuzzing", "binary_fuzz"):
+    elif args.control not in ("sbom", "dast", "iast", "fuzzing", "binary_fuzz", "infra"):
         findings = len(parse_report(args.report)) if args.report.exists() else 0
     print(f"[{args.control}] {msg} (findings={findings}, mode={policy.get('mode')})")
     sys.exit(0 if ok else 1)
