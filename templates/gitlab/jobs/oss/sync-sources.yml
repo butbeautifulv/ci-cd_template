@@ -3,7 +3,7 @@
 
 sync-sources:
   stage: validate
-  image: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  image: $OSS_PYTHON_IMAGE
   rules:
     - if: '$CI_PIPELINE_SOURCE == "schedule"'
     - if: '$CI_PIPELINE_SOURCE == "web" && $MIRROR_SYNC == "1"'

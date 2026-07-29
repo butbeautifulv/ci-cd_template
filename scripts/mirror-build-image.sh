@@ -21,7 +21,9 @@ echo "[build] backend=docker (Kaniko binary absent — Nexus Kaniko image not av
 SCAN_ROOT="${SCAN_ROOT:-checkout}"
 SERVICE_NAME="${SERVICE_NAME:-app}"
 REGISTRY="${REGISTRY:?REGISTRY required}"
-BUILD_BASE_IMAGE="${BUILD_BASE_IMAGE:-nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm}"
+NEXUS_DOCKER_PREFIX="${NEXUS_DOCKER_PREFIX:-nexus.svo.aero:8345}"
+NEXUS_DOCKER_GROUP="${NEXUS_DOCKER_GROUP:-nexus.svo.aero:8374}"
+BUILD_BASE_IMAGE="${BUILD_BASE_IMAGE:-${NEXUS_DOCKER_PREFIX}/library/python:3.11.11-slim-bookworm}"
 BUILD_DOCKER_TARGET="${BUILD_DOCKER_TARGET:-base}"
 NEXUS_PYPI_URL="${NEXUS_PYPI_URL:-}"
 if [ -z "$NEXUS_PYPI_URL" ] && [ -n "${PIP_INDEX_URL:-}" ]; then
@@ -67,21 +69,21 @@ echo "[build] BUILD_BASE_IMAGE=$BUILD_BASE_IMAGE target=$BUILD_DOCKER_TARGET SOU
 
 for cand in \
   /etc/ssl/certs/nexus/ca.crt \
-  "/etc/docker/certs.d/nexus.svo.aero:8345/ca.crt" \
-  "/etc/docker/certs.d/nexus.svo.aero:8374/ca.crt"
+  "/etc/docker/certs.d/${NEXUS_DOCKER_PREFIX}/ca.crt" \
+  "/etc/docker/certs.d/${NEXUS_DOCKER_GROUP}/ca.crt"
 do
   if [ -f "$cand" ]; then
-    mkdir -p /etc/docker/certs.d/nexus.svo.aero:8345 /etc/docker/certs.d/nexus.svo.aero:8374
-    cp "$cand" /etc/docker/certs.d/nexus.svo.aero:8345/ca.crt || true
-    cp "$cand" /etc/docker/certs.d/nexus.svo.aero:8374/ca.crt || true
+    mkdir -p "/etc/docker/certs.d/${NEXUS_DOCKER_PREFIX}" "/etc/docker/certs.d/${NEXUS_DOCKER_GROUP}"
+    cp "$cand" "/etc/docker/certs.d/${NEXUS_DOCKER_PREFIX}/ca.crt" || true
+    cp "$cand" "/etc/docker/certs.d/${NEXUS_DOCKER_GROUP}/ca.crt" || true
     echo "[build] docker CA from $cand"
     break
   fi
 done
 
 if [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
-  printf '%s\n' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USER" --password-stdin "nexus.svo.aero:8345" || true
-  printf '%s\n' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USER" --password-stdin "nexus.svo.aero:8374" || true
+  printf '%s\n' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USER" --password-stdin "$NEXUS_DOCKER_PREFIX" || true
+  printf '%s\n' "$NEXUS_PASSWORD" | docker login -u "$NEXUS_USER" --password-stdin "$NEXUS_DOCKER_GROUP" || true
 fi
 
 NEXUS_USER_ENC="${NEXUS_USER:-}"

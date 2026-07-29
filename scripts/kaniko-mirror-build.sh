@@ -10,9 +10,12 @@ export PATH="/busybox:/kaniko:${PATH:-/usr/local/sbin:/usr/local/bin:/usr/sbin:/
 SCAN_ROOT="${SCAN_ROOT:-checkout}"
 SERVICE_NAME="${SERVICE_NAME:-app}"
 REGISTRY="${REGISTRY:?REGISTRY required}"
-BUILD_BASE_IMAGE="${BUILD_BASE_IMAGE:-nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm}"
+NEXUS_DOCKER_PREFIX="${NEXUS_DOCKER_PREFIX:-nexus.svo.aero:8345}"
+NEXUS_DOCKER_GROUP="${NEXUS_DOCKER_GROUP:-nexus.svo.aero:8374}"
+BUILD_BASE_IMAGE="${BUILD_BASE_IMAGE:-${NEXUS_DOCKER_PREFIX}/library/python:3.11.11-slim-bookworm}"
 BUILD_DOCKER_TARGET="${BUILD_DOCKER_TARGET:-source}"
 echo "[kaniko] BUILD_DOCKER_TARGET=${BUILD_DOCKER_TARGET}"
+echo "[kaniko] NEXUS_DOCKER_PREFIX=${NEXUS_DOCKER_PREFIX} NEXUS_DOCKER_GROUP=${NEXUS_DOCKER_GROUP}"
 NEXUS_PYPI_URL="${NEXUS_PYPI_URL:-}"
 if [ -z "$NEXUS_PYPI_URL" ] && [ -n "${PIP_INDEX_URL:-}" ]; then
   NEXUS_PYPI_URL=$(printf '%s' "$PIP_INDEX_URL" | sed -E 's|^https?://||; s|/simple/?$||')
@@ -103,7 +106,7 @@ if [ ! -s "$CONFIG_JSON" ]; then
   AUTH_ENTRIES=""
   if [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
     NA=$(b64_auth "${NEXUS_USER}:${NEXUS_PASSWORD}")
-    AUTH_ENTRIES="${AUTH_ENTRIES}\"nexus.svo.aero:8345\":{\"auth\":\"${NA}\"},\"nexus.svo.aero:8374\":{\"auth\":\"${NA}\"},"
+    AUTH_ENTRIES="${AUTH_ENTRIES}\"${NEXUS_DOCKER_PREFIX}\":{\"auth\":\"${NA}\"},\"${NEXUS_DOCKER_GROUP}\":{\"auth\":\"${NA}\"},"
   fi
   user="${CI_REGISTRY_USER:-gitlab-ci-token}"
   password="${CI_REGISTRY_PASSWORD:-${CI_JOB_TOKEN:-}}"

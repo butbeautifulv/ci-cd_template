@@ -16,7 +16,7 @@ sbom-generate:
     - |
       set -eu
       SCAN_ROOT="${SCAN_ROOT:-checkout}"
-      TRIVY_IMG="${OSS_TRIVY_IMAGE:-nexus.svo.aero:8345/aquasec/trivy:0.67.2}"
+      TRIVY_IMG="${OSS_TRIVY_IMAGE:-${NEXUS_DOCKER_PREFIX:-nexus.svo.aero:8345}/aquasec/trivy:0.67.2}"
       for cand in \
         /etc/ssl/certs/nexus/ca.crt \
         "/etc/docker/certs.d/${NEXUS_DOCKER_GROUP:-nexus.svo.aero:8374}/ca.crt" \

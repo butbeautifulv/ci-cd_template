@@ -5,7 +5,7 @@
 .aspm_upload_static:
   stage: static-security-upload
   # Literal Nexus python (K8s ignores empty/unexpanded ${OSS_PYTHON_IMAGE} → alpine default).
-  image: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  image: $OSS_PYTHON_IMAGE
   extends:
     - .defectdojo_skip_rules
     - .security_job_defaults

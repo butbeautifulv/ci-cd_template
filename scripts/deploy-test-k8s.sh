@@ -43,8 +43,10 @@ DEPLOY_WORKDIR="${DEPLOY_WORKDIR:-}"
 DEPLOY_COMMAND="${DEPLOY_COMMAND:-}"
 DEPLOY_ENV_FILE="${DEPLOY_ENV_FILE:-}"
 DEPLOY_STUBS="${DEPLOY_STUBS:-}"
-OSS_PYTHON_IMAGE="${OSS_PYTHON_IMAGE:-nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm}"
-OSS_MONGO_IMAGE="${OSS_MONGO_IMAGE:-nexus.svo.aero:8345/library/mongo:6}"
+NEXUS_DOCKER_PREFIX="${NEXUS_DOCKER_PREFIX:-nexus.svo.aero:8345}"
+NEXUS_DOCKER_GROUP="${NEXUS_DOCKER_GROUP:-nexus.svo.aero:8374}"
+OSS_PYTHON_IMAGE="${OSS_PYTHON_IMAGE:-${NEXUS_DOCKER_PREFIX}/library/python:3.11.11-slim-bookworm}"
+OSS_MONGO_IMAGE="${OSS_MONGO_IMAGE:-${NEXUS_DOCKER_PREFIX}/library/mongo:6}"
 
 echo "[deploy] service=$SVC k8s_name=$K8S_NAME image=$IMG port=$PORT ns=$NS readiness=$READINESS_PATH"
 echo "[deploy] workdir=${DEPLOY_WORKDIR:-<image default>} command=${DEPLOY_COMMAND:-<image CMD>}"
@@ -77,13 +79,13 @@ fi
 if [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
   kubectl create secret docker-registry nexus-registry \
     --namespace="$NS" \
-    --docker-server="nexus.svo.aero:8345" \
+    --docker-server="$NEXUS_DOCKER_PREFIX" \
     --docker-username="$NEXUS_USER" \
     --docker-password="$NEXUS_PASSWORD" \
     --dry-run=client -o yaml | kubectl apply -f -
   PULL_SECRETS="${PULL_SECRETS}
         - name: nexus-registry"
-  echo "[deploy] created pull secret nexus-registry for nexus.svo.aero:8345"
+  echo "[deploy] created pull secret nexus-registry for $NEXUS_DOCKER_PREFIX"
 fi
 
 # Optional ConfigMap from KEY=VALUE file (comments/# blank ignored).

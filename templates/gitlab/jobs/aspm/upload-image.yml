@@ -3,7 +3,7 @@
 
 .aspm_upload_image:
   stage: image-security-upload
-  image: nexus.svo.aero:8345/library/python:3.11.11-slim-bookworm
+  image: $OSS_PYTHON_IMAGE
   extends:
     - .defectdojo_skip_rules
     - .security_job_defaults
