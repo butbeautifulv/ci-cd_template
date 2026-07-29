@@ -12,7 +12,8 @@ defectdojo:
   auto_create_context: true
   minimum_severity: Info
   close_old_findings: false
-  product_name: "${DEFECTDOJO_PRODUCT_NAME:-${CI_PROJECT_NAME:-app}}"
+  product_name: "${DEFECTDOJO_PRODUCT_NAME}"
+  product_type_name: "${DEFECTDOJO_PRODUCT_TYPE:-Research}"
   engagement_name: "${DEFECTDOJO_ENGAGEMENT:-CI/CD}"
   commit_hash: "${CI_COMMIT_SHA:-}"
   branch_tag: "${CI_COMMIT_REF_NAME:-}"
@@ -20,11 +21,14 @@ defectdojo:
 
 controls:
   secrets:
-    scan_type: "Gitleaks Scan"
+    scan_type: "SARIF"
     test_title: "secrets"
   sast:
     scan_type: "SARIF"
     test_title: "sast-semgrep"
+  bandit:
+    scan_type: "SARIF"
+    test_title: "sast-bandit"
   osa:
     scan_type: "SARIF"
     test_title: "osa-trivy-fs"
@@ -32,9 +36,9 @@ controls:
     scan_type: "SARIF"
     test_title: "sca-trivy-image"
   iac:
-    scan_type: "Checkov Scan"
+    scan_type: "SARIF"
     test_title: "iac-checkov"
-    report_glob: "reports/checkov-report.json"
+    report_glob: "reports/checkov.sarif"
   dockerfile:
     scan_type: "Hadolint Dockerfile check"
     test_title: "dockerfile-hadolint"
@@ -49,11 +53,15 @@ controls:
     scan_type: "ZAP Scan"
     test_title: "iast-zap-full"
   fuzzing:
-    scan_type: "JUnit Test"
+    scan_type: "Generic Findings Import"
     test_title: "api-fuzz-schemathesis"
   binary_fuzz:
-    scan_type: "JUnit Test"
+    scan_type: "Generic Findings Import"
     test_title: "binary-fuzz"
   sbom:
     scan_type: "CycloneDX Scan"
     test_title: "sbom-syft"
+  infra:
+    scan_type: "Generic Findings Import"
+    test_title: "infra-openscap"
+    report_glob: "reports/summary_infra.json"
