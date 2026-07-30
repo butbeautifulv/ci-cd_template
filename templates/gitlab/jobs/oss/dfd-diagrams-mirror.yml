@@ -70,5 +70,10 @@ PY
     paths:
       - reports/dfd/${SERVICE_NAME}/
     expire_in: 30 days
-  rules: *mirror_service_rules
+  rules:
+    - if: '$CI_COMMIT_TAG =~ /hotfix/i'
+      when: never
+    - if: '$CI_COMMIT_TAG'
+    - if: '$SERVICE_NAME'
+    - when: never
   allow_failure: false
