@@ -636,14 +636,24 @@ def analyze_findings(
 def _require_jinja2():
     try:
         import jinja2  # type: ignore
-    except ImportError as e:
-        venv = FABRICA_ROOT / ".venv-aspm-report" / "bin" / "python"
-        raise SystemExit(
-            "[aspm-report] jinja2 required. Create venv:\n"
-            f"  python3 -m venv {FABRICA_ROOT / '.venv-aspm-report'} && "
-            f"{FABRICA_ROOT / '.venv-aspm-report' / 'bin' / 'pip'} install jinja2\n"
-            f"Then re-run with: {venv} scripts/dojo-render-aspm-report.py ..."
-        ) from e
+    except ImportError:
+        # CI convenience path: try to bootstrap jinja2 in-place.
+        # Offline corp runners may still fail here if the package index is unavailable.
+        import subprocess
+
+        try:
+            print("[aspm-report] jinja2 missing; attempting bootstrap via pip")
+            subprocess.check_call([sys.executable, "-m", "pip", "install", "--quiet", "jinja2"])
+            import jinja2  # type: ignore
+        except Exception as e:
+            venv = FABRICA_ROOT / ".venv-aspm-report" / "bin" / "python"
+            raise SystemExit(
+                "[aspm-report] jinja2 required. Auto-install failed.\n"
+                "Create venv manually:\n"
+                f"  python3 -m venv {FABRICA_ROOT / '.venv-aspm-report'} && "
+                f"{FABRICA_ROOT / '.venv-aspm-report' / 'bin' / 'pip'} install jinja2\n"
+                f"Then re-run with: {venv} scripts/dojo-render-aspm-report.py ..."
+            ) from e
     return jinja2
 
 
