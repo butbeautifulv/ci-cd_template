@@ -8,7 +8,8 @@ checkov-iac:
   extends:
     - .security_job_defaults
   variables:
-    ASPM_REPORT: reports/checkov-report.json
+    ASPM_CONTROL: iac
+    ASPM_REPORT: reports/checkov.sarif
   rules:
     - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1' || $SECURITY_DISABLED == 'true' || $SECURITY_DISABLED == '1'
       when: never
@@ -91,6 +92,8 @@ checkov-iac:
         echo "[iac] ERROR: python3 unavailable for gate-check"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     paths:
       - reports/

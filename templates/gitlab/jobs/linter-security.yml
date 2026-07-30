@@ -10,6 +10,8 @@ linter-security:
     - .security_job_defaults
   variables:
     ENABLE_REAL_LINTERS: "${ENABLE_REAL_LINTERS:-false}"
+    ASPM_CONTROL: linters
+    ASPM_REPORT: linter.sarif
   before_script:
     - !reference [.source_checkout, before_script]
   script:
@@ -151,6 +153,8 @@ linter-security:
         echo "[linters] ERROR: python3 unavailable for gate-check"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     reports:
       codequality: linter.sarif

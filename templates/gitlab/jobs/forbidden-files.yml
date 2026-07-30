@@ -7,6 +7,9 @@ forbidden-files:
   extends:
     - .workflow_rules_security
     - .security_job_defaults
+  variables:
+    ASPM_CONTROL: linters
+    ASPM_REPORT: forbidden-files.sarif
   before_script:
     - !reference [.source_checkout, before_script]
   script:
@@ -51,6 +54,8 @@ forbidden-files:
       fi
       python3 scripts/normalize-sarif.py forbidden-files.sarif forbidden-files
     - python3 scripts/gate-check.py --control forbidden_files --report forbidden-files.sarif --policy "${SECURITY_POLICY:-config/security-gate-policy.yaml}"
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     paths:
       - forbidden-files.sarif

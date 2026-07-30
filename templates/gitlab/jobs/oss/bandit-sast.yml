@@ -7,6 +7,9 @@ bandit-sast:
   extends:
     - .workflow_rules_security
     - .security_job_defaults
+  variables:
+    ASPM_CONTROL: bandit
+    ASPM_REPORT: bandit.sarif
   before_script:
     - !reference [.source_checkout, before_script]
   script:
@@ -124,6 +127,8 @@ bandit-sast:
         echo "[bandit] ERROR: python3 unavailable for gate-check"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     paths:
       - bandit.sarif

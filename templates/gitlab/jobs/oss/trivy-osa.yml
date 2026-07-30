@@ -11,6 +11,9 @@ trivy-osa:
     - .workflow_rules_security
     - .security_job_defaults
     - .trivy_job
+  variables:
+    ASPM_CONTROL: osa
+    ASPM_REPORT: osa.sarif
   before_script:
     - !reference [.source_checkout, before_script]
   script:
@@ -149,6 +152,8 @@ trivy-osa:
         echo "[osa] ERROR: python3 unavailable and no docker to run OSS_PYTHON_IMAGE for gate-check (no apk/apt)"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     paths:
       - osa.sarif

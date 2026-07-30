@@ -9,6 +9,8 @@ gitleaks-scan:
     - .workflow_rules_security
     - .security_job_defaults
   variables:
+    ASPM_CONTROL: secrets
+    ASPM_REPORT: gitleaks.sarif
     KUBERNETES_MEMORY_REQUEST: "${KUBERNETES_MEMORY_REQUEST:-128Mi}"
     KUBERNETES_MEMORY_LIMIT: "${KUBERNETES_MEMORY_LIMIT:-512Mi}"
   before_script:
@@ -61,6 +63,8 @@ gitleaks-scan:
         echo "[secrets] ERROR: python3 unavailable and no docker for OSS_PYTHON_IMAGE gate-check (no apk/apt)"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     paths:
       - gitleaks.sarif
