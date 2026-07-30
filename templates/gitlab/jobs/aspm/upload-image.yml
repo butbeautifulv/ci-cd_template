@@ -1,3 +1,7 @@
+# ASPM upload wave — DEPRECATED for mirror/oss-full profiles.
+# Image/SCA jobs now call scripts/aspm-export-ci.sh in after_script.
+# Prefer: scripts/aspm-export-ci.sh from trivy-sca / sbom-generate after_script.
+
 # ASPM upload wave — supply-chain findings (post-build)
 # Corp: literal Nexus python; no pypi.org; product from resolve-mirror-service.
 
