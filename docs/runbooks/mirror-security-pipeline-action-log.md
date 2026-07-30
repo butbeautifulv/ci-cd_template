@@ -399,4 +399,16 @@ Re-fleet IDs (mirror `412ba41`):
 | 2026-07-30 | data_lake_service | 0.4.10 | 112814 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112814 |
 | 2026-07-30 | user_service | 0.4.4 | 112815 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112815 |
 
+### Wave-3 DAST/deploy hotfix (2026-07-30)
+
+- **hwa** DAST/fuzz: missing `api_path_prefix=/v1` → live OpenAPI at `/openapi.json` 000; fixed + infer prefix from readiness.
+- **user** deploy: remapped `gismaputils` 0.2.5→0.5.3 broke `get_token` import; Kaniko patches `health_router` to `Auth.get_token`.
+
+Retry (mirror `54e1b9b`):
+
+| When | SERVICE_NAME | SOURCE_REF | Pipeline ID | URL |
+|------|--------------|------------|-------------|-----|
+| 2026-07-30 | hwa_service | 0.0.4 | 112826 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112826 |
+| 2026-07-30 | user_service | 0.4.4 | 112827 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112827 |
+
 
