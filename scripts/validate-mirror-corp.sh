@@ -137,6 +137,11 @@ fi
 
 grep -q 'api-fuzz-schemathesis-mirror' "$PROFILE" || fail "profile missing schemathesis include"
 ok "schemathesis included"
+if grep -q '^upload-dast-to-dojo:' "$PROFILE" || grep -q '^upload-fuzz-to-dojo:' "$PROFILE"; then
+  fail "legacy upload-*-to-dojo jobs must be removed (use after_script export)"
+else
+  ok "no legacy upload-*-to-dojo jobs"
+fi
 grep -q 'aspm-html-report-mirror.yml' "$PROFILE" || fail "profile missing ASPM HTML include"
 ok "ASPM HTML include present"
 grep -q 'dfd-diagrams-mirror.yml' "$PROFILE" || fail "profile missing DFD include"
