@@ -378,10 +378,10 @@ HTML: `scripts/dojo-render-aspm-report.py` → `reports/aspm-report-<service>.ht
 
 | When | SERVICE_NAME | SOURCE_REF | Pipeline ID | URL |
 |------|--------------|------------|-------------|-----|
-| TBD | hwa_service | 0.0.4 | | |
-| TBD | data_lake_service | 0.4.10 | | |
-| TBD | user_service | 0.4.4 | | |
-| TBD | dynamic_layer_service | 0.5.1 | | |
-| TBD | event_service | 0.4.1 | | |
-| TBD | defects | 0.5.7 | | |
+| 2026-07-30 | hwa_service | 0.0.4 | 112798 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112798 |
+| 2026-07-30 | data_lake_service | 0.4.10 | 112799 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112799 |
+| 2026-07-30 | user_service | 0.4.4 | 112800 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112800 |
+| 2026-07-30 | dynamic_layer_service | 0.5.1 | 112801 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112801 |
+| 2026-07-30 | event_service | 0.4.1 | 112802 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112802 |
+| 2026-07-30 | defects | 0.5.7 | 112803 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112803 |
 
