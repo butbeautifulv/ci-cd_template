@@ -1,0 +1,37 @@
+# Mirror service pipeline — ASPM HTML artifact (downloadable from GitLab job).
+
+aspm-html-report:
+  stage: post-deploy
+  image:
+    name: $OSS_PYTHON_IMAGE
+    entrypoint: [""]
+  needs:
+    - job: dast-zap
+      optional: false
+    - job: api-fuzz-schemathesis
+      optional: false
+  variables:
+    ASPM_HTML_OUT: "reports/aspm-report-${SERVICE_NAME}.html"
+  before_script:
+    - !reference [.source_checkout, before_script]
+  script:
+    - |
+      set -eu
+      if [ -z "${SERVICE_NAME:-}" ]; then
+        echo "[aspm-html] ERROR: SERVICE_NAME is required"
+        exit 1
+      fi
+      mkdir -p reports
+      python3 scripts/dojo-render-aspm-report.py \
+        --product "${SERVICE_NAME}" \
+        --out "${ASPM_HTML_OUT}"
+      test -s "${ASPM_HTML_OUT}" || { echo "[aspm-html] ERROR: empty report"; exit 1; }
+      echo "[aspm-html] wrote ${ASPM_HTML_OUT}"
+  artifacts:
+    name: "aspm-html-${SERVICE_NAME}-${CI_PIPELINE_ID}"
+    when: always
+    paths:
+      - reports/aspm-report-*.html
+    expire_in: 30 days
+  rules: *mirror_service_rules
+  allow_failure: false

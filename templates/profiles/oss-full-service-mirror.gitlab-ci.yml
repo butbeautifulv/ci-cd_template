@@ -51,6 +51,8 @@ variables:
   OSS_SCHEMATHESIS_IMAGE: "$NEXUS_DOCKER_PREFIX/cxado-docker/schemathesis:3.39.2"
   OSS_ZAPROXY_IMAGE: "$NEXUS_DOCKER_PREFIX/cxado-docker/zaproxy:2.16.0"
   OSS_KUBECTL_IMAGE: "$NEXUS_DOCKER_PREFIX/cxado-docker/kubectl-deploy:1.36.3"
+  # Must contain: python3 + graphviz dot + python graphviz module.
+  OSS_DIAGRAMS_IMAGE: "$OSS_PYTHON_IMAGE"
   OSS_MONGO_IMAGE: "$NEXUS_DOCKER_PREFIX/library/mongo:6"
   TRIVY_DB_REPOSITORY: "$NEXUS_DOCKER_GROUP/aquasecurity/trivy-db"
   TRIVY_JAVA_DB_REPOSITORY: "$NEXUS_DOCKER_GROUP/aquasecurity/trivy-java-db"
@@ -124,6 +126,8 @@ include:
   - local: '/templates/gitlab/jobs/oss/deploy-test-mirror.yml'
   - local: '/templates/gitlab/jobs/oss/dast-zap-mirror.yml'
   - local: '/templates/gitlab/jobs/oss/api-fuzz-schemathesis-mirror.yml'
+  - local: '/templates/gitlab/jobs/oss/aspm-html-report-mirror.yml'
+  - local: '/templates/gitlab/jobs/oss/dfd-diagrams-mirror.yml'
   - local: '/templates/gitlab/jobs/oss/cleanup-test-mirror.yml'
   # cleanup-runner defined below (no .oss_docker_job)
 

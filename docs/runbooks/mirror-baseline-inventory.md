@@ -59,19 +59,29 @@ Legacy wrapper (same as enabled-only fleet):
 bash scripts/mirror-baseline-trigger.sh --dry-run
 ```
 
-## After pipelines — ASPM HTML (final step)
+## In-pipeline artifacts (download from GitLab)
 
-Wait until Wave-3 pipelines finish (inline after_script uploads to DefectDojo). Then:
+Each mirror service pipeline now produces two downloadable artifact jobs:
 
-```bash
-export DEFECTDOJO_URL=…
-export DEFECTDOJO_API_TOKEN=…
-export DEFECTDOJO_INSECURE=true
-make mirror-aspm-html
-# → reports/aspm-report-<service>.html
-```
+- `aspm-html-report`:
+  - `reports/aspm-report-<SERVICE_NAME>.html`
+- `dfd-diagrams-report`:
+  - `reports/dfd/<SERVICE_NAME>/dfd_diagram.svg`
+  - `reports/dfd/<SERVICE_NAME>/architecture.svg`
+  - `reports/dfd/<SERVICE_NAME>/pipeline_security.svg`
+  - `reports/dfd/<SERVICE_NAME>/k8s_deploy.svg`
+  - `reports/dfd/<SERVICE_NAME>/stride_register.md`
+  - `reports/dfd/<SERVICE_NAME>/threat_model.json`
+  - `reports/dfd/<SERVICE_NAME>/security_requirements.yaml`
 
-See [`defectdojo-aspm-report.md`](defectdojo-aspm-report.md).
+How to download:
+
+1. Open pipeline in GitLab.
+2. Open job `aspm-html-report` or `dfd-diagrams-report`.
+3. Download the job artifact archive from the right panel.
+4. Extract locally and pick files under `reports/`.
+
+Legacy operator batch mode (`make mirror-aspm-html`) stays available for ad-hoc/manual runs, but canonical flow is now pipeline artifacts.
 
 ## Ongoing sync (schedule)
 

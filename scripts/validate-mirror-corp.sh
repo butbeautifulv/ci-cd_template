@@ -12,10 +12,14 @@ ok() { echo "OK: $*"; }
 PROFILE="templates/profiles/oss-full-service-mirror.gitlab-ci.yml"
 KANIKO="templates/gitlab/jobs/oss/build-kaniko.yml"
 FUZZ="templates/gitlab/jobs/oss/api-fuzz-schemathesis-mirror.yml"
+ASPM_HTML_JOB="templates/gitlab/jobs/oss/aspm-html-report-mirror.yml"
+DFD_JOB="templates/gitlab/jobs/oss/dfd-diagrams-mirror.yml"
 
 [[ -f "$PROFILE" ]] || fail "missing $PROFILE"
 [[ -f "$KANIKO" ]] || fail "missing $KANIKO"
 [[ -f "$FUZZ" ]] || fail "missing $FUZZ"
+[[ -f "$ASPM_HTML_JOB" ]] || fail "missing $ASPM_HTML_JOB"
+[[ -f "$DFD_JOB" ]] || fail "missing $DFD_JOB"
 
 # Mirror profile must be Nexus-literal / no public registries.
 for pat in 'ghcr\.io' 'pypi\.org' 'semgrep\.dev' '(^|[^a-zA-Z0-9_-])p/ci([^a-zA-Z0-9_]|$)'; do
@@ -133,6 +137,10 @@ fi
 
 grep -q 'api-fuzz-schemathesis-mirror' "$PROFILE" || fail "profile missing schemathesis include"
 ok "schemathesis included"
+grep -q 'aspm-html-report-mirror.yml' "$PROFILE" || fail "profile missing ASPM HTML include"
+ok "ASPM HTML include present"
+grep -q 'dfd-diagrams-mirror.yml' "$PROFILE" || fail "profile missing DFD include"
+ok "DFD include present"
 
 grep -q 'sync-sources.yml' "$PROFILE" || fail "profile missing sync-sources"
 ok "sync-sources included"
@@ -198,6 +206,19 @@ ok "ASPM HTML template present"
 grep -q 'mirror-fleet-trigger.py' scripts/point-copy-mirror.sh || fail "point-copy missing fleet trigger"
 grep -q 'dojo-render-aspm-report.py' scripts/point-copy-mirror.sh || fail "point-copy missing dojo-render"
 ok "point-copy lists fleet + HTML renderer"
+grep -q 'templates/gitlab/jobs' scripts/point-copy-mirror.sh || fail "point-copy must copy templates/gitlab/jobs overlay"
+ok "point-copy overlays templates/gitlab/jobs"
+
+grep -q '^aspm-html-report:' "$ASPM_HTML_JOB" || fail "ASPM HTML job name missing"
+grep -q 'allow_failure: false' "$ASPM_HTML_JOB" || fail "ASPM HTML job must hard-fail"
+grep -q 'reports/aspm-report-\${SERVICE_NAME}.html' "$ASPM_HTML_JOB" || fail "ASPM HTML artifact path missing"
+ok "ASPM HTML job hard-fail + artifacts"
+
+grep -q '^dfd-diagrams-report:' "$DFD_JOB" || fail "DFD job name missing"
+grep -q 'allow_failure: false' "$DFD_JOB" || fail "DFD job must hard-fail"
+grep -q 'reports/dfd/\${SERVICE_NAME}/' "$DFD_JOB" || fail "DFD artifact path missing"
+grep -q "graphviz runtime missing; fallback" "$DFD_JOB" || fail "DFD job must have no-dot fallback path"
+ok "DFD job hard-fail + artifacts + runtime fallback"
 python3 -c "
 import sys
 from pathlib import Path
