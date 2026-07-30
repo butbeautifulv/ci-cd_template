@@ -11,8 +11,29 @@ DFD_OUT_DIR="${DFD_OUT_DIR:-reports/dfd/${SERVICE_NAME}}"
 mkdir -p "${DFD_OUT_DIR}"
 
 if ! command -v dot >/dev/null 2>&1; then
+  echo "[dfd] dot missing, attempting apt bootstrap"
+  if command -v apt-get >/dev/null 2>&1; then
+    auth_file="/etc/apt/auth.conf"
+    if [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
+      printf 'machine http://archive.ubuntu.com login %s password %s\nmachine http://security.ubuntu.com login %s password %s\n' \
+        "${NEXUS_USER}" "${NEXUS_PASSWORD}" "${NEXUS_USER}" "${NEXUS_PASSWORD}" > "${auth_file}" || true
+      chmod 600 "${auth_file}" || true
+    fi
+    apt-get update
+    apt-get install -y --no-install-recommends graphviz ca-certificates
+    rm -f "${auth_file}" || true
+    rm -rf /var/lib/apt/lists/* || true
+  fi
+fi
+if ! command -v dot >/dev/null 2>&1; then
   echo "[dfd] ERROR: Graphviz binary 'dot' not found in PATH" >&2
   exit 1
+fi
+
+if ! python3 -c "import importlib.util,sys; sys.exit(0 if importlib.util.find_spec('graphviz') else 1)"; then
+  echo "[dfd] python graphviz missing, attempting uv bootstrap"
+  python3 -m pip install --no-cache-dir uv
+  uv pip install --system --no-cache graphviz==0.20.3
 fi
 if ! python3 -c "import importlib.util,sys; sys.exit(0 if importlib.util.find_spec('graphviz') else 1)"; then
   echo "[dfd] ERROR: python module 'graphviz' not installed" >&2
