@@ -207,6 +207,7 @@ if not m:
         if n:
             rf.write_text(new, encoding="utf-8")
             print(f"[kaniko] rewritten {rf.name}: gismaputils=={ver} → {use_ver} ({n} hit(s))")
+            (context / ".gismaputils_remapped").write_text(f"{ver}->{use_ver}\n", encoding="utf-8")
     m = wheel_for(use_ver)
     if not m:
         print(f"[kaniko] WARN: remap target gismaputils=={use_ver} also missing", file=sys.stderr)
@@ -225,6 +226,42 @@ print(f"[kaniko] vendored {name} ({len(data)} bytes)")
 PY
     fi
   done
+fi
+# After remapping gismaputils to 0.5.x, old services may import module-level get_token
+# (user_service 0.4.4). Patch health_router to Auth.get_token so the image can boot.
+if [ -f "${CONTEXT}/.gismaputils_remapped" ] && command -v python3 >/dev/null 2>&1; then
+  CONTEXT="$CONTEXT" python3 - <<'PY'
+import os, re
+from pathlib import Path
+
+ctx = Path(os.environ["CONTEXT"])
+hr = ctx / "src" / "routers" / "health_router.py"
+if not hr.is_file():
+    raise SystemExit(0)
+text = hr.read_text(encoding="utf-8", errors="replace")
+if "from gismaputils.auth.network.auth_requests import get_token" not in text:
+    raise SystemExit(0)
+text2 = text.replace(
+    "from gismaputils.auth.network.auth_requests import get_token",
+    "from gismaputils.auth.network.auth_requests import auth",
+)
+text3, n = re.subn(
+    r"token\s*=\s*await\s+get_token\([^)]*\)",
+    "auth.set_config(\n"
+    "        url_auth=get_settings().URL_AUTH,\n"
+    "        b2b_user=get_settings().BACK_TO_BACK_USER,\n"
+    "        b2b_pwd=get_settings().BACK_TO_BACK_PASSWORD,\n"
+    "    )\n"
+    "    token = await auth.get_token()",
+    text2,
+    count=1,
+)
+if n:
+    hr.write_text(text3, encoding="utf-8")
+    print(f"[kaniko] patched {hr.relative_to(ctx)} for gismaputils Auth.get_token compat")
+else:
+    print(f"[kaniko] WARN: remapped gismaputils but could not patch {hr}", flush=True)
+PY
 fi
 if ls "$VENDOR_DIR"/*.whl >/dev/null 2>&1; then
   GISMAP_VENDOR_SET=1

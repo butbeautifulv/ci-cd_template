@@ -22,10 +22,10 @@ services:
     enabled: true
     tier: pilot
     service_port: "8000"
-    openapi_path: "openapi.json"
     deploy_command: "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000"
     deploy_workdir: "/app/code"
     readiness_path: "/v1/openapi.json"
+    api_path_prefix: "/v1"
     deploy_env_file: "config/mirror-deploy/hwa_service.env"
     deploy_stubs: "http,mongo"
   data_lake_service:
@@ -53,6 +53,7 @@ services:
     deploy_command: "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000"
     deploy_workdir: "/app/code"
     readiness_path: "/v1/openapi.json"
+    api_path_prefix: "/v1"
     deploy_env_file: "config/mirror-deploy/user_service.env"
     deploy_stubs: "http,mongo"
   dynamic_layer_service:

@@ -317,6 +317,14 @@ echo "[deploy] API_BASE_URL=$API_BASE_URL"
 
 # Path prefix for OpenAPI-relative paths (fuzz) and DAST api-scan OpenAPI URL.
 PREFIX="${API_PATH_PREFIX:-}"
+# Infer from readiness probe when YAML omitted api_path_prefix (e.g. /v1/openapi.json → /v1).
+if [ -z "$PREFIX" ] || [ "$PREFIX" = "/" ]; then
+  case "${READINESS_PATH:-}" in
+    */openapi.json)
+      PREFIX="${READINESS_PATH%/openapi.json}"
+      ;;
+  esac
+fi
 case "$PREFIX" in
   ""|/) PREFIX="" ;;
   *)
@@ -344,6 +352,18 @@ HTTP_CODE=$(curl -sf --connect-timeout 10 --max-time 20 \
   -o reports/live-openapi.json \
   -w '%{http_code}' \
   "$DAST_OPENAPI_URL" 2>/dev/null) || HTTP_CODE="000"
+# Also try readiness path when it points at OpenAPI (prefix inference missed).
+if { [ "$HTTP_CODE" != "200" ] || [ ! -s reports/live-openapi.json ]; } \
+  && [ -n "${READINESS_PATH:-}" ] && [ "$READINESS_PATH" != "/openapi.json" ]; then
+  case "$READINESS_PATH" in
+    *openapi.json)
+      HTTP_CODE=$(curl -sf --connect-timeout 10 --max-time 20 \
+        -o reports/live-openapi.json \
+        -w '%{http_code}' \
+        "${API_BASE_URL}${READINESS_PATH}" 2>/dev/null) || HTTP_CODE="000"
+      ;;
+  esac
+fi
 if [ "$HTTP_CODE" != "200" ] || [ ! -s reports/live-openapi.json ]; then
   HTTP_CODE=$(curl -sf --connect-timeout 10 --max-time 20 \
     -o reports/live-openapi.json \
