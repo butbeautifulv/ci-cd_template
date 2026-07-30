@@ -8,6 +8,7 @@ This runbook captures recent stabilization work for the GitLab mirror pipeline (
 - Target service example: `hwa_service`
 - Trigger model: release tags (`hwa_service/v*`)
 - Goal: collect vulnerabilities and upload to DefectDojo with gates still present, but thresholds relaxed during adoption.
+- ASPM: inline export via `scripts/aspm-export-ci.sh` in scan `after_script` (see `docs/runbooks/aspm-export.md`); no `upload-*-to-dojo` wave on mirror.
 
 ## Timeline (Recent Actions)
 
@@ -365,7 +366,7 @@ Pipeline wave after `112698`/`112701`:
 
 - Confirm `dockerfile-lint` is present (not skipped) in tag pipelines.
 - Confirm static reports are generated and retained as artifacts.
-- Confirm `upload-*-to-dojo` jobs run and import artifacts.
+- Confirm each scan job `after_script` runs `aspm-export-ci.sh` (no separate `upload-*-to-dojo` jobs on mirror/oss-full).
 - Confirm DefectDojo UI/API shows product + findings after non-empty uploads (not soft-skip green).
 - Confirm `cleanup-runner` executes at end of each pilot pipeline.
 - Confirm no runner-specific bootstrap failure regressed (`python3`, `pip`, `docker`, package manager).
