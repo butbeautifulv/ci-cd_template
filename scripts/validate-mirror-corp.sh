@@ -189,6 +189,8 @@ ok "point-copy lists run-dast-zap-api-mirror"
 
 [[ -f scripts/aspm-export-ci.sh ]] || fail "missing scripts/aspm-export-ci.sh"
 ok "aspm-export-ci.sh present"
+grep -q 'curl-fallback' scripts/aspm-export-ci.sh || fail "aspm-export-ci.sh missing curl-fallback for pythonless images"
+ok "aspm-export-ci.sh has curl-fallback"
 grep -q 'aspm-export-ci.sh' scripts/point-copy-mirror.sh || fail "point-copy missing aspm-export-ci.sh"
 ok "point-copy lists aspm-export-ci.sh"
 

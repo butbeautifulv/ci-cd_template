@@ -8,8 +8,9 @@
 #   DEFECTDOJO_*  — aspm-export.py / DefectDojo
 #   OSS_PYTHON_IMAGE — docker fallback when python3 missing (shell runners)
 #
+# Runtime order: python3 → docker+$OSS_PYTHON_IMAGE → curl multipart reimport.
 # Exit 0 on skip (missing/empty artifact). Fail when export fails and
-# DEFECTDOJO_FAIL_ON_ERROR=true, or when artifact exists but no python/docker.
+# DEFECTDOJO_FAIL_ON_ERROR=true, or when artifact exists but no runner available.
 set -eu
 
 CONTROL="${ASPM_CONTROL:-}"
@@ -55,6 +56,93 @@ if [ "$SKIP_EMPTY" = "true" ]; then
   EXTRA="--skip-empty"
 fi
 
+# Read scan_type / test_title for control from aspm-export.yaml (curl path).
+aspm_yaml_field() {
+  # $1 = control key, $2 = field name (scan_type|test_title), $3 = config path
+  _ctrl="$1"
+  _field="$2"
+  _cfg="${3:-$CONFIG}"
+  if [ ! -f "$_cfg" ]; then
+    return 1
+  fi
+  awk -v ctrl="$_ctrl" -v field="$_field" '
+    $0 ~ "^  " ctrl ":" { in_ctrl=1; next }
+    in_ctrl && $0 ~ /^  [a-zA-Z0-9_]+:/ && $0 !~ "^  " ctrl ":" { in_ctrl=0 }
+    in_ctrl && $0 ~ "^    " field ":" {
+      line = $0
+      sub("^    [^:]+:[[:space:]]*", "", line)
+      gsub(/"/, "", line)
+      print line
+      exit
+    }
+  ' "$_cfg"
+}
+
+run_aspm_curl() {
+  url_base="${DEFECTDOJO_URL:-}"
+  token="${DEFECTDOJO_API_TOKEN:-}"
+  if [ -z "$url_base" ]; then
+    echo "[aspm] skip — DEFECTDOJO_URL not set"
+    return 0
+  fi
+  if [ -z "$token" ]; then
+    echo "[aspm] skip — DEFECTDOJO_API_TOKEN not set"
+    return 0
+  fi
+
+  if ! command -v curl >/dev/null 2>&1; then
+    echo "[aspm] ERROR: artifact present but python3/docker/curl unavailable — refusing soft-green skip"
+    return 1
+  fi
+
+  scan_type="$(aspm_yaml_field "$CONTROL" scan_type "$CONFIG" || true)"
+  test_title="$(aspm_yaml_field "$CONTROL" test_title "$CONFIG" || true)"
+  if [ -z "$scan_type" ]; then
+    scan_type="SARIF"
+  fi
+  if [ -z "$test_title" ]; then
+    test_title="$CONTROL"
+  fi
+
+  product_name="${DEFECTDOJO_PRODUCT_NAME:-${CI_PROJECT_NAME:-app}}"
+  product_type_name="${DEFECTDOJO_PRODUCT_TYPE:-Research}"
+  engagement_name="${DEFECTDOJO_ENGAGEMENT:-CI/CD}"
+  api_url="${url_base%/}/api/v2/reimport-scan/"
+
+  curl_insecure=""
+  if [ "${DEFECTDOJO_INSECURE:-false}" = "true" ]; then
+    curl_insecure="-k"
+  fi
+
+  echo "[aspm] curl-fallback control=$CONTROL scan_type=$scan_type test_title=$test_title"
+
+  # shellcheck disable=SC2086
+  body="$(
+    curl -sS -f -X POST $curl_insecure \
+      -H "Authorization: Token ${token}" \
+      -F "scan_type=${scan_type}" \
+      -F "test_title=${test_title}" \
+      -F "product_name=${product_name}" \
+      -F "product_type_name=${product_type_name}" \
+      -F "engagement_name=${engagement_name}" \
+      -F "commit_hash=${CI_COMMIT_SHA:-}" \
+      -F "branch_tag=${CI_COMMIT_REF_NAME:-}" \
+      -F "build_id=${CI_PIPELINE_ID:-}" \
+      -F "minimum_severity=Info" \
+      -F "auto_create_context=true" \
+      -F "close_old_findings=false" \
+      -F "active=true" \
+      -F "verified=false" \
+      -F "file=@${REPORT}" \
+      "$api_url"
+  )" || {
+    echo "[aspm] ERROR: curl reimport failed for control=$CONTROL"
+    return 1
+  }
+  printf '%s\n' "[aspm:${CONTROL}] uploaded (curl): ${body}" | cut -c1-240
+  return 0
+}
+
 run_aspm() {
   if command -v python3 >/dev/null 2>&1; then
     # shellcheck disable=SC2086
@@ -80,8 +168,8 @@ run_aspm() {
       python3 scripts/aspm-export.py --control "$CONTROL" --report "$REPORT" --config "$CONFIG" $EXTRA
     return $?
   fi
-  echo "[aspm] ERROR: artifact present but python3/docker unavailable — refusing soft-green skip"
-  return 1
+  run_aspm_curl
+  return $?
 }
 
 if run_aspm; then

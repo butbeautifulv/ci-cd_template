@@ -74,6 +74,51 @@ class TestAspmExportCiSkip(unittest.TestCase):
             self.assertEqual(r.returncode, 0)
             self.assertIn("empty list", r.stdout + r.stderr)
 
+    def test_script_declares_curl_fallback(self):
+        text = SCRIPT.read_text(encoding="utf-8")
+        self.assertIn("curl-fallback", text)
+        self.assertIn("run_aspm_curl", text)
+        self.assertIn("reimport-scan", text)
+
+    def test_curl_path_skips_without_dojo_url(self):
+        """No python3 in PATH → curl path; missing DEFECTDOJO_URL → skip 0."""
+        with tempfile.TemporaryDirectory() as td:
+            td_path = Path(td)
+            report = td_path / "findings.sarif"
+            report.write_text(
+                '{"version":"2.1.0","runs":[{"results":[{"ruleId":"x"}]}]}',
+                encoding="utf-8",
+            )
+            bin_dir = td_path / "bin"
+            bin_dir.mkdir()
+            for name in ("sh", "awk", "curl", "cut", "printf", "head", "cat", "chmod"):
+                src = Path("/usr/bin") / name
+                if not src.exists():
+                    src = Path("/bin") / name
+                if src.exists():
+                    (bin_dir / name).symlink_to(src)
+            env = os.environ.copy()
+            for k in list(env):
+                if k.startswith("DEFECTDOJO_") or k in ("CI_COMMIT_TAG", "SERVICE_NAME"):
+                    env.pop(k, None)
+            env["PATH"] = str(bin_dir)
+            env["ASPM_CONTROL"] = "secrets"
+            env["ASPM_REPORT"] = str(report)
+            env["ASPM_CONFIG"] = str(ROOT / "config" / "aspm-export.yaml")
+            env["DEFECTDOJO_FAIL_ON_ERROR"] = "true"
+            # no DEFECTDOJO_URL
+            r = subprocess.run(
+                ["sh", str(SCRIPT)],
+                cwd=str(ROOT),
+                env=env,
+                capture_output=True,
+                text=True,
+                check=False,
+            )
+            out = r.stdout + r.stderr
+            self.assertEqual(r.returncode, 0, out)
+            self.assertIn("DEFECTDOJO_URL not set", out)
+
 
 if __name__ == "__main__":
     unittest.main()
