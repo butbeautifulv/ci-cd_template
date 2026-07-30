@@ -186,7 +186,8 @@ for s in \
   scripts/kaniko-mirror-build.sh \
   scripts/discover-openapi.sh \
   scripts/run-schemathesis-mirror.sh \
-  scripts/run-dast-zap-api-mirror.sh
+  scripts/run-dast-zap-api-mirror.sh \
+  scripts/dfd-export-ci.sh
 do
   [[ -f "$s" ]] || fail "missing $s"
   ok "present $s"
@@ -217,8 +218,9 @@ ok "ASPM HTML job hard-fail + artifacts"
 grep -q '^dfd-diagrams-report:' "$DFD_JOB" || fail "DFD job name missing"
 grep -q 'allow_failure: false' "$DFD_JOB" || fail "DFD job must hard-fail"
 grep -q 'reports/dfd/\${SERVICE_NAME}/' "$DFD_JOB" || fail "DFD artifact path missing"
-grep -q "graphviz runtime missing; fallback" "$DFD_JOB" || fail "DFD job must have no-dot fallback path"
-ok "DFD job hard-fail + artifacts + runtime fallback"
+grep -q 'sh scripts/dfd-export-ci.sh' "$DFD_JOB" || fail "DFD job must call scripts/dfd-export-ci.sh"
+grep -q 'graphviz runtime missing; fallback' scripts/dfd-export-ci.sh || fail "dfd-export-ci fallback missing"
+ok "DFD job hard-fail + artifacts + exporter script"
 python3 -c "
 import sys
 from pathlib import Path

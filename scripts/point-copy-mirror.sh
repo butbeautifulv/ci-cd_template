@@ -47,6 +47,7 @@ FILES=(
   scripts/discover-openapi.sh
   scripts/run-schemathesis-mirror.sh
   scripts/run-dast-zap-api-mirror.sh
+  scripts/dfd-export-ci.sh
   scripts/mirror-sync-sources.py
   scripts/mirror-fleet-trigger.py
   scripts/mirror-baseline-trigger.sh

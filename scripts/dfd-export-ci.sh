@@ -1,0 +1,54 @@
+#!/usr/bin/env sh
+# Export DFD/THREAT bundle for mirror pipeline artifacts.
+set -eu
+
+if [ -z "${SERVICE_NAME:-}" ]; then
+  echo "[dfd] ERROR: SERVICE_NAME is required" >&2
+  exit 1
+fi
+
+DFD_OUT_DIR="${DFD_OUT_DIR:-reports/dfd/${SERVICE_NAME}}"
+mkdir -p "${DFD_OUT_DIR}"
+
+if command -v dot >/dev/null 2>&1 && python3 -c "import importlib.util,sys; sys.exit(0 if importlib.util.find_spec('graphviz') else 1)"; then
+  echo "[dfd] rendering all diagrams with graphviz runtime"
+  python3 diagrams/main.py --export all --output-dir "${DFD_OUT_DIR}"
+else
+  echo "[dfd] graphviz runtime missing; fallback to repo SVG + generated TM exports"
+  cp -f diagrams/dfd_diagram.svg "${DFD_OUT_DIR}/dfd_diagram.svg"
+  cp -f diagrams/architecture.svg "${DFD_OUT_DIR}/architecture.svg"
+  cp -f diagrams/pipeline_security.svg "${DFD_OUT_DIR}/pipeline_security.svg"
+  cp -f diagrams/k8s_deploy.svg "${DFD_OUT_DIR}/k8s_deploy.svg"
+  DFD_OUT_DIR="$DFD_OUT_DIR" python3 - <<'PY'
+from pathlib import Path
+import os
+import sys
+
+root = Path(".")
+sys.path.insert(0, str(root / "diagrams"))
+from diagrams.requirements_export import export_requirements_yaml
+from diagrams.stride_export import export_stride_md
+from diagrams.threat_dragon_export import export_threat_dragon_json
+
+out = root / os.environ["DFD_OUT_DIR"]
+export_stride_md(out / "stride_register.md")
+export_threat_dragon_json(out / "threat_model.json")
+export_requirements_yaml(out / "security_requirements.yaml")
+print("[dfd] generated threat-model exports")
+PY
+fi
+
+test -s "${DFD_OUT_DIR}/dfd_diagram.svg" || {
+  echo "[dfd] ERROR: missing dfd_diagram.svg" >&2
+  exit 1
+}
+test -s "${DFD_OUT_DIR}/stride_register.md" || {
+  echo "[dfd] ERROR: missing stride_register.md" >&2
+  exit 1
+}
+test -s "${DFD_OUT_DIR}/threat_model.json" || {
+  echo "[dfd] ERROR: missing threat_model.json" >&2
+  exit 1
+}
+
+echo "[dfd] wrote ${DFD_OUT_DIR}"
