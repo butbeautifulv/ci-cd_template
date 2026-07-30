@@ -65,9 +65,11 @@ Each mirror service pipeline now produces two downloadable artifact jobs:
 
 - `aspm-html-report`:
   - `reports/aspm-report-<SERVICE_NAME>.html`
-- `dfd-diagrams-report` (Go binary `fabrica-diagrams-go`, no Graphviz):
-  - `reports/dfd/<SERVICE_NAME>/index.html` (open this first)
-  - `reports/dfd/<SERVICE_NAME>/dfd_diagram.svg`
+- `dfd-diagrams-report` (Go binary `fabrica-diagrams-go`, offline viz.js — no Graphviz host):
+  - `reports/dfd/<SERVICE_NAME>/index.html` (**open this first** — interactive zoom/pan DFD)
+  - `reports/dfd/<SERVICE_NAME>/viz.js` + `full.render.js` (vendored, required next to index.html)
+  - `reports/dfd/<SERVICE_NAME>/dfd_diagram.dot`
+  - `reports/dfd/<SERVICE_NAME>/dfd_diagram.svg` (static fallback)
   - `reports/dfd/<SERVICE_NAME>/stride_register.md`
   - `reports/dfd/<SERVICE_NAME>/threat_model.json`
   - `reports/dfd/<SERVICE_NAME>/security_requirements.yaml`

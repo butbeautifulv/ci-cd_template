@@ -1,33 +1,315 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="en">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DFD bundle — {{.ServiceName}}</title>
+  <title>DFD — {{.ServiceName}}</title>
+  <script src="./viz.js"></script>
+  <script src="./full.render.js"></script>
   <style>
-    body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.4; }
-    h1, h2 { margin: 0.5rem 0; }
-    .muted { color: #444; font-size: 0.95rem; }
-    .links a { margin-right: 12px; }
-    .diag { margin: 16px 0 28px; border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
-    .diag img { width: 100%; height: auto; border: 1px solid #eee; }
+    :root {
+      --accent: #2563eb;
+      --dark: #0f172a;
+      --light: #f1f5f9;
+      --sidebar: 300px;
+      --ok: #16a34a;
+      --err: #dc2626;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: "Segoe UI", system-ui, sans-serif;
+      background: #0b1220;
+      color: var(--dark);
+      height: 100vh;
+      overflow: hidden;
+    }
+    .app { display: flex; height: 100vh; }
+    .sidebar {
+      width: var(--sidebar);
+      background: #fff;
+      border-right: 1px solid #e2e8f0;
+      padding: 16px;
+      overflow-y: auto;
+      flex-shrink: 0;
+    }
+    .sidebar h1 { font-size: 1.15rem; margin-bottom: 4px; }
+    .muted { color: #64748b; font-size: 0.85rem; margin-bottom: 16px; }
+    .card {
+      background: var(--light);
+      border-radius: 10px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .card h3 { font-size: 0.75rem; text-transform: uppercase; letter-spacing: .04em; color: #475569; margin-bottom: 8px; }
+    .btn-row { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+    .btn-row3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 6px; }
+    button, .linkbtn {
+      appearance: none; border: 0; border-radius: 8px;
+      background: var(--accent); color: #fff;
+      padding: 8px 10px; font-size: 0.8rem; cursor: pointer;
+      text-align: center; text-decoration: none; display: block;
+    }
+    button:hover, .linkbtn:hover { filter: brightness(1.08); }
+    button.secondary { background: #334155; }
+    .stats { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+    .stat { background: #fff; border-radius: 8px; padding: 8px; text-align: center; }
+    .stat .v { font-size: 1.2rem; font-weight: 700; color: var(--accent); }
+    .stat .l { font-size: 0.65rem; color: #64748b; text-transform: uppercase; }
+    .legend-item { display: flex; align-items: center; gap: 8px; font-size: 0.8rem; margin: 4px 0; }
+    .swatch { width: 14px; height: 14px; border-radius: 3px; border: 1px solid #cbd5e1; }
+    .main { flex: 1; display: flex; flex-direction: column; min-width: 0; }
+    .diagram-wrap {
+      flex: 1; margin: 16px; background: #fff; border-radius: 14px;
+      position: relative; overflow: hidden;
+      box-shadow: 0 12px 40px rgba(0,0,0,.35);
+    }
+    #dfd-diagram {
+      width: 100%; height: 100%;
+      display: flex; align-items: center; justify-content: center;
+      background: #fff;
+    }
+    #dfd-diagram svg { width: 100% !important; height: 100% !important; display: block; background: #fff; }
+    .loading { color: #64748b; font-size: 1rem; }
+    .err { color: var(--err); text-align: center; padding: 40px; }
+    .float-controls {
+      position: absolute; top: 14px; right: 14px;
+      display: flex; gap: 6px; background: rgba(255,255,255,.95);
+      padding: 8px; border-radius: 10px; box-shadow: 0 4px 16px rgba(0,0,0,.15);
+    }
+    .float-controls button { width: 36px; height: 36px; padding: 0; }
+    .toast {
+      position: fixed; bottom: 20px; right: 20px;
+      background: var(--ok); color: #fff; padding: 10px 14px;
+      border-radius: 8px; opacity: 0; transition: opacity .2s; z-index: 50;
+    }
+    .toast.show { opacity: 1; }
+    .toast.err { background: var(--err); }
+    .exports a { display: block; margin: 4px 0; color: var(--accent); font-size: 0.85rem; }
   </style>
 </head>
 <body>
-  <h1>DFD artifact bundle</h1>
-  <p class="muted">Service: <strong>{{.ServiceName}}</strong> · renderer: <strong>fabrica-diagrams-go</strong></p>
+  <div class="app">
+    <aside class="sidebar">
+      <h1>DFD bundle</h1>
+      <p class="muted">{{.ServiceName}} · fabrica-diagrams-go</p>
 
-  <h2>Exports</h2>
-  <div class="links">
-    <a href="stride_register.md">stride_register.md</a>
-    <a href="threat_model.json">threat_model.json</a>
-    <a href="security_requirements.yaml">security_requirements.yaml</a>
+      <div class="card">
+        <h3>Summary</h3>
+        <div class="stats">
+          <div class="stat"><div class="v">{{.ElementCount}}</div><div class="l">Elements</div></div>
+          <div class="stat"><div class="v">{{.FlowCount}}</div><div class="l">Flows</div></div>
+          <div class="stat"><div class="v">{{.ThreatCount}}</div><div class="l">Threats</div></div>
+          <div class="stat"><div class="v">2</div><div class="l">Boundaries</div></div>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>View</h3>
+        <div class="btn-row3" style="margin-bottom:8px">
+          <button type="button" onclick="zoomIn()" title="Zoom in">+</button>
+          <button type="button" onclick="zoomOut()" title="Zoom out">−</button>
+          <button type="button" class="secondary" onclick="fitToScreen()" title="Fit">Fit</button>
+        </div>
+        <div class="btn-row">
+          <button type="button" class="secondary" onclick="centerDiagram()">Center</button>
+          <button type="button" class="secondary" onclick="resetView()">Reset</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Export</h3>
+        <div class="btn-row" style="margin-bottom:8px">
+          <button type="button" onclick="downloadSVG()">SVG</button>
+          <button type="button" onclick="downloadPNG()">PNG</button>
+        </div>
+        <div class="exports">
+          <a href="dfd_diagram.svg">dfd_diagram.svg</a>
+          <a href="dfd_diagram.dot">dfd_diagram.dot</a>
+          <a href="stride_register.md">stride_register.md</a>
+          <a href="threat_model.json">threat_model.json</a>
+          <a href="security_requirements.yaml">security_requirements.yaml</a>
+        </div>
+      </div>
+
+      <div class="card">
+        <h3>Legend</h3>
+        <div class="legend-item"><span class="swatch" style="background:#E3F2FD"></span> External entity</div>
+        <div class="legend-item"><span class="swatch" style="background:#E8F5E8"></span> Process</div>
+        <div class="legend-item"><span class="swatch" style="background:#EFEBE9"></span> Data store</div>
+        <div class="legend-item"><span class="swatch" style="background:#fff;border-style:dashed"></span> Trust boundary</div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <div class="diagram-wrap">
+        <div id="dfd-diagram"><div class="loading">Rendering DFD…</div></div>
+        <div class="float-controls">
+          <button type="button" class="secondary" onclick="panMode('drag')" title="Drag">✋</button>
+          <button type="button" class="secondary" onclick="panMode('select')" title="Select">⌖</button>
+          <button type="button" onclick="toggleFullscreen()" title="Fullscreen">⛶</button>
+        </div>
+      </div>
+    </main>
   </div>
 
-  <div class="diag">
-    <h2>DFD diagram</h2>
-    <div class="links"><a href="dfd_diagram.svg">open raw SVG</a></div>
-    <img src="dfd_diagram.svg" alt="DFD diagram" />
-  </div>
+  <div class="toast" id="toast"></div>
+
+  <script type="text/vnd.graphviz" id="dot-source">{{.DOTContent}}</script>
+  <script>
+    let currentScale = 1;
+    let isPanning = false;
+    let startPoint = { x: 0, y: 0 };
+    let viewBox = { x: 0, y: 0, width: 0, height: 0 };
+    let svgElement = null;
+    let panModeType = 'drag';
+
+    function toast(msg, bad) {
+      const el = document.getElementById('toast');
+      el.textContent = msg;
+      el.className = 'toast show' + (bad ? ' err' : '');
+      setTimeout(() => el.classList.remove('show'), 2500);
+    }
+
+    function renderDiagram() {
+      if (typeof Viz === 'undefined') {
+        document.getElementById('dfd-diagram').innerHTML =
+          '<div class="err">viz.js failed to load (need ./viz.js + ./full.render.js next to index.html)</div>';
+        return;
+      }
+      const dotSource = document.getElementById('dot-source').textContent;
+      const viz = new Viz();
+      document.getElementById('dfd-diagram').innerHTML = '<div class="loading">Rendering DFD…</div>';
+      viz.renderSVGElement(dotSource).then(function(element) {
+        const container = document.getElementById('dfd-diagram');
+        container.innerHTML = '';
+        container.appendChild(element);
+        svgElement = element;
+        initializeDiagram();
+        toast('Diagram ready');
+      }).catch(function(err) {
+        console.error(err);
+        document.getElementById('dfd-diagram').innerHTML =
+          '<div class="err">Render error:<br>' + String(err) + '</div>';
+        toast('Render failed', true);
+      });
+    }
+
+    function initializeDiagram() {
+      if (!svgElement) return;
+      svgElement.removeAttribute('width');
+      svgElement.removeAttribute('height');
+      svgElement.style.width = '100%';
+      svgElement.style.height = '100%';
+      const bbox = svgElement.getBBox();
+      const pad = 80;
+      viewBox = { x: bbox.x - pad, y: bbox.y - pad, width: bbox.width + pad * 2, height: bbox.height + pad * 2 };
+      currentScale = 1;
+      updateViewBox();
+      setupPanAndZoom();
+    }
+
+    function setupPanAndZoom() {
+      if (!svgElement) return;
+      svgElement.style.cursor = panModeType === 'drag' ? 'grab' : 'default';
+      svgElement.onmousedown = function(e) {
+        if (panModeType !== 'drag') return;
+        isPanning = true;
+        startPoint = { x: e.clientX, y: e.clientY };
+        svgElement.style.cursor = 'grabbing';
+        e.preventDefault();
+      };
+      svgElement.onmousemove = function(e) {
+        if (!isPanning || panModeType !== 'drag') return;
+        const dx = (e.clientX - startPoint.x) / currentScale;
+        const dy = (e.clientY - startPoint.y) / currentScale;
+        viewBox.x -= dx; viewBox.y -= dy;
+        updateViewBox();
+        startPoint = { x: e.clientX, y: e.clientY };
+      };
+      svgElement.onmouseup = function() {
+        isPanning = false;
+        svgElement.style.cursor = panModeType === 'drag' ? 'grab' : 'default';
+      };
+      svgElement.onmouseleave = svgElement.onmouseup;
+      svgElement.onwheel = function(e) {
+        e.preventDefault();
+        const zoom = Math.exp((e.deltaY < 0 ? 1 : -1) * 0.1);
+        const rect = svgElement.getBoundingClientRect();
+        const mx = e.clientX - rect.left;
+        const my = e.clientY - rect.top;
+        const nw = viewBox.width * zoom, nh = viewBox.height * zoom;
+        viewBox.x += (mx - viewBox.x) * (1 - zoom);
+        viewBox.y += (my - viewBox.y) * (1 - zoom);
+        viewBox.width = nw; viewBox.height = nh;
+        currentScale *= zoom;
+        updateViewBox();
+      };
+    }
+
+    function updateViewBox() {
+      if (!svgElement) return;
+      svgElement.setAttribute('viewBox', viewBox.x + ' ' + viewBox.y + ' ' + viewBox.width + ' ' + viewBox.height);
+    }
+    function zoomIn() { viewBox.width *= 0.8; viewBox.height *= 0.8; viewBox.x += viewBox.width * 0.1; viewBox.y += viewBox.height * 0.1; currentScale *= 1.25; updateViewBox(); }
+    function zoomOut() { viewBox.width *= 1.25; viewBox.height *= 1.25; viewBox.x -= viewBox.width * 0.125; viewBox.y -= viewBox.height * 0.125; currentScale *= 0.8; updateViewBox(); }
+    function fitToScreen() {
+      if (!svgElement) return;
+      const c = svgElement.parentElement;
+      const scale = Math.min(c.clientWidth / viewBox.width, c.clientHeight / viewBox.height) * 0.95;
+      const nw = c.clientWidth / scale, nh = c.clientHeight / scale;
+      viewBox.x -= (nw - viewBox.width) / 2;
+      viewBox.y -= (nh - viewBox.height) / 2;
+      viewBox.width = nw; viewBox.height = nh;
+      currentScale = scale;
+      updateViewBox();
+    }
+    function centerDiagram() {
+      if (!svgElement) return;
+      const bbox = svgElement.getBBox();
+      const pad = 50;
+      viewBox = { x: bbox.x - pad, y: bbox.y - pad, width: bbox.width + pad * 2, height: bbox.height + pad * 2 };
+      updateViewBox();
+    }
+    function resetView() { initializeDiagram(); }
+    function panMode(mode) {
+      panModeType = mode;
+      if (svgElement) svgElement.style.cursor = mode === 'drag' ? 'grab' : 'default';
+      toast(mode === 'drag' ? 'Drag mode' : 'Select mode');
+    }
+    function toggleFullscreen() {
+      const elem = document.querySelector('.diagram-wrap');
+      if (!document.fullscreenElement) elem.requestFullscreen().catch(() => toast('Fullscreen blocked', true));
+      else document.exitFullscreen();
+    }
+    function downloadSVG() {
+      if (!svgElement) return;
+      const source = new XMLSerializer().serializeToString(svgElement);
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(new Blob([source], { type: 'image/svg+xml' }));
+      a.download = 'dfd-diagram.svg';
+      a.click();
+      toast('SVG downloaded');
+    }
+    function downloadPNG() {
+      if (!svgElement) return;
+      const source = new XMLSerializer().serializeToString(svgElement);
+      const img = new Image();
+      img.onload = function() {
+        const canvas = document.createElement('canvas');
+        canvas.width = img.width; canvas.height = img.height;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        canvas.toBlob(function(blob) {
+          const a = document.createElement('a');
+          a.href = URL.createObjectURL(blob);
+          a.download = 'dfd-diagram.png';
+          a.click();
+          toast('PNG downloaded');
+        });
+      };
+      img.src = 'data:image/svg+xml;base64,' + btoa(unescape(encodeURIComponent(source)));
+    }
+    document.addEventListener('DOMContentLoaded', renderDiagram);
+    document.addEventListener('fullscreenchange', function() { setTimeout(fitToScreen, 100); });
+  </script>
 </body>
 </html>

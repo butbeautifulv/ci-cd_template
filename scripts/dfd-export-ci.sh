@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Export DFD/THREAT bundle via fabrica-diagrams-go (no Graphviz / Python).
+# Export DFD/THREAT bundle via fabrica-diagrams-go (no Graphviz / Python host deps).
 set -eu
 
 if [ -z "${SERVICE_NAME:-}" ]; then
@@ -38,28 +38,40 @@ echo "[dfd] rendering DFD bundle with ${BIN}"
   --export all \
   --service-name "${SERVICE_NAME}"
 
-test -s "${DFD_OUT_DIR}/dfd_diagram.svg" || {
-  echo "[dfd] ERROR: missing dfd_diagram.svg" >&2
-  exit 1
+require_file() {
+  test -s "$1" || {
+    echo "[dfd] ERROR: missing $1" >&2
+    exit 1
+  }
 }
+
+require_file "${DFD_OUT_DIR}/dfd_diagram.svg"
+require_file "${DFD_OUT_DIR}/dfd_diagram.dot"
+require_file "${DFD_OUT_DIR}/stride_register.md"
+require_file "${DFD_OUT_DIR}/threat_model.json"
+require_file "${DFD_OUT_DIR}/security_requirements.yaml"
+require_file "${DFD_OUT_DIR}/index.html"
+require_file "${DFD_OUT_DIR}/viz.js"
+require_file "${DFD_OUT_DIR}/full.render.js"
+
 grep -q '<svg' "${DFD_OUT_DIR}/dfd_diagram.svg" || {
   echo "[dfd] ERROR: dfd_diagram.svg is not valid SVG" >&2
   exit 1
 }
-test -s "${DFD_OUT_DIR}/stride_register.md" || {
-  echo "[dfd] ERROR: missing stride_register.md" >&2
+grep -q 'digraph' "${DFD_OUT_DIR}/dfd_diagram.dot" || {
+  echo "[dfd] ERROR: dfd_diagram.dot missing digraph" >&2
   exit 1
 }
-test -s "${DFD_OUT_DIR}/threat_model.json" || {
-  echo "[dfd] ERROR: missing threat_model.json" >&2
+grep -q './viz.js' "${DFD_OUT_DIR}/index.html" || {
+  echo "[dfd] ERROR: index.html must load local viz.js (offline)" >&2
   exit 1
 }
-test -s "${DFD_OUT_DIR}/security_requirements.yaml" || {
-  echo "[dfd] ERROR: missing security_requirements.yaml" >&2
+if grep -Eq 'cdnjs\.cloudflare\.com|cdn\.jsdelivr\.net' "${DFD_OUT_DIR}/index.html"; then
+  echo "[dfd] ERROR: index.html must not use CDN script hosts" >&2
   exit 1
-}
-test -s "${DFD_OUT_DIR}/index.html" || {
-  echo "[dfd] ERROR: missing index.html" >&2
+fi
+grep -q 'viz.renderSVGElement' "${DFD_OUT_DIR}/index.html" || {
+  echo "[dfd] ERROR: index.html missing viz.js render call" >&2
   exit 1
 }
 

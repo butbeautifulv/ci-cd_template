@@ -216,6 +216,13 @@ ok "mirror_services parser present"
 ok "ASPM HTML renderer present"
 [[ -f templates/reports/aspm-engagement-report.html.j2 ]] || fail "missing ASPM HTML template"
 ok "ASPM HTML template present"
+grep -q 'templates/reports/aspm-engagement-report.html.j2' scripts/point-copy-mirror.sh || fail "point-copy missing ASPM HTML template"
+# Regression: dojo-render looks under templates/reports/, not reports/
+if grep -A2 'templates/reports/\*' scripts/point-copy-mirror.sh | grep -q 'dest="\$TARGET/\${rel}"'; then
+  ok "point-copy preserves templates/reports path"
+else
+  fail "point-copy must copy templates/reports/* to TARGET/templates/reports/*"
+fi
 grep -q 'mirror-fleet-trigger.py' scripts/point-copy-mirror.sh || fail "point-copy missing fleet trigger"
 grep -q 'dojo-render-aspm-report.py' scripts/point-copy-mirror.sh || fail "point-copy missing dojo-render"
 ok "point-copy lists fleet + HTML renderer"
@@ -244,6 +251,8 @@ fi
 grep -q 'fabrica-diagrams-go' scripts/dfd-export-ci.sh || fail "dfd-export-ci must invoke fabrica-diagrams-go"
 grep -q 'diagrams-go' scripts/point-copy-mirror.sh || fail "point-copy must include diagrams-go"
 [[ -x diagrams-go/bin/fabrica-diagrams-go ]] || fail "missing diagrams-go/bin/fabrica-diagrams-go binary"
+grep -q 'dfd_diagram.dot' scripts/dfd-export-ci.sh || fail "dfd-export-ci must require dfd_diagram.dot"
+grep -q 'viz.js' scripts/dfd-export-ci.sh || fail "dfd-export-ci must require offline viz.js"
 grep -q 'index.html' scripts/dfd-export-ci.sh || fail "dfd-export-ci must require index.html"
 ok "DFD job hard-fail + Go binary path + artifacts"
 python3 -c "

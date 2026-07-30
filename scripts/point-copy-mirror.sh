@@ -91,6 +91,9 @@ apply_one() {
     dest="$TARGET/.gitlab-ci.yml"
   elif [[ "$rel" == templates/gitlab/jobs ]]; then
     dest="$TARGET/.gitlab/jobs"
+  elif [[ "$rel" == templates/reports/* ]]; then
+    # Keep templates/reports/... — dojo-render expects FABRICA_ROOT/templates/reports/
+    dest="$TARGET/${rel}"
   elif [[ "$rel" == config/* || "$rel" == scripts/* || "$rel" == diagrams-go || "$rel" == diagrams-go/* ]]; then
     dest="$TARGET/${rel}"
   else

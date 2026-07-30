@@ -8,6 +8,7 @@ import (
 
 	"github.com/butbeautifulv/fabrica/diagrams-go/internal/export"
 	"github.com/butbeautifulv/fabrica/diagrams-go/internal/model"
+	dotrender "github.com/butbeautifulv/fabrica/diagrams-go/internal/render/dot"
 	svgrender "github.com/butbeautifulv/fabrica/diagrams-go/internal/render/svg"
 	"github.com/butbeautifulv/fabrica/diagrams-go/internal/web"
 )
@@ -26,17 +27,29 @@ func main() {
 		fail(err)
 	}
 
+	var dot string
 	switch *only {
 	case "dfd", "all":
+		var err error
+		dot, err = dotrender.RenderDFD()
+		if err != nil {
+			fail(err)
+		}
+		dotPath := filepath.Join(*outputDir, "dfd_diagram.dot")
+		if err := os.WriteFile(dotPath, []byte(dot), 0o644); err != nil {
+			fail(err)
+		}
+		fmt.Println("wrote", dotPath)
+
 		svg, err := svgrender.RenderDFD()
 		if err != nil {
 			fail(err)
 		}
-		path := filepath.Join(*outputDir, "dfd_diagram.svg")
-		if err := os.WriteFile(path, []byte(svg), 0o644); err != nil {
+		svgPath := filepath.Join(*outputDir, "dfd_diagram.svg")
+		if err := os.WriteFile(svgPath, []byte(svg), 0o644); err != nil {
 			fail(err)
 		}
-		fmt.Println("wrote", path)
+		fmt.Println("wrote", svgPath)
 	default:
 		fail(fmt.Errorf("unsupported --only %q (mvp supports dfd|all)", *only))
 	}
@@ -56,8 +69,9 @@ func main() {
 		fail(fmt.Errorf("unsupported --export %q", *exportMode))
 	}
 
+	must(web.CopyStatic(*outputDir))
 	indexPath := filepath.Join(*outputDir, "index.html")
-	must(web.WriteIndexHTML(indexPath, *serviceName))
+	must(web.WriteIndexHTML(indexPath, web.NewIndexData(*serviceName, dot)))
 	fmt.Println("wrote", indexPath)
 }
 
