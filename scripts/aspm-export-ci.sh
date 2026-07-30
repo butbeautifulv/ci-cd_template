@@ -8,7 +8,8 @@
 #   DEFECTDOJO_*  — aspm-export.py / DefectDojo
 #   OSS_PYTHON_IMAGE — docker fallback when python3 missing (shell runners)
 #
-# Runtime order: python3 → docker+$OSS_PYTHON_IMAGE → curl multipart reimport.
+# Runtime order: python3 → docker+$OSS_PYTHON_IMAGE → curl multipart reimport
+# (system curl, else scripts/vendor/curl-amd64 static binary for distroless scanners).
 # Exit 0 on skip (missing/empty artifact). Fail when export fails and
 # DEFECTDOJO_FAIL_ON_ERROR=true, or when artifact exists but no runner available.
 set -eu
@@ -17,6 +18,9 @@ CONTROL="${ASPM_CONTROL:-}"
 REPORT="${ASPM_REPORT:-}"
 SKIP_EMPTY="${ASPM_SKIP_EMPTY:-true}"
 CONFIG="${ASPM_CONFIG:-config/aspm-export.yaml}"
+# Resolve script dir for vendored curl (works when cwd is project root).
+ASPM_SCRIPT_DIR=$(CDPATH= cd -- "$(dirname -- "$0")" 2>/dev/null && pwd) || ASPM_SCRIPT_DIR="scripts"
+ASPM_VENDOR_CURL="${ASPM_SCRIPT_DIR}/vendor/curl-amd64"
 
 if [ -z "$CONTROL" ]; then
   echo "[aspm] skip — ASPM_CONTROL unset"
@@ -90,7 +94,18 @@ run_aspm_curl() {
     return 0
   fi
 
-  if ! command -v curl >/dev/null 2>&1; then
+  curl_bin=""
+  if command -v curl >/dev/null 2>&1; then
+    curl_bin="$(command -v curl)"
+  elif [ -x "$ASPM_VENDOR_CURL" ]; then
+    curl_bin="$ASPM_VENDOR_CURL"
+  elif [ -f "$ASPM_VENDOR_CURL" ]; then
+    chmod +x "$ASPM_VENDOR_CURL" 2>/dev/null || true
+    if [ -x "$ASPM_VENDOR_CURL" ]; then
+      curl_bin="$ASPM_VENDOR_CURL"
+    fi
+  fi
+  if [ -z "$curl_bin" ]; then
     echo "[aspm] ERROR: artifact present but python3/docker/curl unavailable — refusing soft-green skip"
     return 1
   fi
@@ -114,11 +129,11 @@ run_aspm_curl() {
     curl_insecure="-k"
   fi
 
-  echo "[aspm] curl-fallback control=$CONTROL scan_type=$scan_type test_title=$test_title"
+  echo "[aspm] curl-fallback bin=$curl_bin control=$CONTROL scan_type=$scan_type test_title=$test_title"
 
   # shellcheck disable=SC2086
   body="$(
-    curl -sS -f -X POST $curl_insecure \
+    "$curl_bin" -sS -f -X POST $curl_insecure \
       -H "Authorization: Token ${token}" \
       -F "scan_type=${scan_type}" \
       -F "test_title=${test_title}" \

@@ -79,6 +79,7 @@ class TestAspmExportCiSkip(unittest.TestCase):
         self.assertIn("curl-fallback", text)
         self.assertIn("run_aspm_curl", text)
         self.assertIn("reimport-scan", text)
+        self.assertTrue((ROOT / "scripts" / "vendor" / "curl-amd64").is_file())
 
     def test_curl_path_skips_without_dojo_url(self):
         """No python3 in PATH → curl path; missing DEFECTDOJO_URL → skip 0."""
