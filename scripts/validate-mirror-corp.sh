@@ -142,6 +142,13 @@ if grep -q '^upload-dast-to-dojo:' "$PROFILE" || grep -q '^upload-fuzz-to-dojo:'
 else
   ok "no legacy upload-*-to-dojo jobs"
 fi
+if grep -q 'aspm/upload-static.yml' "$PROFILE" || grep -q 'aspm/upload-image.yml' "$PROFILE"; then
+  fail "legacy ASPM upload include templates must be removed from mirror profile"
+else
+  ok "no legacy ASPM upload includes in mirror profile"
+fi
+grep -q 'aspm/export-after-script.yml' "$PROFILE" || fail "mirror profile must include aspm/export-after-script.yml"
+ok "aspm after_script include present"
 grep -q 'aspm-html-report-mirror.yml' "$PROFILE" || fail "profile missing ASPM HTML include"
 ok "ASPM HTML include present"
 grep -q 'dfd-diagrams-mirror.yml' "$PROFILE" || fail "profile missing DFD include"
