@@ -12,6 +12,7 @@ dast-zap:
   variables:
     ASPM_CONTROL: dast
     ASPM_REPORT: reports/zap-api.xml
+    ASPM_SKIP_EMPTY: "false"
     KUBERNETES_MEMORY_REQUEST: "512Mi"
     KUBERNETES_MEMORY_LIMIT: "2Gi"
   needs:
@@ -20,32 +21,7 @@ dast-zap:
   script:
     - sh scripts/run-dast-zap-api-mirror.sh
   after_script:
-    - |
-      set -eu
-      if [ -f scripts/resolve-mirror-service.sh ] && { [ -n "${CI_COMMIT_TAG:-}" ] || [ -n "${SERVICE_NAME:-}" ]; }; then
-        # shellcheck disable=SC1091
-        . scripts/resolve-mirror-service.sh || true
-      fi
-      if [ -f reports/zap-api.xml ] && [ -s reports/zap-api.xml ]; then
-        if command -v python3 >/dev/null 2>&1; then
-          echo "[dast] ASPM product=${DEFECTDOJO_PRODUCT_NAME:-unset}"
-          # No --skip-empty: always create/update Dojo Test for the scan run.
-          python3 scripts/aspm-export.py \
-            --control dast \
-            --report reports/zap-api.xml \
-            --config "${ASPM_CONFIG:-config/aspm-export.yaml}"
-        else
-          echo "[dast] ERROR: python3 missing — cannot ASPM upload"
-          if [ "${DEFECTDOJO_FAIL_ON_ERROR:-false}" = "true" ]; then
-            exit 1
-          fi
-        fi
-      else
-        echo "[dast] ERROR: no ZAP XML report for ASPM"
-        if [ "${DEFECTDOJO_FAIL_ON_ERROR:-false}" = "true" ]; then
-          exit 1
-        fi
-      fi
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     when: always
     paths:

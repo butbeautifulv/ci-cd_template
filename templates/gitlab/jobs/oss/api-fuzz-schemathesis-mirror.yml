@@ -10,6 +10,7 @@ api-fuzz-schemathesis:
     SCHEMATHESIS_PHASES: "examples,coverage,fuzzing"
     ASPM_CONTROL: fuzzing
     ASPM_REPORT: reports/schemathesis-junit.xml
+    ASPM_SKIP_EMPTY: "false"
     # Do not set SCHEMATHESIS_HOOKS to a file path — Schemathesis imports it as a
     # module (hyphenated tests/security/schemathesis-hooks.py → ModuleNotFoundError
     # → no junit → gate warn fake-green). run-schemathesis-mirror.sh installs hooks.
@@ -27,23 +28,7 @@ api-fuzz-schemathesis:
   script:
     - sh scripts/run-schemathesis-mirror.sh
   after_script:
-    - |
-      set -eu
-      if [ -f reports/schemathesis-junit.xml ] && [ -s reports/schemathesis-junit.xml ]; then
-        if command -v python3 >/dev/null 2>&1; then
-          python3 scripts/aspm-export.py \
-            --control fuzzing \
-            --report reports/schemathesis-junit.xml \
-            --config "${ASPM_CONFIG:-config/aspm-export.yaml}"
-        else
-          echo "[fuzz] ERROR: python3 missing — cannot ASPM upload"
-          if [ "${DEFECTDOJO_FAIL_ON_ERROR:-false}" = "true" ]; then
-            exit 1
-          fi
-        fi
-      else
-        echo "[fuzz] ASPM skip — no junit (fuzz may have failed earlier)"
-      fi
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     when: always
     paths:
