@@ -353,12 +353,14 @@ fi
 if [ "$HTTP_CODE" = "200" ] && [ -s reports/live-openapi.json ]; then
   echo "[deploy] fetched live OpenAPI spec (${HTTP_CODE}) → reports/live-openapi.json"
   cp -f reports/live-openapi.json checkout/openapi.json
-  FETCHED_OPENAPI="reports/live-openapi.json"
+  # Prefer checkout path in dotenv — fuzz job must not depend on reports/live surviving a re-fetch.
+  FETCHED_OPENAPI="checkout/openapi.json"
 else
   echo "[deploy] live OpenAPI fetch: HTTP $HTTP_CODE (not available)"
   rm -f reports/live-openapi.json
   if [ -f checkout/openapi.json ] && [ -s checkout/openapi.json ]; then
     echo "[deploy] keeping checkout/openapi.json from source"
+    FETCHED_OPENAPI="checkout/openapi.json"
   fi
 fi
 

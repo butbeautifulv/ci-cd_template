@@ -44,27 +44,60 @@ esac
 
 # Prefer live OpenAPI from the deployed app (paths include mount prefix).
 # Repo checkout/openapi.json often has relative /v1/... which double-prefixes.
+# Deploy dotenv may set OPENAPI_PATH=reports/live-openapi.json (artifact) — never
+# delete that on a failed re-fetch; fall back to checkout/openapi.json.
 LIVE_USED=0
+CHECKOUT_SPEC=""
+if [ -n "${OPENAPI_SPEC:-}" ] && [ -f "${OPENAPI_SPEC}" ] && [ "${OPENAPI_SPEC}" != "reports/live-openapi.json" ]; then
+  CHECKOUT_SPEC="${OPENAPI_SPEC}"
+elif [ -f checkout/openapi.json ] && [ -s checkout/openapi.json ]; then
+  CHECKOUT_SPEC=checkout/openapi.json
+fi
+
+HAD_LIVE_ARTIFACT=0
+if [ -s reports/live-openapi.json ]; then
+  HAD_LIVE_ARTIFACT=1
+fi
+
 if [ -n "${API_BASE_URL:-}" ]; then
   LIVE_URL="${API_BASE_URL}${PREFIX}/openapi.json"
   echo "[fuzz] trying live OpenAPI → $LIVE_URL"
   set +e
   HTTP_CODE=$(curl -sf --connect-timeout 10 --max-time 30 \
-    -o reports/live-openapi.json \
+    -o reports/live-openapi.json.tmp \
     -w '%{http_code}' \
     "$LIVE_URL" 2>/dev/null) || HTTP_CODE="000"
   set -e
-  if [ "$HTTP_CODE" = "200" ] && [ -s reports/live-openapi.json ]; then
+  if [ "$HTTP_CODE" = "200" ] && [ -s reports/live-openapi.json.tmp ]; then
+    mv -f reports/live-openapi.json.tmp reports/live-openapi.json
     OPENAPI_SPEC=reports/live-openapi.json
     LIVE_USED=1
     echo "[fuzz] OpenAPI=live ($LIVE_URL)"
   else
-    echo "[fuzz] live OpenAPI unavailable (HTTP ${HTTP_CODE}) — fallback to checkout/registry"
-    rm -f reports/live-openapi.json
+    echo "[fuzz] live OpenAPI unavailable (HTTP ${HTTP_CODE}) — fallback to deploy artifact/checkout"
+    rm -f reports/live-openapi.json.tmp
+    if [ "$HAD_LIVE_ARTIFACT" = "1" ]; then
+      OPENAPI_SPEC=reports/live-openapi.json
+      LIVE_USED=1
+      echo "[fuzz] OpenAPI=deploy-artifact reports/live-openapi.json"
+    elif [ -n "$CHECKOUT_SPEC" ]; then
+      OPENAPI_SPEC="$CHECKOUT_SPEC"
+      LIVE_USED=0
+      echo "[fuzz] OpenAPI=checkout ($CHECKOUT_SPEC)"
+    else
+      OPENAPI_SPEC=""
+    fi
   fi
 fi
 
-if [ -z "${OPENAPI_SPEC:-}" ]; then
+if [ -z "${OPENAPI_SPEC:-}" ] || [ ! -f "${OPENAPI_SPEC}" ]; then
+  if [ -n "$CHECKOUT_SPEC" ] && [ -f "$CHECKOUT_SPEC" ]; then
+    OPENAPI_SPEC="$CHECKOUT_SPEC"
+    LIVE_USED=0
+  fi
+fi
+
+if [ -z "${OPENAPI_SPEC:-}" ] || [ ! -f "${OPENAPI_SPEC}" ]; then
   echo "[fuzz] ERROR — no OpenAPI spec (expected live ${PREFIX}/openapi.json or checkout/openapi.json)."
   exit 1
 fi
