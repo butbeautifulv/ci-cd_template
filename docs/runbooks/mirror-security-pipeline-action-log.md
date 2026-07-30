@@ -369,3 +369,19 @@ Pipeline wave after `112698`/`112701`:
 - Confirm DefectDojo UI/API shows product + findings after non-empty uploads (not soft-skip green).
 - Confirm `cleanup-runner` executes at end of each pilot pipeline.
 - Confirm no runner-specific bootstrap failure regressed (`python3`, `pip`, `docker`, package manager).
+
+## Wave-6 fleet + ASPM HTML (2026-07)
+
+Tooling: `scripts/mirror-fleet-trigger.py`, shared `scripts/lib/mirror_services.py`, `make mirror-fleet` / `make mirror-aspm-html`.
+Registry Wave-6: hwa, data_lake, user, dynamic_layer, event, defects (`enabled: true`).
+HTML: `scripts/dojo-render-aspm-report.py` → `reports/aspm-report-<service>.html` after pipelines (see `defectdojo-aspm-report.md`).
+
+| When | SERVICE_NAME | SOURCE_REF | Pipeline ID | URL |
+|------|--------------|------------|-------------|-----|
+| TBD | hwa_service | 0.0.4 | | |
+| TBD | data_lake_service | 0.4.10 | | |
+| TBD | user_service | 0.4.4 | | |
+| TBD | dynamic_layer_service | 0.5.1 | | |
+| TBD | event_service | 0.4.1 | | |
+| TBD | defects | 0.5.7 | | |
+

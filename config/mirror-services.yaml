@@ -2,37 +2,66 @@
 #
 # Triggers (prefer no hotfix git tags):
 #   - API/web/trigger/schedule with CI vars SERVICE_NAME + SOURCE_REF
+#     (fleet: make mirror-fleet / scripts/mirror-fleet-trigger.py)
+#   - Schedule sync-sources: SHA-change pipelines only
 #   - Release tags: <service_name>/vX.Y.Z  (hotfix* banned in workflow)
 #
+# Fields:
+#   enabled: true|false — fleet/sync skip when false (default true if omitted)
+#   tier: pilot|core|candidate|skip — filter for fleet waves (default core)
 # Optional per-service:
-#   openapi_path: path under SCAN_ROOT (e.g. openapi.yaml)
-#   api_base_url: live API for Schemathesis (or set CI var API_BASE_URL)
+#   openapi_path, api_base_url, deploy_*, readiness_path, service_port
+#
+# Wave-6 (2026-07): hwa, data_lake, user, dynamic_layer, event, defects
 
 services:
   hwa_service:
     project_id: "1637"
     repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/hwa_service.git"
     source_ref_fallback: "0.0.4"
+    enabled: true
+    tier: pilot
     service_port: "8000"
-    # openapi_path fetched live from /openapi.json after deploy (FastAPI auto-gen)
-    # api_base_url: ""
   data_lake_service:
     project_id: "979"
     repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/data_lake_service.git"
     source_ref_fallback: "0.4.10"
+    enabled: true
+    tier: pilot
     service_port: "8000"
-    openapi_path: "openapi.json"  # fallback only; run-schemathesis prefers live PREFIX/openapi.json
+    openapi_path: "openapi.json"
     deploy_command: "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000"
     deploy_workdir: "/app/code"
     readiness_path: "/api/gis/v1/data-lake/healthcheck"
     api_path_prefix: "/api/gis/v1/data-lake"
     deploy_env_file: "config/mirror-deploy/data_lake_service.env"
     deploy_stubs: "http,mongo"
-    # api_base_url: ""
   user_service:
     project_id: "961"
     repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/user_service.git"
     source_ref_fallback: "0.4.4"
+    enabled: true
+    tier: pilot
     service_port: "8000"
     openapi_path: "openapi.json"
-    # api_base_url: ""
+  dynamic_layer_service:
+    project_id: "873"
+    repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/dynamic_layer_service.git"
+    source_ref_fallback: "0.5.1"
+    enabled: true
+    tier: core
+    service_port: "8000"
+  event_service:
+    project_id: "1259"
+    repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/event_service.git"
+    source_ref_fallback: "0.4.1"
+    enabled: true
+    tier: core
+    service_port: "8000"
+  defects:
+    project_id: "1623"
+    repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/defects.git"
+    source_ref_fallback: "0.5.7"
+    enabled: true
+    tier: core
+    service_port: "8000"

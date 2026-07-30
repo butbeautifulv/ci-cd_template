@@ -152,6 +152,8 @@ def main() -> int:
             print(f'    project_id: "{pid}"')
             print(f'    repo_url: "{url}"')
             print(f'    source_ref_fallback: "{fb_out}"')
+            print("    enabled: false")
+            print("    tier: candidate")
             print('    # openapi_path: ""')
             print('    # api_base_url: ""')
         return 0

@@ -187,6 +187,27 @@ done
 grep -q 'run-dast-zap-api-mirror.sh' scripts/point-copy-mirror.sh || fail "point-copy missing run-dast-zap-api-mirror.sh"
 ok "point-copy lists run-dast-zap-api-mirror"
 
+[[ -f scripts/mirror-fleet-trigger.py ]] || fail "missing mirror-fleet-trigger.py"
+ok "fleet trigger present"
+[[ -f scripts/lib/mirror_services.py ]] || fail "missing scripts/lib/mirror_services.py"
+ok "mirror_services parser present"
+[[ -f scripts/dojo-render-aspm-report.py ]] || fail "missing dojo-render-aspm-report.py"
+ok "ASPM HTML renderer present"
+[[ -f templates/reports/aspm-engagement-report.html.j2 ]] || fail "missing ASPM HTML template"
+ok "ASPM HTML template present"
+grep -q 'mirror-fleet-trigger.py' scripts/point-copy-mirror.sh || fail "point-copy missing fleet trigger"
+grep -q 'dojo-render-aspm-report.py' scripts/point-copy-mirror.sh || fail "point-copy missing dojo-render"
+ok "point-copy lists fleet + HTML renderer"
+python3 -c "
+import sys
+from pathlib import Path
+sys.path.insert(0, 'scripts')
+from lib.mirror_services import load_services, filter_services
+svcs = load_services('testdata/mirror-services-fixture.yaml')
+assert len(filter_services(svcs, enabled_only=True)) == 2
+" || fail "mirror_services import/fixture failed"
+ok "mirror_services fixture load"
+
 [[ -f docs/runbooks/mirror-baseline-inventory.md ]] || fail "missing baseline runbook"
 [[ -f docs/runbooks/mirror-api-trigger-schemathesis.md ]] || fail "missing API/fuzz runbook"
 [[ -f docs/runbooks/mirror-registry-retention.md ]] || fail "missing retention runbook"

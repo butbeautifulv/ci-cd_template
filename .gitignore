@@ -12,3 +12,9 @@ __pycache__/
 *$py.class
 # Local deploy scratch (secrets live in cxado meta deploy/.secrets — never here)
 /deploy/
+# Mirror fleet live dumps / large ASPM HTML (keep fixtures if named *-fixture*)
+reports/mirror-fleet-*.jsonl
+reports/aspm-report-*.html
+!reports/aspm-report-fixture*.html
+.mirror-sync-state.json
+

@@ -48,6 +48,13 @@ FILES=(
   scripts/run-schemathesis-mirror.sh
   scripts/run-dast-zap-api-mirror.sh
   scripts/mirror-sync-sources.py
+  scripts/mirror-fleet-trigger.py
+  scripts/mirror-baseline-trigger.sh
+  scripts/mirror-inventory-services.py
+  scripts/lib/mirror_services.py
+  scripts/lib/__init__.py
+  scripts/dojo-render-aspm-report.py
+  templates/reports/aspm-engagement-report.html.j2
   scripts/docker-host-bootstrap.sh
   scripts/registry-resolve-env.sh
   scripts/registry-login.sh

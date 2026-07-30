@@ -1,8 +1,13 @@
-.PHONY: validate validate-quick validate-helm adopt-dry-run diagrams
+.PHONY: validate validate-quick validate-helm adopt-dry-run diagrams \
+	mirror-fleet-dry mirror-fleet mirror-aspm-html mirror-inventory-stub
 
 PROFILE ?= shift-left
 PLATFORM ?= github
 TARGET ?= /tmp/fabrica-adopt-test
+WAVE6 := hwa_service data_lake_service user_service dynamic_layer_service event_service defects
+PRODUCTS ?= $(WAVE6)
+CONCURRENCY ?= 1
+TIER ?=
 
 validate:
 	bash scripts/validate-yaml.sh
@@ -30,3 +35,23 @@ diagrams:
 	cd diagrams && (test -x .venv/bin/python || python3 -m venv .venv) && \
 		.venv/bin/pip install -q -e . && \
 		.venv/bin/python main.py
+
+mirror-fleet-dry:
+	python3 scripts/mirror-fleet-trigger.py --dry-run --enabled-only $(if $(TIER),--tier $(TIER),)
+
+mirror-fleet:
+	python3 scripts/mirror-fleet-trigger.py --wave6 --concurrency $(CONCURRENCY)
+
+mirror-inventory-stub:
+	python3 scripts/mirror-inventory-services.py --yaml-stub
+
+# Batch HTML after Wave-6 pipelines (requires DEFECTDOJO_*). Soft-continue per product.
+mirror-aspm-html:
+	@mkdir -p reports
+	@fail=0; for p in $(PRODUCTS); do \
+	  echo "[aspm-html] $$p"; \
+	  python3 scripts/dojo-render-aspm-report.py --product $$p --out reports/aspm-report-$$p.html \
+	    || { echo "[aspm-html] WARN failed $$p"; fail=1; }; \
+	done; \
+	if [ $$fail -ne 0 ]; then echo "[aspm-html] some products failed"; exit 1; fi; \
+	echo "[aspm-html] done → reports/aspm-report-*.html"

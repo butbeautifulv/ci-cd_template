@@ -25,6 +25,10 @@ import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
 
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "scripts"))
+from lib.mirror_services import filter_services, load_services  # noqa: E402
+
 
 def api_base() -> str:
     base = os.environ.get("CI_API_V4_URL") or os.environ.get("GITLAB_URL") or "https://gitlab.svo.aero"
@@ -58,43 +62,6 @@ def http_json(method: str, url: str, tok: str, ctx: ssl.SSLContext, body: dict |
     req = urllib.request.Request(url, data=data, headers=headers, method=method)
     with urllib.request.urlopen(req, context=ctx, timeout=60) as resp:
         return json.load(resp)
-
-
-def parse_services(path: Path) -> list[dict]:
-    text = path.read_text(encoding="utf-8")
-    services: list[dict] = []
-    name = None
-    cur: dict = {}
-    in_svc = False
-    for line in text.splitlines():
-        if line.startswith("services:"):
-            continue
-        if line.startswith("  ") and line.rstrip().endswith(":") and not line.strip().startswith("#"):
-            key = line.strip().rstrip(":")
-            if not key.startswith("#") and ":" not in key.replace(key, ""):
-                # service name line: "  hwa_service:"
-                if name and cur.get("project_id"):
-                    services.append({"name": name, **cur})
-                name = key
-                cur = {}
-                in_svc = True
-                continue
-        if not in_svc or name is None:
-            continue
-        if line.startswith("    ") and ":" in line and not line.strip().startswith("#"):
-            k, _, v = line.strip().partition(":")
-            v = v.strip().strip("\"'")
-            if k in ("project_id", "repo_url", "source_ref_fallback", "openapi_path", "api_base_url"):
-                cur[k] = v
-        if line and not line.startswith(" ") and not line.startswith("#"):
-            if name and cur.get("project_id"):
-                services.append({"name": name, **cur})
-            in_svc = False
-            name = None
-            cur = {}
-    if name and cur.get("project_id"):
-        services.append({"name": name, **cur})
-    return services
 
 
 def latest_commit_sha(project_id: str, ref: str, tok: str, ctx: ssl.SSLContext) -> str:
@@ -187,7 +154,7 @@ def main() -> int:
     pipe_ref = os.environ.get("MIRROR_PIPELINE_REF", "main")
     tok = token()
     ctx = ssl_ctx()
-    services = parse_services(reg)
+    services = filter_services(load_services(reg), enabled_only=True)
     state: dict = {}
     if state_path.is_file():
         try:

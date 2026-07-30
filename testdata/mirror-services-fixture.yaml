@@ -1,0 +1,23 @@
+# Offline fixture for tests/test_mirror_services_parse.py — not production registry.
+services:
+  alpha_pilot:
+    project_id: "1001"
+    repo_url: "https://example.invalid/alpha_pilot.git"
+    source_ref_fallback: "1.0.0"
+    enabled: true
+    tier: pilot
+    service_port: "8000"
+  beta_core:
+    project_id: "1002"
+    repo_url: "https://example.invalid/beta_core.git"
+    source_ref_fallback: "2.0.0"
+    enabled: true
+    tier: core
+    service_port: "8000"
+  gamma_candidate:
+    project_id: "1003"
+    repo_url: "https://example.invalid/gamma_candidate.git"
+    source_ref_fallback: "0.1.0"
+    enabled: false
+    tier: candidate
+    service_port: "8000"
