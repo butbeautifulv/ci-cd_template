@@ -231,8 +231,15 @@ grep -q '^dfd-diagrams-report:' "$DFD_JOB" || fail "DFD job name missing"
 grep -q 'allow_failure: false' "$DFD_JOB" || fail "DFD job must hard-fail"
 grep -q 'reports/dfd/\${SERVICE_NAME}/' "$DFD_JOB" || fail "DFD artifact path missing"
 grep -q 'sh scripts/dfd-export-ci.sh' "$DFD_JOB" || fail "DFD job must call scripts/dfd-export-ci.sh"
-grep -q 'graphviz runtime missing; fallback' scripts/dfd-export-ci.sh || fail "dfd-export-ci fallback missing"
-ok "DFD job hard-fail + artifacts + exporter script"
+if grep -q 'fallback' scripts/dfd-export-ci.sh; then
+  fail "dfd-export-ci must not contain fallback path"
+else
+  ok "dfd-export-ci has no fallback path"
+fi
+grep -q "Graphviz binary 'dot' not found" scripts/dfd-export-ci.sh || fail "dfd-export-ci must hard-fail when dot missing"
+grep -q "python module 'graphviz' not installed" scripts/dfd-export-ci.sh || fail "dfd-export-ci must hard-fail when graphviz module missing"
+grep -q '/index.html' scripts/dfd-export-ci.sh || fail "dfd-export-ci must generate index.html"
+ok "DFD job hard-fail + artifacts + index.html"
 python3 -c "
 import sys
 from pathlib import Path

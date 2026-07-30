@@ -66,6 +66,7 @@ Each mirror service pipeline now produces two downloadable artifact jobs:
 - `aspm-html-report`:
   - `reports/aspm-report-<SERVICE_NAME>.html`
 - `dfd-diagrams-report`:
+  - `reports/dfd/<SERVICE_NAME>/index.html` (open this first)
   - `reports/dfd/<SERVICE_NAME>/dfd_diagram.svg`
   - `reports/dfd/<SERVICE_NAME>/architecture.svg`
   - `reports/dfd/<SERVICE_NAME>/pipeline_security.svg`
@@ -79,7 +80,7 @@ How to download:
 1. Open pipeline in GitLab.
 2. Open job `aspm-html-report` or `dfd-diagrams-report`.
 3. Download the job artifact archive from the right panel.
-4. Extract locally and pick files under `reports/`.
+4. Extract locally and open `reports/dfd/<SERVICE_NAME>/index.html` for DFD bundle navigation.
 
 Legacy operator batch mode (`make mirror-aspm-html`) stays available for ad-hoc/manual runs, but canonical flow is now pipeline artifacts.
 
