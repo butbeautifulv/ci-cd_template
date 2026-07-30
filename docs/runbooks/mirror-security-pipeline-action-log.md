@@ -391,6 +391,12 @@ HTML: `scripts/dojo-render-aspm-report.py` → `reports/aspm-report-<service>.ht
 - `hwa`/`user`: `deploy_command` + `deploy_workdir` + mongo/http stubs + env fixtures (`config/mirror-deploy/*.env`); readiness `/v1/openapi.json`.
 - Kaniko: if `gismaputils==X` wheel missing, remap pin to Package Registry wheel (0.5.1/0.5.3) so `BUILD_FALLBACK=0`.
 
-Re-fleet IDs: _(filled after live trigger)_
+Re-fleet IDs (mirror `412ba41`):
+
+| When | SERVICE_NAME | SOURCE_REF | Pipeline ID | URL |
+|------|--------------|------------|-------------|-----|
+| 2026-07-30 | hwa_service | 0.0.4 | 112813 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112813 |
+| 2026-07-30 | data_lake_service | 0.4.10 | 112814 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112814 |
+| 2026-07-30 | user_service | 0.4.4 | 112815 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112815 |
 
 
