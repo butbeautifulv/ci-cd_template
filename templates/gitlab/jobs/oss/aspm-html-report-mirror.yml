@@ -21,6 +21,11 @@ aspm-html-report:
         echo "[aspm-html] ERROR: SERVICE_NAME is required"
         exit 1
       fi
+      export PIP_NO_INPUT=1
+      export PIP_DISABLE_PIP_VERSION_CHECK=1
+      if [ -n "${PIP_INDEX_URL:-}" ] && [ -f scripts/pip-index-auth.sh ]; then
+        export PIP_INDEX_URL="$(sh scripts/pip-index-auth.sh)"
+      fi
       mkdir -p reports
       python3 scripts/dojo-render-aspm-report.py \
         --product "${SERVICE_NAME}" \
