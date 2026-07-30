@@ -51,7 +51,7 @@ variables:
   OSS_SCHEMATHESIS_IMAGE: "$NEXUS_DOCKER_PREFIX/cxado-docker/schemathesis:3.39.2"
   OSS_ZAPROXY_IMAGE: "$NEXUS_DOCKER_PREFIX/cxado-docker/zaproxy:2.16.0"
   OSS_KUBECTL_IMAGE: "$NEXUS_DOCKER_PREFIX/cxado-docker/kubectl-deploy:1.36.3"
-  # Must contain: python3 + graphviz dot + python graphviz module.
+  # Any image that can exec a static linux/amd64 binary (Go DFD renderer, no Graphviz).
   OSS_DIAGRAMS_IMAGE: "$OSS_PYTHON_IMAGE"
   OSS_MONGO_IMAGE: "$NEXUS_DOCKER_PREFIX/library/mongo:6"
   TRIVY_DB_REPOSITORY: "$NEXUS_DOCKER_GROUP/aquasecurity/trivy-db"

@@ -236,10 +236,16 @@ if grep -q 'fallback' scripts/dfd-export-ci.sh; then
 else
   ok "dfd-export-ci has no fallback path"
 fi
-grep -q "Graphviz binary 'dot' not found" scripts/dfd-export-ci.sh || fail "dfd-export-ci must hard-fail when dot missing"
-grep -q "python module 'graphviz' not installed" scripts/dfd-export-ci.sh || fail "dfd-export-ci must hard-fail when graphviz module missing"
-grep -q '/index.html' scripts/dfd-export-ci.sh || fail "dfd-export-ci must generate index.html"
-ok "DFD job hard-fail + artifacts + index.html"
+if grep -Eq 'apt-get|graphviz|python3 diagrams/main.py|uv pip' scripts/dfd-export-ci.sh; then
+  fail "dfd-export-ci must not bootstrap Graphviz/Python diagrams"
+else
+  ok "dfd-export-ci has no Graphviz/Python bootstrap"
+fi
+grep -q 'fabrica-diagrams-go' scripts/dfd-export-ci.sh || fail "dfd-export-ci must invoke fabrica-diagrams-go"
+grep -q 'diagrams-go' scripts/point-copy-mirror.sh || fail "point-copy must include diagrams-go"
+[[ -x diagrams-go/bin/fabrica-diagrams-go ]] || fail "missing diagrams-go/bin/fabrica-diagrams-go binary"
+grep -q 'index.html' scripts/dfd-export-ci.sh || fail "dfd-export-ci must require index.html"
+ok "DFD job hard-fail + Go binary path + artifacts"
 python3 -c "
 import sys
 from pathlib import Path

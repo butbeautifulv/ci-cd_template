@@ -1,0 +1,33 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DFD bundle — {{.ServiceName}}</title>
+  <style>
+    body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.4; }
+    h1, h2 { margin: 0.5rem 0; }
+    .muted { color: #444; font-size: 0.95rem; }
+    .links a { margin-right: 12px; }
+    .diag { margin: 16px 0 28px; border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
+    .diag img { width: 100%; height: auto; border: 1px solid #eee; }
+  </style>
+</head>
+<body>
+  <h1>DFD artifact bundle</h1>
+  <p class="muted">Service: <strong>{{.ServiceName}}</strong> · renderer: <strong>fabrica-diagrams-go</strong></p>
+
+  <h2>Exports</h2>
+  <div class="links">
+    <a href="stride_register.md">stride_register.md</a>
+    <a href="threat_model.json">threat_model.json</a>
+    <a href="security_requirements.yaml">security_requirements.yaml</a>
+  </div>
+
+  <div class="diag">
+    <h2>DFD diagram</h2>
+    <div class="links"><a href="dfd_diagram.svg">open raw SVG</a></div>
+    <img src="dfd_diagram.svg" alt="DFD diagram" />
+  </div>
+</body>
+</html>

@@ -1,0 +1,76 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" width="864" height="530" viewBox="0 0 864 530">
+  <style>
+    .title { font-family: DejaVu Sans, Arial, sans-serif; font-size: 14px; font-weight: 600; }
+    .label { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; }
+    .edge { font-family: DejaVu Sans, Arial, sans-serif; font-size: 10px; fill: #333; }
+    .boundary { fill: none; stroke: #6b7280; stroke-width: 1.5; stroke-dasharray: 6 4; }
+    .boundary-label { font-family: DejaVu Sans, Arial, sans-serif; font-size: 11px; fill: #4b5563; }
+    .node-rect { fill: #f8fafc; stroke: #111827; stroke-width: 1.2; }
+    .node-ellipse { fill: #eff6ff; stroke: #1d4ed8; stroke-width: 1.2; }
+    .node-cyl { fill: #fefce8; stroke: #a16207; stroke-width: 1.2; }
+    .arrow { stroke: #111827; stroke-width: 1.1; fill: none; marker-end: url(#arrowhead); }
+    .note { fill: #fffbeb; stroke: #d97706; stroke-width: 1; }
+  </style>
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#111827"/>
+    </marker>
+  </defs>
+  <text class="title" x="312" y="28">Data Flow Diagram (DFD v3)</text>
+  <text class="boundary-label" x="302" y="46">Trust boundaries, typed data flows — FastAPI</text>
+  <rect class="boundary" x="276.0" y="46.0" width="228.0" height="388.0" rx="8"/>
+  <text class="boundary-label" x="284.0" y="60.0">Application Trust Boundary</text>
+  <rect class="boundary" x="596.0" y="96.0" width="228.0" height="232.0" rx="8"/>
+  <text class="boundary-label" x="604.0" y="110.0">External Services</text>
+  <rect class="node-rect" x="40.0" y="200.0" width="180.0" height="64.0" rx="4"/>
+  <text class="label" x="130.0" y="218.0" text-anchor="middle">Пользователь</text>
+  <text class="label" x="130.0" y="231.0" text-anchor="middle">STRIDE: S, R</text>
+  <ellipse class="node-ellipse" cx="390.0" cy="102.0" rx="90.0" ry="32.0"/>
+  <text class="label" x="390.0" y="88.0" text-anchor="middle">FastAPI / OAuth2 / JWT</text>
+  <text class="label" x="390.0" y="101.0" text-anchor="middle">(аутентификация)</text>
+  <text class="label" x="390.0" y="114.0" text-anchor="middle">STRIDE: S, T, R, I, D, E</text>
+  <ellipse class="node-ellipse" cx="390.0" cy="194.0" rx="90.0" ry="32.0"/>
+  <text class="label" x="390.0" y="180.0" text-anchor="middle">Pydantic validation</text>
+  <text class="label" x="390.0" y="193.0" text-anchor="middle">+ business logic</text>
+  <text class="label" x="390.0" y="206.0" text-anchor="middle">STRIDE: S, T, R, I, D, E</text>
+  <ellipse class="node-ellipse" cx="390.0" cy="286.0" rx="90.0" ry="32.0"/>
+  <text class="label" x="390.0" y="272.0" text-anchor="middle">Работа с файлами</text>
+  <text class="label" x="390.0" y="285.0" text-anchor="middle">STRIDE: S, T, R, I, D, E</text>
+  <ellipse class="node-cyl" cx="390.0" cy="356.0" rx="86.0" ry="10"/>
+  <rect class="node-cyl" x="304.0" y="356.0" width="172.0" height="44.0"/>
+  <ellipse class="node-cyl" cx="390.0" cy="400.0" rx="86.0" ry="10"/>
+  <text class="label" x="390.0" y="364.0" text-anchor="middle">Конфигурация</text>
+  <text class="label" x="390.0" y="377.0" text-anchor="middle">(pydantic-settings)</text>
+  <text class="label" x="390.0" y="390.0" text-anchor="middle">STRIDE: T, I, D</text>
+  <rect class="node-rect" x="620.0" y="120.0" width="180.0" height="64.0" rx="4"/>
+  <text class="label" x="710.0" y="138.0" text-anchor="middle">Внешнее API</text>
+  <text class="label" x="710.0" y="151.0" text-anchor="middle">STRIDE: S, R</text>
+  <ellipse class="node-cyl" cx="710.0" cy="250.0" rx="86.0" ry="10"/>
+  <rect class="node-cyl" x="624.0" y="250.0" width="172.0" height="44.0"/>
+  <ellipse class="node-cyl" cx="710.0" cy="294.0" rx="86.0" ry="10"/>
+  <text class="label" x="710.0" y="258.0" text-anchor="middle">Файловое хранилище</text>
+  <text class="label" x="710.0" y="271.0" text-anchor="middle">(S3 SSE)</text>
+  <text class="label" x="710.0" y="284.0" text-anchor="middle">STRIDE: T, I, D</text>
+  <path class="arrow" d="M 220.0 232.0 L 300.0 102.0"/>
+  <text class="edge" x="260.0" y="163.0" text-anchor="middle">учетные данные (PII)</text>
+  <text class="edge" x="260.0" y="176.0" text-anchor="middle">LINDDUN: L, D (Linkability, Disclosure)</text>
+  <path class="arrow" d="M 390.0 346.0 L 390.0 134.0"/>
+  <text class="edge" x="390.0" y="236.0" text-anchor="middle">настройки аутентификации (read-only)</text>
+  <path class="arrow" d="M 390.0 134.0 L 390.0 162.0"/>
+  <text class="edge" x="390.0" y="144.0" text-anchor="middle">токен (JWT/OAuth2)</text>
+  <path class="arrow" d="M 390.0 226.0 L 390.0 254.0"/>
+  <text class="edge" x="390.0" y="236.0" text-anchor="middle">данные для записи (JSON)</text>
+  <path class="arrow" d="M 480.0 286.0 L 620.0 272.0"/>
+  <text class="edge" x="550.0" y="275.0" text-anchor="middle">S3 API / HTTPS/TLS 1.3</text>
+  <path class="arrow" d="M 480.0 194.0 L 620.0 152.0"/>
+  <text class="edge" x="550.0" y="169.0" text-anchor="middle">API запросы; HTTPS/TLS 1.3 (JSON)</text>
+  <path class="arrow" d="M 620.0 152.0 L 480.0 194.0"/>
+  <text class="edge" x="550.0" y="169.0" text-anchor="middle">API ответы; HTTPS/TLS 1.3 (JSON)</text>
+  <rect class="note" x="40.0" y="420.0" width="360" height="90" rx="4"/>
+  <text class="label" x="50.0" y="438.0" text-anchor="start">Нотация:</text>
+  <text class="label" x="50.0" y="451.0" text-anchor="start">- STRIDE on nodes</text>
+  <text class="label" x="50.0" y="464.0" text-anchor="start">- LINDDUN on PII flow</text>
+  <text class="label" x="50.0" y="477.0" text-anchor="start">- Misuse: weak OAuth, credential stuffing</text>
+  <text class="label" x="50.0" y="490.0" text-anchor="start">- Abuse: token replay, SSRF via outbound API</text>
+</svg>

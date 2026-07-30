@@ -65,12 +65,9 @@ Each mirror service pipeline now produces two downloadable artifact jobs:
 
 - `aspm-html-report`:
   - `reports/aspm-report-<SERVICE_NAME>.html`
-- `dfd-diagrams-report`:
+- `dfd-diagrams-report` (Go binary `fabrica-diagrams-go`, no Graphviz):
   - `reports/dfd/<SERVICE_NAME>/index.html` (open this first)
   - `reports/dfd/<SERVICE_NAME>/dfd_diagram.svg`
-  - `reports/dfd/<SERVICE_NAME>/architecture.svg`
-  - `reports/dfd/<SERVICE_NAME>/pipeline_security.svg`
-  - `reports/dfd/<SERVICE_NAME>/k8s_deploy.svg`
   - `reports/dfd/<SERVICE_NAME>/stride_register.md`
   - `reports/dfd/<SERVICE_NAME>/threat_model.json`
   - `reports/dfd/<SERVICE_NAME>/security_requirements.yaml`

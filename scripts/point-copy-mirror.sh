@@ -48,6 +48,7 @@ FILES=(
   scripts/run-schemathesis-mirror.sh
   scripts/run-dast-zap-api-mirror.sh
   scripts/dfd-export-ci.sh
+  diagrams-go
   scripts/mirror-sync-sources.py
   scripts/mirror-fleet-trigger.py
   scripts/mirror-baseline-trigger.sh
@@ -90,7 +91,7 @@ apply_one() {
     dest="$TARGET/.gitlab-ci.yml"
   elif [[ "$rel" == templates/gitlab/jobs ]]; then
     dest="$TARGET/.gitlab/jobs"
-  elif [[ "$rel" == config/* || "$rel" == scripts/* ]]; then
+  elif [[ "$rel" == config/* || "$rel" == scripts/* || "$rel" == diagrams-go || "$rel" == diagrams-go/* ]]; then
     dest="$TARGET/${rel}"
   else
     dest="$TARGET/${rel#templates/}"

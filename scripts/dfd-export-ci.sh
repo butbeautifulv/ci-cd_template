@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Export DFD/THREAT bundle for mirror pipeline artifacts.
+# Export DFD/THREAT bundle via fabrica-diagrams-go (no Graphviz / Python).
 set -eu
 
 if [ -z "${SERVICE_NAME:-}" ]; then
@@ -7,95 +7,43 @@ if [ -z "${SERVICE_NAME:-}" ]; then
   exit 1
 fi
 
+ROOT="$(CDPATH= cd -- "$(dirname "$0")/.." && pwd)"
 DFD_OUT_DIR="${DFD_OUT_DIR:-reports/dfd/${SERVICE_NAME}}"
 mkdir -p "${DFD_OUT_DIR}"
 
-if ! command -v dot >/dev/null 2>&1; then
-  echo "[dfd] dot missing, attempting apt bootstrap"
-  if command -v apt-get >/dev/null 2>&1; then
-    auth_file="/etc/apt/auth.conf"
-    if [ -n "${NEXUS_USER:-}" ] && [ -n "${NEXUS_PASSWORD:-}" ]; then
-      printf 'machine http://archive.ubuntu.com login %s password %s\nmachine http://security.ubuntu.com login %s password %s\n' \
-        "${NEXUS_USER}" "${NEXUS_PASSWORD}" "${NEXUS_USER}" "${NEXUS_PASSWORD}" > "${auth_file}" || true
-      chmod 600 "${auth_file}" || true
-    fi
-    apt-get update
-    apt-get install -y --no-install-recommends graphviz ca-certificates
-    rm -f "${auth_file}" || true
-    rm -rf /var/lib/apt/lists/* || true
+BIN="${FABRICA_DIAGRAMS_GO_BIN:-}"
+if [ -z "${BIN}" ]; then
+  if [ -x "${ROOT}/diagrams-go/bin/fabrica-diagrams-go" ]; then
+    BIN="${ROOT}/diagrams-go/bin/fabrica-diagrams-go"
+  elif command -v fabrica-diagrams-go >/dev/null 2>&1; then
+    BIN="$(command -v fabrica-diagrams-go)"
   fi
 fi
-if ! command -v dot >/dev/null 2>&1; then
-  echo "[dfd] ERROR: Graphviz binary 'dot' not found in PATH" >&2
-  exit 1
+
+if [ -z "${BIN}" ] || [ ! -x "${BIN}" ]; then
+  if command -v go >/dev/null 2>&1 && [ -d "${ROOT}/diagrams-go" ]; then
+    echo "[dfd] building fabrica-diagrams-go from source"
+    BIN="${DFD_OUT_DIR}/.fabrica-diagrams-go"
+    (cd "${ROOT}/diagrams-go" && CGO_ENABLED=0 go build -o "${BIN}" ./cmd/fabrica-diagrams-go)
+  else
+    echo "[dfd] ERROR: fabrica-diagrams-go binary not found (expected diagrams-go/bin/fabrica-diagrams-go)" >&2
+    exit 1
+  fi
 fi
 
-if ! python3 -c "import importlib.util,sys; sys.exit(0 if importlib.util.find_spec('graphviz') else 1)"; then
-  echo "[dfd] python graphviz missing, attempting uv bootstrap"
-  python3 -m pip install --no-cache-dir uv
-  uv pip install --system --no-cache graphviz==0.20.3
-fi
-if ! python3 -c "import importlib.util,sys; sys.exit(0 if importlib.util.find_spec('graphviz') else 1)"; then
-  echo "[dfd] ERROR: python module 'graphviz' not installed" >&2
-  exit 1
-fi
-
-echo "[dfd] rendering all diagrams with graphviz runtime"
-python3 diagrams/main.py --export all --output-dir "${DFD_OUT_DIR}"
-
-cat > "${DFD_OUT_DIR}/index.html" <<EOF
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DFD bundle — ${SERVICE_NAME}</title>
-  <style>
-    body { font-family: Arial, sans-serif; margin: 20px; line-height: 1.4; }
-    h1, h2 { margin: 0.5rem 0; }
-    .muted { color: #444; font-size: 0.95rem; }
-    .links a { margin-right: 12px; }
-    .diag { margin: 16px 0 28px; border: 1px solid #ddd; padding: 12px; border-radius: 8px; }
-    .diag img { width: 100%; height: auto; border: 1px solid #eee; }
-  </style>
-</head>
-<body>
-  <h1>DFD artifact bundle</h1>
-  <p class="muted">Service: <strong>${SERVICE_NAME}</strong></p>
-
-  <h2>Exports</h2>
-  <div class="links">
-    <a href="stride_register.md">stride_register.md</a>
-    <a href="threat_model.json">threat_model.json</a>
-    <a href="security_requirements.yaml">security_requirements.yaml</a>
-  </div>
-
-  <div class="diag">
-    <h2>DFD diagram</h2>
-    <div class="links"><a href="dfd_diagram.svg">open raw SVG</a></div>
-    <img src="dfd_diagram.svg" alt="DFD diagram" />
-  </div>
-  <div class="diag">
-    <h2>Architecture</h2>
-    <div class="links"><a href="architecture.svg">open raw SVG</a></div>
-    <img src="architecture.svg" alt="Architecture diagram" />
-  </div>
-  <div class="diag">
-    <h2>Pipeline security</h2>
-    <div class="links"><a href="pipeline_security.svg">open raw SVG</a></div>
-    <img src="pipeline_security.svg" alt="Pipeline security diagram" />
-  </div>
-  <div class="diag">
-    <h2>K8s deploy</h2>
-    <div class="links"><a href="k8s_deploy.svg">open raw SVG</a></div>
-    <img src="k8s_deploy.svg" alt="K8s deploy diagram" />
-  </div>
-</body>
-</html>
-EOF
+echo "[dfd] rendering DFD bundle with ${BIN}"
+"${BIN}" \
+  --output-dir "${DFD_OUT_DIR}" \
+  --only dfd \
+  --export all \
+  --service-name "${SERVICE_NAME}"
 
 test -s "${DFD_OUT_DIR}/dfd_diagram.svg" || {
   echo "[dfd] ERROR: missing dfd_diagram.svg" >&2
+  exit 1
+}
+grep -q '<svg' "${DFD_OUT_DIR}/dfd_diagram.svg" || {
+  echo "[dfd] ERROR: dfd_diagram.svg is not valid SVG" >&2
   exit 1
 }
 test -s "${DFD_OUT_DIR}/stride_register.md" || {
@@ -104,6 +52,10 @@ test -s "${DFD_OUT_DIR}/stride_register.md" || {
 }
 test -s "${DFD_OUT_DIR}/threat_model.json" || {
   echo "[dfd] ERROR: missing threat_model.json" >&2
+  exit 1
+}
+test -s "${DFD_OUT_DIR}/security_requirements.yaml" || {
+  echo "[dfd] ERROR: missing security_requirements.yaml" >&2
   exit 1
 }
 test -s "${DFD_OUT_DIR}/index.html" || {
