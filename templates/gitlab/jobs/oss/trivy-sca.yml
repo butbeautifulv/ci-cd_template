@@ -10,6 +10,9 @@ trivy-sca:
     - .trivy_job
   # Block-mode SCA: gate-check enforces; job must not soft-fail.
   allow_failure: false
+  variables:
+    ASPM_CONTROL: sca
+    ASPM_REPORT: sca.sarif
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   needs:
@@ -196,6 +199,9 @@ trivy-sca:
         exit 1
       fi
       echo "[sca] sbom.cdx.json_bytes=$(wc -c < sbom.cdx.json | tr -d ' ')"
+  after_script:
+    - sh scripts/aspm-export-ci.sh
+    - ASPM_CONTROL=sbom ASPM_REPORT=sbom.cdx.json sh scripts/aspm-export-ci.sh
   artifacts:
     when: always
     paths:

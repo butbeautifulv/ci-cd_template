@@ -1,3 +1,8 @@
+# ASPM upload wave — DEPRECATED for mirror/oss-full profiles.
+# Scan jobs now call scripts/aspm-export-ci.sh in after_script (inline export).
+# Keep this file for legacy includes / reference until all profiles migrate.
+# Prefer: templates/gitlab/jobs/aspm/export-after-script.yml + aspm-export-ci.sh
+
 # ASPM upload wave — static findings (security stage)
 # Corp: PyYAML optional (aspm-export falls back to _parse_config_simple).
 # Shell runners ignore job image — docker-run OSS_PYTHON_IMAGE when python3 missing.

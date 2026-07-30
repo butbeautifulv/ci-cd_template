@@ -8,8 +8,23 @@ DAF practice: `P-DEFECT-CNS` — consolidation of SAST/DAST/SCA findings.
 
 - Config: [`config/aspm-export.yaml`](../../config/aspm-export.yaml)
 - CLI: [`scripts/aspm-export.py`](../../scripts/aspm-export.py)
-- GitLab snippet: [`.gitlab/jobs/aspm/export-after-script.yml`](../../templates/gitlab/jobs/aspm/export-after-script.yml)
-- Profile **`oss-full`**: per-scan upload in `after_script` of each scanner job
+- CI entry (preferred): [`scripts/aspm-export-ci.sh`](../../scripts/aspm-export-ci.sh) — skip/resolve/python|docker fallback
+- GitLab snippet: [`templates/gitlab/jobs/aspm/export-after-script.yml`](../../templates/gitlab/jobs/aspm/export-after-script.yml)
+- Profiles **`oss-full-service-mirror`** and **`oss-full`**: **one job per control** — scan in `script`, DefectDojo upload in `after_script` via `aspm-export-ci.sh`
+- Legacy `upload-*-to-dojo` jobs / stages `static-security-upload` / `image-security-upload` are **removed** from those profiles (files kept deprecated for old forks)
+
+```yaml
+semgrep-sast:
+  variables:
+    ASPM_CONTROL: sast
+    ASPM_REPORT: semgrep.sarif
+  script:
+    - # … scan …
+  after_script:
+    - sh scripts/aspm-export-ci.sh
+```
+
+DAST/fuzz set `ASPM_SKIP_EMPTY=false` so Dojo still gets a Test when the report has zero alerts.
 
 ## DefectDojo setup
 

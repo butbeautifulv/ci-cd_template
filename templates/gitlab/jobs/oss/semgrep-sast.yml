@@ -8,6 +8,9 @@ semgrep-sast:
   extends:
     - .workflow_rules_security
     - .security_job_defaults
+  variables:
+    ASPM_CONTROL: sast
+    ASPM_REPORT: semgrep.sarif
   before_script:
     - !reference [.source_checkout, before_script]
   script:
@@ -66,6 +69,8 @@ semgrep-sast:
         echo "[sast] ERROR: python3 unavailable, cannot run gate-check"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     paths:
       - semgrep.sarif

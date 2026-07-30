@@ -11,6 +11,8 @@ dockerfile-lint:
   variables:
     OSS_HADOLINT_IMAGE: ${OSS_HADOLINT_IMAGE}
     DOCKERFILE_GLOBS: ${DOCKERFILE_GLOBS:-}
+    ASPM_CONTROL: dockerfile
+    ASPM_REPORT: hadolint-report.json
   rules:
     - if: $SAST_DISABLED == 'true' || $SAST_DISABLED == '1' || $SECURITY_DISABLED == 'true' || $SECURITY_DISABLED == '1'
       when: never
@@ -168,6 +170,8 @@ dockerfile-lint:
         echo "[dockerfile] ERROR: python3 unavailable for gate-check"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     paths:
       - hadolint.sarif

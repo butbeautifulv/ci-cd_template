@@ -187,6 +187,29 @@ done
 grep -q 'run-dast-zap-api-mirror.sh' scripts/point-copy-mirror.sh || fail "point-copy missing run-dast-zap-api-mirror.sh"
 ok "point-copy lists run-dast-zap-api-mirror"
 
+[[ -f scripts/aspm-export-ci.sh ]] || fail "missing scripts/aspm-export-ci.sh"
+ok "aspm-export-ci.sh present"
+grep -q 'curl-fallback' scripts/aspm-export-ci.sh || fail "aspm-export-ci.sh missing curl-fallback for pythonless images"
+ok "aspm-export-ci.sh has curl-fallback"
+[[ -f scripts/vendor/curl-amd64 ]] || fail "missing scripts/vendor/curl-amd64 (static curl for distroless scanners)"
+ok "vendor curl-amd64 present"
+grep -q 'scripts/vendor/curl-amd64' scripts/point-copy-mirror.sh || fail "point-copy missing vendor curl-amd64"
+ok "point-copy lists vendor curl-amd64"
+grep -q 'aspm-export-ci.sh' scripts/point-copy-mirror.sh || fail "point-copy missing aspm-export-ci.sh"
+ok "point-copy lists aspm-export-ci.sh"
+
+if grep -E 'upload-.*-to-dojo|aspm/upload-static|aspm/upload-image|static-security-upload|image-security-upload' \
+  templates/profiles/oss-full-service-mirror.gitlab-ci.yml >/dev/null 2>&1; then
+  fail "mirror profile still references upload-*-to-dojo jobs or upload stages"
+fi
+ok "mirror profile has no upload-* wave"
+
+if ! grep -q 'aspm-export-ci.sh' templates/gitlab/jobs/oss/gitleaks.yml \
+  || ! grep -q 'aspm-export-ci.sh' templates/gitlab/jobs/oss/dast-zap-mirror.yml; then
+  fail "expected aspm-export-ci.sh in gitleaks/dast after_script"
+fi
+ok "inline ASPM export wired on sample scan jobs"
+
 [[ -f docs/runbooks/mirror-baseline-inventory.md ]] || fail "missing baseline runbook"
 [[ -f docs/runbooks/mirror-api-trigger-schemathesis.md ]] || fail "missing API/fuzz runbook"
 [[ -f docs/runbooks/mirror-registry-retention.md ]] || fail "missing retention runbook"

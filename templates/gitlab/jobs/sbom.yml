@@ -7,6 +7,9 @@ sbom-generate:
   image:
     name: ${OSS_TRIVY_IMAGE:-aquasec/trivy:0.67.2}
     entrypoint: [""]
+  variables:
+    ASPM_CONTROL: sbom
+    ASPM_REPORT: sbom.cdx.json
   rules:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
   before_script:
@@ -104,6 +107,8 @@ sbom-generate:
         echo "[sbom] ERROR: python3 unavailable for gate-check"
         exit 1
       fi
+  after_script:
+    - sh scripts/aspm-export-ci.sh
   artifacts:
     when: always
     paths:

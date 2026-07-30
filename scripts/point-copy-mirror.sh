@@ -57,6 +57,8 @@ FILES=(
   scripts/pip-index-auth.sh
   scripts/gate-check.py
   scripts/aspm-export.py
+  scripts/aspm-export-ci.sh
+  scripts/vendor/curl-amd64
   scripts/deploy-test-k8s.sh
   scripts/cleanup-test-k8s.sh
   scripts/ci-ephemeral-stub-server.py

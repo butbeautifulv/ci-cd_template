@@ -60,8 +60,13 @@ runs:
       env:
         DEFECTDOJO_URL: ${{ inputs.defectdojo_url }}
         DEFECTDOJO_API_TOKEN: ${{ inputs.defectdojo_token }}
+        ASPM_CONTROL: ${{ inputs.control }}
+        ASPM_REPORT: ${{ inputs.report }}
+        DEFECTDOJO_FAIL_ON_ERROR: "false"
       run: |
-        if [ -f scripts/aspm-export.py ]; then
+        if [ -f scripts/aspm-export-ci.sh ]; then
+          sh scripts/aspm-export-ci.sh
+        elif [ -f scripts/aspm-export.py ]; then
           python scripts/aspm-export.py --control "${{ inputs.control }}" --report "${{ inputs.report }}" || true
         fi
     - name: Upload SARIF
