@@ -245,22 +245,27 @@ text2 = text.replace(
     "from gismaputils.auth.network.auth_requests import get_token",
     "from gismaputils.auth.network.auth_requests import auth",
 )
-text3, n = re.subn(
-    r"token\s*=\s*await\s+get_token\([^)]*\)",
+# Multiline call — do NOT use [^)]* (breaks on get_settings()).
+pat = re.compile(
+    r"token\s*=\s*await\s+get_token\(\s*"
+    r"url_stand\s*=.*?"
+    r"btb_password\s*=\s*get_settings\(\)\.BACK_TO_BACK_PASSWORD\s*,?\s*"
+    r"\)",
+    re.S,
+)
+repl = (
     "auth.set_config(\n"
     "        url_auth=get_settings().URL_AUTH,\n"
     "        b2b_user=get_settings().BACK_TO_BACK_USER,\n"
     "        b2b_pwd=get_settings().BACK_TO_BACK_PASSWORD,\n"
     "    )\n"
-    "    token = await auth.get_token()",
-    text2,
-    count=1,
+    "    token = await auth.get_token()"
 )
-if n:
-    hr.write_text(text3, encoding="utf-8")
-    print(f"[kaniko] patched {hr.relative_to(ctx)} for gismaputils Auth.get_token compat")
-else:
-    print(f"[kaniko] WARN: remapped gismaputils but could not patch {hr}", flush=True)
+text3, n = pat.subn(repl, text2, count=1)
+if n == 0:
+    raise SystemExit(f"[kaniko] WARN: remapped gismaputils but could not patch {hr}")
+hr.write_text(text3, encoding="utf-8")
+print(f"[kaniko] patched {hr.relative_to(ctx)} for gismaputils Auth.get_token compat")
 PY
 fi
 if ls "$VENDOR_DIR"/*.whl >/dev/null 2>&1; then
