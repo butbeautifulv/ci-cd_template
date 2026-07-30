@@ -12,7 +12,7 @@
 # Optional per-service:
 #   openapi_path, api_base_url, deploy_*, readiness_path, service_port
 #
-# Wave-6 (2026-07): hwa, data_lake, user, dynamic_layer, event, defects
+# Wave-3 (2026-07): hwa, data_lake, user (pilots only; core candidates disabled)
 
 services:
   hwa_service:
@@ -22,6 +22,12 @@ services:
     enabled: true
     tier: pilot
     service_port: "8000"
+    openapi_path: "openapi.json"
+    deploy_command: "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    deploy_workdir: "/app/code"
+    readiness_path: "/v1/openapi.json"
+    deploy_env_file: "config/mirror-deploy/hwa_service.env"
+    deploy_stubs: "http,mongo"
   data_lake_service:
     project_id: "979"
     repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/data_lake_service.git"
@@ -44,24 +50,29 @@ services:
     tier: pilot
     service_port: "8000"
     openapi_path: "openapi.json"
+    deploy_command: "python -m uvicorn src.main:app --host 0.0.0.0 --port 8000"
+    deploy_workdir: "/app/code"
+    readiness_path: "/v1/openapi.json"
+    deploy_env_file: "config/mirror-deploy/user_service.env"
+    deploy_stubs: "http,mongo"
   dynamic_layer_service:
     project_id: "873"
     repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/dynamic_layer_service.git"
     source_ref_fallback: "0.5.1"
-    enabled: true
-    tier: core
+    enabled: false
+    tier: candidate
     service_port: "8000"
   event_service:
     project_id: "1259"
     repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/event_service.git"
     source_ref_fallback: "0.4.1"
-    enabled: true
-    tier: core
+    enabled: false
+    tier: candidate
     service_port: "8000"
   defects:
     project_id: "1623"
     repo_url: "https://gitlab.svo.aero/dpm/airport_digital_ecosystem/map_objects/defects.git"
     source_ref_fallback: "0.5.7"
-    enabled: true
-    tier: core
+    enabled: false
+    tier: candidate
     service_port: "8000"

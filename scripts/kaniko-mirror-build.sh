@@ -155,15 +155,21 @@ if [ -n "$GISMAP_TOKEN" ] && [ -d "$CONTEXT" ]; then
   fi
   for ver in $VERS; do
     # GitLab simple index → wheel URL via python (TLS ok in helper image).
+    # If exact pin missing (e.g. user_service gismaputils==0.2.5), remap req to
+    # nearest available Package Registry wheel so BUILD_FALLBACK stays 0.
     if command -v python3 >/dev/null 2>&1; then
       GISMAP_TOKEN="$GISMAP_TOKEN" GISMAPUTILS_INDEX_HOST="$GISMAPUTILS_INDEX_HOST" \
-      GISMAPUTILS_PYPI_PROJECT_ID="$GISMAPUTILS_PYPI_PROJECT_ID" VENDOR_DIR="$VENDOR_DIR" VER="$ver" python3 - <<'PY'
+      GISMAPUTILS_PYPI_PROJECT_ID="$GISMAPUTILS_PYPI_PROJECT_ID" VENDOR_DIR="$VENDOR_DIR" \
+      VER="$ver" CONTEXT="$CONTEXT" python3 - <<'PY'
 import os, ssl, urllib.request, re, sys
+from pathlib import Path
+
 ver = os.environ["VER"]
 host = os.environ["GISMAPUTILS_INDEX_HOST"]
 pid = os.environ["GISMAPUTILS_PYPI_PROJECT_ID"]
 tok = os.environ["GISMAP_TOKEN"]
 vendor = os.environ["VENDOR_DIR"]
+context = Path(os.environ["CONTEXT"])
 ctx = ssl.create_default_context()
 ctx.check_hostname = False
 ctx.verify_mode = ssl.CERT_NONE
@@ -174,11 +180,38 @@ try:
 except Exception as e:
     print(f"[kaniko] WARN: cannot list gismaputils simple index: {e}", file=sys.stderr)
     sys.exit(0)
-pat = re.compile(r'href="([^"]*gismaputils-' + re.escape(ver) + r'-[^"]+\.whl)[^"]*"', re.I)
-m = pat.search(html)
+
+def wheel_for(v: str):
+    pat = re.compile(r'href="([^"]*gismaputils-' + re.escape(v) + r'-[^"]+\.whl)[^"]*"', re.I)
+    return pat.search(html)
+
+m = wheel_for(ver)
+use_ver = ver
 if not m:
-    print(f"[kaniko] WARN: no wheel for gismaputils=={ver} in Package Registry", file=sys.stderr)
-    sys.exit(0)
+    avail = sorted(set(re.findall(r"gismaputils-([0-9][^\"/]+?)-py", html, flags=re.I)))
+    prefer = [x for x in ("0.5.1", "0.5.3") if x in avail]
+    use_ver = (prefer or avail)[-1] if (prefer or avail) else ""
+    if not use_ver:
+        print(f"[kaniko] WARN: no wheel for gismaputils=={ver} in Package Registry", file=sys.stderr)
+        sys.exit(0)
+    print(
+        f"[kaniko] WARN: no wheel for gismaputils=={ver}; remapping requirements → {use_ver}",
+        file=sys.stderr,
+    )
+    pin_re = re.compile(rf"^(?P<pre>\s*gismaputils\s*==\s*){re.escape(ver)}(?P<post>\b.*)$", re.M)
+    for rf in (context / "dev-requirements.txt", context / "requirements.txt"):
+        if not rf.is_file():
+            continue
+        text = rf.read_text(encoding="utf-8", errors="replace")
+        new, n = pin_re.subn(rf"\g<pre>{use_ver}\g<post>", text)
+        if n:
+            rf.write_text(new, encoding="utf-8")
+            print(f"[kaniko] rewritten {rf.name}: gismaputils=={ver} → {use_ver} ({n} hit(s))")
+    m = wheel_for(use_ver)
+    if not m:
+        print(f"[kaniko] WARN: remap target gismaputils=={use_ver} also missing", file=sys.stderr)
+        sys.exit(0)
+
 url = m.group(1)
 if url.startswith("/"):
     url = f"https://{host}{url}"

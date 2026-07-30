@@ -373,17 +373,24 @@ Pipeline wave after `112698`/`112701`:
 ## Wave-6 fleet + ASPM HTML (2026-07)
 
 Tooling: `scripts/mirror-fleet-trigger.py`, shared `scripts/lib/mirror_services.py`, `make mirror-fleet` / `make mirror-aspm-html`.
-Registry Wave-6: hwa, data_lake, user, dynamic_layer, event, defects (`enabled: true`).
+Registry **Wave-3** (pilots only): hwa, data_lake, user (`enabled: true`). Core trio kept as `enabled: false` / `tier: candidate`.
 HTML: `scripts/dojo-render-aspm-report.py` → `reports/aspm-report-<service>.html` after pipelines (see `defectdojo-aspm-report.md`).
 
-| When | SERVICE_NAME | SOURCE_REF | Pipeline ID | URL |
-|------|--------------|------------|-------------|-----|
-| 2026-07-30 | hwa_service | 0.0.4 | 112805 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112805 |
-| 2026-07-30 | data_lake_service | 0.4.10 | 112806 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112806 |
-| 2026-07-30 | user_service | 0.4.4 | 112807 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112807 |
-| 2026-07-30 | dynamic_layer_service | 0.5.1 | 112808 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112808 |
-| 2026-07-30 | event_service | 0.4.1 | 112809 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112809 |
-| 2026-07-30 | defects | 0.5.7 | 112810 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112810 |
+| When | SERVICE_NAME | SOURCE_REF | Pipeline ID | URL | Notes |
+|------|--------------|------------|-------------|-----|-------|
+| 2026-07-30 | hwa_service | 0.0.4 | 112805 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112805 | deploy CrashLoop (no CMD) — superseded |
+| 2026-07-30 | data_lake_service | 0.4.10 | 112806 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112806 | superseded by Wave-3 re-fleet |
+| 2026-07-30 | user_service | 0.4.4 | 112807 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112807 | BUILD_FALLBACK=1 (gismaputils 0.2.5 missing) — superseded |
+| 2026-07-30 | dynamic_layer_service | 0.5.1 | 112808 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112808 | canceled (Wave-3 shrink) |
+| 2026-07-30 | event_service | 0.4.1 | 112809 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112809 | canceled (Wave-3 shrink) |
+| 2026-07-30 | defects | 0.5.7 | 112810 | https://gitlab.svo.aero/av.popov/map_objects-ci/-/pipelines/112810 | canceled (Wave-3 shrink) |
 
-Re-fleet on mirror `b29d9e7` (schemathesis OpenAPI fallback fix). Prior IDs 112798–112803 canceled/superseded.
+### Wave-3 deploy fix (2026-07-30)
+
+- Shrink fleet to 3 pilots; disable core candidates in registry.
+- `hwa`/`user`: `deploy_command` + `deploy_workdir` + mongo/http stubs + env fixtures (`config/mirror-deploy/*.env`); readiness `/v1/openapi.json`.
+- Kaniko: if `gismaputils==X` wheel missing, remap pin to Package Registry wheel (0.5.1/0.5.3) so `BUILD_FALLBACK=0`.
+
+Re-fleet IDs: _(filled after live trigger)_
+
 

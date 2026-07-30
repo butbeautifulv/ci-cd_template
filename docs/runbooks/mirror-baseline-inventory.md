@@ -1,4 +1,4 @@
-# Mirror baseline inventory + Wave-6 fleet + ASPM HTML
+# Mirror baseline inventory + Wave-3 fleet + ASPM HTML
 
 First-time / wave DefectDojo matrix by service@version **without** creating hotfix git tags.
 
@@ -28,7 +28,7 @@ Merge reviewed rows into [`config/mirror-services.yaml`](../../config/mirror-ser
 | `enabled` | Fleet/sync skip when `false` |
 | `tier` | `pilot` \| `core` \| `candidate` \| `skip` |
 | `openapi_path` / `api_base_url` | Schemathesis / DAST |
-| deploy_* | Ephemeral deploy (data_lake example) |
+| deploy_* | Ephemeral deploy (pilots: hwa / data_lake / user) |
 
 **API fleet does not need `SERVICE_TAG_REGEX`.** Expand that regex only when adding **tag-driven** services.
 
@@ -36,13 +36,13 @@ Merge reviewed rows into [`config/mirror-services.yaml`](../../config/mirror-ser
 
 ```bash
 make mirror-fleet-dry
-# or Wave-6 only:
-python3 scripts/mirror-fleet-trigger.py --dry-run --wave6
+# or Wave-3 only:
+python3 scripts/mirror-fleet-trigger.py --dry-run --wave3
 ```
 
-## Wave-6 live fleet
+## Wave-3 live fleet
 
-Services: `hwa_service`, `data_lake_service`, `user_service`, `dynamic_layer_service`, `event_service`, `defects`.
+Services: `hwa_service`, `data_lake_service`, `user_service` (pilots). Core candidates stay `enabled: false`.
 
 ```bash
 export MIRROR_PROJECT_ID=1962
@@ -61,7 +61,7 @@ bash scripts/mirror-baseline-trigger.sh --dry-run
 
 ## After pipelines — ASPM HTML (final step)
 
-Wait until Wave-6 pipelines finish (inline after_script uploads to DefectDojo). Then:
+Wait until Wave-3 pipelines finish (inline after_script uploads to DefectDojo). Then:
 
 ```bash
 export DEFECTDOJO_URL=…

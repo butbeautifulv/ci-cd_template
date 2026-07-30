@@ -4,8 +4,8 @@
 PROFILE ?= shift-left
 PLATFORM ?= github
 TARGET ?= /tmp/fabrica-adopt-test
-WAVE6 := hwa_service data_lake_service user_service dynamic_layer_service event_service defects
-PRODUCTS ?= $(WAVE6)
+WAVE3 := hwa_service data_lake_service user_service
+PRODUCTS ?= $(WAVE3)
 CONCURRENCY ?= 1
 TIER ?=
 
@@ -40,12 +40,12 @@ mirror-fleet-dry:
 	python3 scripts/mirror-fleet-trigger.py --dry-run --enabled-only $(if $(TIER),--tier $(TIER),)
 
 mirror-fleet:
-	python3 scripts/mirror-fleet-trigger.py --wave6 --concurrency $(CONCURRENCY)
+	python3 scripts/mirror-fleet-trigger.py --wave3 --concurrency $(CONCURRENCY)
 
 mirror-inventory-stub:
 	python3 scripts/mirror-inventory-services.py --yaml-stub
 
-# Batch HTML after Wave-6 pipelines (requires DEFECTDOJO_*). Soft-continue per product.
+# Batch HTML after Wave-3 pipelines (requires DEFECTDOJO_*). Soft-continue per product.
 mirror-aspm-html:
 	@mkdir -p reports
 	@fail=0; for p in $(PRODUCTS); do \

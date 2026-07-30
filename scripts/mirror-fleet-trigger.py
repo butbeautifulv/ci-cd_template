@@ -25,14 +25,13 @@ sys.path.insert(0, str(ROOT / "scripts"))
 
 from lib.mirror_services import filter_services, load_services  # noqa: E402
 
-WAVE6 = [
+# Wave-3 pilots (deploy-capable). Keep --wave6 as alias for scripts/Make.
+WAVE3 = [
     "hwa_service",
     "data_lake_service",
     "user_service",
-    "dynamic_layer_service",
-    "event_service",
-    "defects",
 ]
+WAVE6 = WAVE3  # backwards-compat alias
 
 
 def api_base() -> str:
@@ -92,9 +91,14 @@ def main() -> int:
     ap.add_argument("--services", default="", help="Comma-separated allow-list (default: all matching filters)")
     ap.add_argument("--enabled-only", action=argparse.BooleanOptionalAction, default=True)
     ap.add_argument(
+        "--wave3",
+        action="store_true",
+        help="Shorthand: Wave-3 pilot allow-list (hwa, data_lake, user)",
+    )
+    ap.add_argument(
         "--wave6",
         action="store_true",
-        help="Shorthand: Wave-6 service allow-list",
+        help="Alias for --wave3 (legacy name)",
     )
     ap.add_argument(
         "--registry",
@@ -113,8 +117,8 @@ def main() -> int:
         return 1
 
     names = None
-    if args.wave6:
-        names = list(WAVE6)
+    if args.wave3 or args.wave6:
+        names = list(WAVE3)
     elif args.services.strip():
         names = [x.strip() for x in args.services.split(",") if x.strip()]
 
